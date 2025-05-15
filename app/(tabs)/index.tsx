@@ -1,75 +1,615 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import config from '../../config.json';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+const profiles = [
+  {
+    id: '1',
+    name: 'Louise MARTIN',
+    username: '@louisemartin87',
+    description: '"J\'aime aider et je serais ravie de vous partager mon expérience"',
+    rating: 5,
+    categories: ['Babysitting', 'Pet Sitting', 'Cours'],
+    image: 'https://fr.web.img6.acsta.net/c_310_420/pictures/20/01/15/12/35/3532251.jpg',
+  },
+  {
+    id: '2',
+    name: 'Antoine GARDIN',
+    username: '@antogardin_75',
+    description: '"J\'aime travailler et aider ceux qui m\'entourent"',
+    rating: 4,
+    categories: ['Babysitting', 'Parenting', 'Cours'],
+    image: 'https://www.influenceur.promo/wp-content/uploads/2024/03/maghla-788x788.jpg',
+  },
+  {
+    id: '3',
+    name: 'Céline Claire-Marie',
+    username: '@celineclairemarie09',
+    description: '"Babysitting, animaux, assistance quotidienne, je suis là pour vous servir !"',
+    rating: 5,
+    categories: ['Babysitting', 'Pet Sitting', 'Parenting'],
+    image: 'https://assets.afcdn.com/album/D20211115/phalbm26023325_w320.webp',
+  },
+  {
+    id: '4',
+    name: 'Lisa Karino',
+    username: '@lisakarin07',
+    description: '"Bienvenue sur mon compte Starset !"',
+    rating: 4,
+    categories: ['Babysitting', 'Cours'],
+    image: 'https://photos.tf1.fr/1280/720/enjoyphoenix-2-49caba-0@3x.webp',
+  },
+];
+
+const HomeScreen = () => {
+  const [search, setSearch] = useState('');
+  const [showProfiles, setShowProfiles] = useState(false);
+  const [workers, setWorkers] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [fetchedCategories, setFetchedCategories] = useState([]); // Nouvel état pour stocker les catégories
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation()
+  const suggestions = [
+    'Babysitter de nuit',
+  ];
+  const [recentSearches, setRecentSearches] = useState([]); // Historique de recherche
+
+  // Met à jour la recherche sans déclencher l'affichage
+  const handleInputChange = (text: any) => {
+    setSearch(text);
+    setShowSuggestions(true); // Affiche les suggestions dès qu'on clique sur la barre de recherche
+  };
+
+  // Sauvegarder une nouvelle recherche
+  const saveRecentSearch = async (query: any) => {
+    try {
+      let updatedSearches: any = [...recentSearches];
+      if (!updatedSearches.includes(query)) {
+        updatedSearches.unshift(query); // Ajouter en haut de la liste
+        if (updatedSearches.length > 5) updatedSearches.pop(); // Limiter à 5 recherches
+        await AsyncStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+        console.log(updatedSearches)
+        setRecentSearches(updatedSearches);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement de la recherche:', error);
+    }
+  };
+
+  // Affiche les profils lorsque l'utilisateur appuie sur la loupe
+  const handleSearchSubmit = async () => {
+    setShowSuggestions(false);
+    await saveRecentSearch(search);
+    searchWorkers()
+    setShowProfiles(true);
+  };
+
+  // Réinitialise la recherche et l'affichage
+  const clearSearch = () => {
+    setSearch('');
+    setShowProfiles(false);
+  };
+
+  // Charger l'historique des recherches
+  const loadRecentSearches = async () => {
+    try {
+      const searches = await AsyncStorage.getItem('recentSearches');
+      if (searches) {
+        setRecentSearches(JSON.parse(searches));
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des recherches récentes:', error);
+    }
+  };
+
+  const searchWorkers = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/search-workers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({searchString : search}),
+      });
+      const data = await response.json() 
+      console.log(1)
+      console.log(data)
+      setWorkers(data.workers)
+      
+    } catch (error) {
+      console.error('Erreur lors de la récupération des prestations :', error);
+    }
+  };
+
+  const searchWorkersByField = async (field : any) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${config.backendUrl}/api/mission/filter-workers-by-field`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ field }),
+      });
+      const data = await response.json();
+      setWorkers(data.workers);
+      setShowProfiles(true);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des travailleurs :', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderSuggestion = ({ item } : any) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => {
+        setSearch(item);
+        setShowSuggestions(false);
+        setShowProfiles(true);
+      }}
+    >
+      <Ionicons name="search" size={20} color="black" style={styles.suggestionIcon} />
+      <Text style={styles.suggestionText}>{item}</Text>
+    </TouchableOpacity>
   );
-}
+
+  const goToPrestationViewWithId = (id : any) => {
+    
+    console.log(123)
+    navigation.navigate({
+      name: 'prestationView',
+      params: { id },
+    } as never);
+  };
+
+
+  const renderProfileItem = ({ item }: any) => (
+    <TouchableOpacity
+      style={styles.profileContainerList}
+      onPress={() => goToPrestationViewWithId(item.metiers[0]?.id)}
+    >
+      <Image source={{ uri: item.profile_picture_url }} style={styles.profileImage} />
+      <View style={styles.profileInfo}>
+        <View style={styles.nameAndRating}>
+          <View>
+            <Text style={styles.profileName}>{item.firstname}</Text>
+            <Text style={styles.pseudo}>{item.pseudo}</Text>
+          </View>
+          <View style={styles.ratingContainer}>
+          {[...Array(5)].map((_, index) => (
+            <Ionicons key={index} name="star" size={16} color="gold" />
+          ))}
+        </View>
+      </View>
+        <Text style={styles.profileDescription}>
+          {item.description}
+        </Text>
+        <View style={styles.profileCategories}>
+          {item.metiers.slice(0, 3).map((metier: any, index: any) => (
+            <View key={index} style={styles.categoryBadge}>
+              <Text style={styles.categoryText2}>{metier.name}</Text>
+            </View>
+          ))}
+          <View  style={styles.categoryBadge}>
+              <Text style={styles.categoryText2}>+</Text>
+            </View>
+        </View>
+        
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderProfileSuggestion = ({ item } : any) => (
+    <View style={styles.profileSuggestionContainer}>
+      <Image source={{ uri: item.image }} style={styles.profileSuggestionImage} />
+      <View style={styles.profileSuggestionInfo}>
+        <Text style={styles.profileSuggestionName}>{item.name}</Text>
+        <Text style={styles.profileSuggestionUsername}>{item.username}</Text>
+        <View style={styles.profileSuggestionCategories}>
+          {item.categories.map((category : any, index : any) => (
+            <View key={index} style={styles.profileSuggestionBadge}>
+              <Text style={styles.profileSuggestionBadgeText}>{category}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+
+ 
+  const CategoryItem = ({ item } : any) => {
+    const [isPressed, setIsPressed] = useState(false);
+  
+    return (
+      <TouchableOpacity
+        style={[
+          styles.categoryContainer,
+         
+        ]}
+        onPress={() => searchWorkersByField(item.name)}
+        onPressIn={() => setIsPressed(true)} // Activer le zoom
+        onPressOut={() => setIsPressed(false)} // Désactiver le zoom
+      >
+      <Image source={{ uri: item.picture_url }} style={[styles.categoryImage,  isPressed && styles.pressedStyle]}  />
+        <View style={styles.overlay}>
+          <Text style={styles.categoryText}>{item.name}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  
+  // Fonction pour rendre les items dans FlatList ou autre
+  const renderCategoryItem = ({ item } : any) => {
+    return <CategoryItem item={item} />;
+  };
+
+  const CategorySkeleton = () => (
+    <View style={[styles.categoryContainer, styles.skeleton]}>
+      <View style={styles.skeletonOverlay} />
+    </View>
+  );
+
+  useEffect(() => {
+    fetchCategories();
+    loadRecentSearches();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/get-all-field`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        
+      });
+      const data = await response.json();
+      console.log(data)
+      setFetchedCategories(data.fields); // Mise à jour des catégories avec les données récupérées
+    } catch (error) {
+      console.error('Erreur lors de la récupération des catégories :', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView 
+    behavior={Platform.OS === "ios" ? "padding" : "height"} 
+    style={{ flex: 1 }}
+  >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={styles.container}>
+      {/* Barre de recherche */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          value={search}
+          onChangeText={handleInputChange}
+          placeholder="Babysitter autour de moi"
+          placeholderTextColor="#808080"
+          onFocus={() => setShowSuggestions(true)} // Affiche les suggestions au clic
+          onBlur={() => setShowSuggestions(false)} // Cache les suggestions lorsqu'on quitte la barre de recherche
+        />
+        {search.length > 0 ? (
+          <TouchableOpacity style={styles.clearIcon} onPress={clearSearch}>
+            <Ionicons name="close-circle" size={24} color="black" />
+          </TouchableOpacity>
+        ) : null}
+        <TouchableOpacity style={styles.searchIcon} onPress={handleSearchSubmit}>
+          <Ionicons name="search" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Suggestions de recherche */}
+      {showSuggestions && (
+        <View style={styles.suggestionsContainer}>
+          
+          <ScrollView style={styles.suggestionsScroll}>
+          {recentSearches.length > 0 && (
+            <>
+            <Text style={styles.sectionTitle}>Recherches récentes</Text>
+              <FlatList
+                data={recentSearches}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderSuggestion}
+              />
+              </>
+            )}
+            <FlatList
+              data={suggestions}
+              renderItem={renderSuggestion}
+              keyExtractor={(item, index) => index.toString()}
+            />
+
+            <FlatList
+              data={profiles}
+              renderItem={renderProfileSuggestion}
+              keyExtractor={(item) => item.id}
+              style={styles.profileSuggestionList}
+            />
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Affichage conditionnel : profils ou catégories */}
+      {showProfiles ? (
+        <FlatList
+          data={workers}
+          renderItem={renderProfileItem}
+          keyExtractor={(item : any) => item.id}
+          nestedScrollEnabled={true} // Permet le scrolling imbriqué
+        />
+      ): loading ? (
+        <>
+          <Text style={styles.sectionTitle}>En ce moment</Text>
+          <FlatList
+            data={Array.from({ length: 8 })}
+            renderItem={({ index }) => <CategorySkeleton key={index} />}
+            keyExtractor={(_, index) => index.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+          />
+        </>
+      ) : (
+        <>
+          <Text style={styles.sectionTitle}>En ce moment</Text>
+          <FlatList
+            data={fetchedCategories} 
+            renderItem={renderCategoryItem}
+            keyExtractor={(item : any) => item.name}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            showsVerticalScrollIndicator={false} //
+          />
+        </>
+      )}
+    </View>
+    </TouchableWithoutFeedback>
+  </KeyboardAvoidingView>
+  );
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop : 30
+  },
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginVertical: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#cccccc',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  searchIcon: {
+    marginLeft: 10,
+  },
+  clearIcon: {
+    position: 'absolute',
+    right: 40,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  row: {
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  categoryContainer: {
+    flex: 1,
+    marginHorizontal: 5,
+    height: 150,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+  },
+  categoryImage: {
+    width: '100%',
+    height: '100%',
     position: 'absolute',
   },
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    paddingHorizontal : 10
+
+  },
+  categoryText: {
+    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign : 'center'
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  profileInfo: {
+    
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  profileUsername: {
+    color: '#888',
+    fontSize: 14,
+  },
+  profileDescription: {
+    fontSize: 12,
+    marginVertical: 5,
+    textAlign : 'center',
+    fontFamily: 'BebasNeue',
+  },
+  profileCategories: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  categoryBadge: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 5,
+    marginBottom: 5,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    marginTop: 5,
+  },
+
+  nameAndRating: {
+    justifyContent : 'space-between',
+    width : '100%',
+    flexDirection : 'row',
+  },
+
+  profileContainerList: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+    marginHorizontal : 10,
+    width : '70%'
+  },
+
+  categoryText2: {
+    fontSize: 7,
+    color: '#333',
+  },
+
+  pressedStyle: {
+    transform: [{ scale: 1.1 }], // Appliquer un léger zoom
+  },
+
+  suggestionsContainer: {
+    position : 'absolute',
+    top: 100, // Positionne le conteneur en dessous de la barre de recherche
+    left: 0,
+    right: 0,
+    zIndex: 1000, // Assure que les suggestions apparaissent au-dessus du contenu
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    marginTop: 10,
+  },
+
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  suggestionIcon: {
+    marginRight: 10,
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  
+
+  profileSuggestionList: {
+    marginTop: 10,
+  },
+  profileSuggestionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  profileSuggestionImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 10,
+  },
+  profileSuggestionInfo: {
+    flex: 1,
+  },
+  profileSuggestionName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  profileSuggestionUsername: {
+    fontSize: 14,
+    color: '#808080',
+  },
+  profileSuggestionCategories: {
+    flexDirection: 'row',
+    marginTop: 5,
+  },
+  profileSuggestionBadge: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 5,
+  },
+  profileSuggestionBadgeText: {
+    fontSize: 12,
+    color: '#333',
+  },
+
+  suggestionsScroll: {
+    maxHeight: 250, // Limite la hauteur pour éviter que ça couvre tout l'écran
+  },
+
+  pseudo: {
+    color: '#888',
+    fontSize: 14,
+    
+  },
+
+  skeleton: {
+    backgroundColor: '#e0e0e0',
+    overflow: 'hidden',
+  },
+  
+  skeletonOverlay: {
+    flex: 1,
+    backgroundColor: '#ccc',
+    opacity: 0.3,
+  },
+
+  
+  
+
 });
+
+export default HomeScreen;

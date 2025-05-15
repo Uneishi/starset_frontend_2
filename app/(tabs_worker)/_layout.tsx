@@ -1,42 +1,50 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import JobsScreen from './jobs';
+import ConversationScreen from './conversation';
+import AccountWorkerScreen from './account_worker';
+import CroissanceScreen from './croissance';
 import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import AddJobScreen from './addJob';
 import { Image } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, View, Text, StyleSheet } from 'react-native';
 import { Pressable } from 'react-native';
-import { useFonts } from 'expo-font';
-import {  BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { Tabs } from 'expo-router';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+
+const Tab = createBottomTabNavigator();
+
+function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string; }) {
+  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+}
+
+
+
+export default function TabNavigator() {
   const [isPopupVisible, setPopupVisible] = useState(false);
-  const navigation = useNavigation();
-  let [fontsLoaded] = useFonts({
-      BebasNeue: BebasNeue_400Regular,
-  });
+    const navigation = useNavigation();
+    const colorScheme = useColorScheme();
+    
+    const goToUserTabs = async () => {
+      navigation.navigate('(tabs)' as never);
+    };
   
-  const goToUserTabs = async () => {
-    navigation.navigate('(tabs)' as never);
-  };
+    const goToWorkerTabs = async () => {
+      navigation.navigate('(tabs_worker)' as never);
+    };
 
-  const goToWorkerTabs = async () => {
-    navigation.navigate('(tabs_worker)' as never);
-  };
 
-  function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string; }) {
-    return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-  }
   return (
     <>
+    
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#00A65A',
@@ -52,12 +60,12 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="search"
+        name="croissance"
         options={{
           title: '',
           tabBarIcon: ({ color }) => (
             <Image
-              source={require('../../assets/images/maison.png')}
+              source={require('../../assets/images/croissance_icone.png')}
               style={{ width: 28, height: 28, tintColor: color }}
               resizeMode="contain"
             />
@@ -65,37 +73,49 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="jobs"
+        
         options={{
           title: '',
           tabBarIcon: ({ color }) => (
             <Image
-              source={require('../../assets/images/loupe.png')}
+              source={require('../../assets/images/tableau.png')}
               style={{ width: 28, height: 28, tintColor: color }}
               resizeMode="contain"
             />
           )
         }}
-      />  
-      
-      <Tabs.Screen
-        name="ia"
-        options={{
-          title: '',
-          tabBarIcon: ({ color }) => (
-            <FontAwesome5 name="headset" size={24} color={color} />
-          )
-        }}
       />
+      <Tabs.Screen
+  name="addJob"
+  options={{
+    title: '',
+    tabBarIcon: ({ color }) => (
+      <View style={{
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: '#FFF',
+        borderColor: color,
+        borderWidth: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <FontAwesome name="plus" size={18} color={color} />
+      </View>
+    ),
+  }}
+/>
       <Tabs.Screen
         name="conversation"
+        
         options={{
           title: '',
           tabBarIcon: ({ color }) => <TabBarIcon name="envelope-o" color={color} />,
         }}
       />
       <Tabs.Screen
-  name="account"
+  name="account_worker"
   options={{
     title: '',
     tabBarButton: (props: any) => {
@@ -126,41 +146,41 @@ export default function TabLayout() {
       return <CustomTabBarButton {...props} />;
     },
     
+    
   }}
-/>
-      
+/>   
     </Tabs>
     <Modal
-  animationType="slide"
-  transparent
-  visible={isPopupVisible}
-  onRequestClose={() => setPopupVisible(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContent}>
-    <Pressable onPress={goToUserTabs} style={styles.widthMax}>
-        <View style={[styles.changeContainer, styles.userContainer]}>
-          <FontAwesome5 name="user-circle" size={26} color="black" style={styles.leftIcon} />
-          <Text style={styles.modalText}>USER</Text> 
-        </View>
-      </Pressable>
+      animationType="slide"
+      transparent
+      visible={isPopupVisible}
+      onRequestClose={() => setPopupVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+        <Pressable onPress={goToUserTabs} style={styles.widthMax}>
+            <View style={[styles.changeContainer, styles.userContainer]}>
+              <FontAwesome5 name="user-circle" size={26} color="black" style={styles.leftIcon} />
+              <Text style={styles.modalText}>USER</Text> 
+            </View>
+          </Pressable>
 
-      <Pressable onPress={goToWorkerTabs} style={styles.widthMax}>
-        <View style={[styles.changeContainer, styles.workerContainer]}>
-          <FontAwesome5 name="hard-hat" size={24} color="white" style={styles.leftIcon} />
-          <Text style={styles.modalText}>WORKER</Text> 
+          <Pressable onPress={goToWorkerTabs} style={styles.widthMax}>
+            <View style={[styles.changeContainer, styles.workerContainer]}>
+              <FontAwesome5 name="hard-hat" size={24} color="white" style={styles.leftIcon} />
+              <Text style={styles.modalText}>WORKER</Text> 
+            </View>
+          </Pressable>
+          <Pressable onPress={() => setPopupVisible(false)}>
+            <Text style={styles.closeButton}>Fermer</Text>
+          </Pressable>
         </View>
-      </Pressable>
-      <Pressable onPress={() => setPopupVisible(false)}>
-        <Text style={styles.closeButton}>Fermer</Text>
-      </Pressable>
-    </View>
-  </View>
-</Modal>
+      </View>
+    </Modal>
     </>
-    
   );
 }
+
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
@@ -234,4 +254,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
