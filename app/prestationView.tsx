@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Modal, TextInput, Pressable, Animated, FlatList } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 
+import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
+import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
+import * as Font from 'expo-font';
+import { useFonts } from 'expo-font';
 import { Calendar } from 'react-native-calendars'; // Import the Calendar component
 import config from '../config.json';
-import { useFonts } from 'expo-font';
-import {  BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
-import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
-import { JosefinSans_700Bold, JosefinSans_100Thin} from '@expo-google-fonts/josefin-sans';
-import * as Font from 'expo-font';
 
 
 const PrestationViewScreen = () => {

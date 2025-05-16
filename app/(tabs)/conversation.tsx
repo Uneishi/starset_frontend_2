@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { format, isSameDay } from 'date-fns';
+
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -70,13 +70,16 @@ const ConversationScreen = () => {
   };
 
   const getFormattedTime = (timestamp: string) => {
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const date = new Date(timestamp);
-    const zonedDate : any = utcToZonedTime(date, userTimeZone);
-  
-    return isSameDay(new Date(), zonedDate)
-      ? format(zonedDate, 'HH:mm')
-      : format(zonedDate, 'dd/MM/yyyy');
+    
+    return date.toLocaleString('fr-FR', {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   };
 
   
@@ -233,7 +236,5 @@ const styles = StyleSheet.create({
 });
 
 export default ConversationScreen;
-function utcToZonedTime(date: Date, userTimeZone: string) {
-  throw new Error('Function not implemented.');
-}
+
 

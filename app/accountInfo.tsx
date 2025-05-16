@@ -29,6 +29,8 @@ const AccountInfoScreen = () => {
   const handleLastNameChange = (text : any) => setLastName(text);
   const handlePhoneNumberChange = (text : any) => setPhoneNumber(text);
 
+  const TypedPhoneInput = PhoneInput as unknown as React.ComponentType<any>;
+
   const getAccountId = async () => {
     try {
       const accountId = await AsyncStorage.getItem('account_id');
@@ -147,10 +149,8 @@ const AccountInfoScreen = () => {
           onChange={onChangeDate}
         />
       )}
-
       
-
-      {/*<PhoneInput
+      <TypedPhoneInput
         ref={phoneInputRef}
         defaultValue={phoneNumber}
         defaultCode="FR"
@@ -176,7 +176,7 @@ const AccountInfoScreen = () => {
           fontSize: 15,
         }}
         codeTextStyle={{ color: 'black' }}
-      />*/}
+      />
 
       {/* Modal de sélection du pays */}
       {showCountryPicker && (

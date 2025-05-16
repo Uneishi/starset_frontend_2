@@ -1,11 +1,11 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, Modal, StyleSheet, ScrollView, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
-import { saveMode } from '../chooseAccount';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../../config.json';
+import { saveMode } from '../chooseAccount';
 
 const AccountScreen = () => {
   const navigation = useNavigation();
@@ -18,6 +18,9 @@ const AccountScreen = () => {
   const [workerPlannedPrestations, setWorkerPlannedPrestations] = useState<any[]>([]);
   const [isWorkerRequestModalVisible, setWorkerRequestModalVisible] = useState(false); // Modal qui affiche les missions planifiées du worker
 
+  const [statusFilter, setStatusFilter] = useState<'waiting' | 'in_progress' | 'finished'>('waiting');
+  const [selectedStatusTitle, setSelectedStatusTitle] = useState('');
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   const changeToWorker = async () => {
     saveMode('worker');
@@ -276,6 +279,48 @@ const AccountScreen = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+
+      <View style={styles.statusIconsContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            setStatusFilter('waiting');
+            setSelectedStatusTitle('En attente');
+            setStatusModalVisible(true);
+          }}
+          style={styles.statusIcon}
+        >
+          <MaterialIcons name="shopping-cart" size={32} color="#FFD700" />
+          {plannedPrestations.some(p => p.status === 'waiting') && (
+            <View style={styles.notificationDot}><Text style={styles.dotText}>!</Text></View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            setStatusFilter('in_progress');
+            setSelectedStatusTitle('En cours');
+            setStatusModalVisible(true);
+          }}
+          style={styles.statusIcon}
+        >
+          <MaterialIcons name="schedule" size={32} color="#FFD700" />
+          {plannedPrestations.some(p => p.status === 'in_progress') && (
+            <View style={styles.notificationDot}><Text style={styles.dotText}>!</Text></View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            setStatusFilter('finished');
+            setSelectedStatusTitle('Terminées');
+            setStatusModalVisible(true);
+          }}
+          style={styles.statusIcon}
+        >
+          <MaterialIcons name="check-circle" size={32} color="#FFD700" />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>Mode paiement</Text>
         <TouchableOpacity style={styles.balanceCard} onPress={goToCard}>
@@ -456,6 +501,37 @@ const AccountScreen = () => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+  visible={statusModalVisible}
+  animationType="slide"
+  transparent={true}
+  onRequestClose={() => setStatusModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.historyModalContent}>
+      <Text style={styles.historyModalTitle}>Prestations {selectedStatusTitle}</Text>
+
+      <ScrollView style={{ width: '100%' }}>
+        {plannedPrestations.filter(p => p.status === statusFilter).map((p, index) => (
+          <View key={index} style={styles.prestationCard}>
+            <Text style={styles.prestationCardTitle}>{p.title}</Text>
+            <Text style={styles.prestationCardDate}>{p.date}</Text>
+            <Text style={styles.prestationCardDescription}>{p.description}</Text>
+          </View>
+        ))}
+      </ScrollView>
+
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => setStatusModalVisible(false)}
+      >
+        <Text style={styles.closeButtonText}>Fermer</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
 
 
     </View>
@@ -764,12 +840,110 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignSelf: 'flex-start',
   },
+
+  statusIconsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 15,
+    marginHorizontal: 10,
+    backgroundColor: '#fff',
+  },
+  
+  statusIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: '#FFFACD',
+  },
+  
+  notificationDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  
+  dotText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  
+  prestationCard: {
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 5,
+    marginHorizontal: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  
   
   cancelButtonText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 12,
   },
+
+  historyModalContent: {
+    width: '90%',
+    height: '70%',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+  },
+  
+  historyModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  
+  prestationCardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+  prestationCardDate: {
+    fontSize: 12,
+    color: '#666',
+  },
+  
+  prestationCardDescription: {
+    fontSize: 14,
+    marginTop: 4,
+    color: '#333',
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fond semi-transparent
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#008000', // Vert
+    textAlign: 'center',
+    paddingVertical: 10,
+  },
+  
 });
 
 export default AccountScreen;

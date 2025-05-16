@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons'; // You can use icons for the send button
-
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { io } from 'socket.io-client';
 import config from '../config.json';
+
+const socket = io(`${config.backendUrl}`, {
+  transports: ['websocket'], // évite les erreurs de polling sur mobile
+});
 
 const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState('');
@@ -83,6 +87,25 @@ const ChatScreen = () => {
   useEffect(() => {
     getAllMessages();
   }, []);
+
+  useEffect(() => {
+    if (!conversation_id) return;
+  
+    // Rejoindre la room WebSocket pour cette conversation
+    socket.emit('joinRoom', conversation_id);
+  
+    // Écouter les nouveaux messages
+    socket.on('newMessage', (message) => {
+      console.log('Message reçu via socket :', message);
+      setMessages((prev: any[]) => [...prev, message]);
+    });
+  
+    // Nettoyage
+    return () => {
+      socket.off('newMessage');
+      socket.disconnect();
+    };
+  }, [conversation_id]);
 
   return (
     <KeyboardAvoidingView

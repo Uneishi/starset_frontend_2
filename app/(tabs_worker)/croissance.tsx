@@ -1,15 +1,15 @@
+import { useUser } from '@/context/userContext';
+import { FontAwesome } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
   FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 import config from '../../config.json';
-import { useUser } from '@/context/userContext';
 
 const CroissanceScreen = () => {
   const [jobsOfTheDay, setJobsOfTheDay] = useState<any[]>([]);
@@ -53,7 +53,8 @@ const CroissanceScreen = () => {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}
+    showsVerticalScrollIndicator={false}>
       <View style={styles.croissanceContainer}>
         <Image
           source={{ uri: 'http://109.176.199.54/images/icon/croissance_header.png' }}
