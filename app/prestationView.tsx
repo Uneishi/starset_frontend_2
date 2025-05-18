@@ -40,7 +40,7 @@ const PrestationViewScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null); // Image sélectionnée
   const [selectedTag, setSelectedTag] = useState<number | null>(null);
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false); // Pour le pop-up
-  
+  const [likedImages, setLikedImages] = useState<string[]>([]);
   
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')); // Array from "00" to "23"
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')); // Array from "00" to "59"
@@ -149,26 +149,23 @@ const PrestationViewScreen = () => {
     
     openModal('arrival'); // Ouvre le modal pour l'heure d'arrivée
   }
+
   const toggleDepartureTimePicker = () => {
     //setArrivalTimePickerVisible(false)
     //setDepartureTimePickerVisible(!isDepartureTimePickerVisible);
     openModal('departure'); // Ouvre le modal pour l'heure d'arrivée
   }
 
-
   const toggleTimePicker = () => {
     setTimePickerVisible(!isTimePickerVisible);
   };
 
   const toggleCalendar = () => {
-   
     setCalendarVisible(!isCalendarVisible); // Toggle the visibility of the calendar
-    
   };
 
   const handleDateSelect = (day : any) => {
     const selectedDate = day.dateString;
-
     if (!startDate) {
       setStartDate(selectedDate); // Si aucune date de début n'est définie, définissez-la
       //console.log("Date de début sélectionnée:", selectedDate);
@@ -214,7 +211,6 @@ const PrestationViewScreen = () => {
   };
 
   const checkConversation = async () => {
-    
     try {
       const person1_id = await getAccountId();
       const person2_id = await prestation.worker_id;
@@ -408,6 +404,55 @@ const PrestationViewScreen = () => {
     setSelectedImage(null);
     setImageModalVisible(false);
   };
+
+  const getLikedImages = async () => {
+    const user_id = await getAccountId();
+
+    try {
+      const response = await fetch(`${config.backendUrl}/api/upload/get-liked-images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setLikedImages(data.imageIds); // Un tableau d'IDs ou d'adresses d'images
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des likes:', error);
+    }
+  };
+
+  const likeImage = async (imageId: string) => {
+  const user_id = await getAccountId();
+
+  try {
+    await fetch(`${config.backendUrl}/api/upload/like-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id, image_id: imageId }),
+    });
+    setLikedImages((prev) => [...prev, imageId]);
+  } catch (error) {
+    console.error('Erreur lors du like:', error);
+  }
+};
+
+const unlikeImage = async (imageId: string) => {
+  const user_id = await getAccountId();
+
+  try {
+    await fetch(`${config.backendUrl}/api/upload/unlike-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id, image_id: imageId }),
+    });
+    setLikedImages((prev) => prev.filter((id) => id !== imageId));
+  } catch (error) {
+    console.error('Erreur lors du unlike:', error);
+  }
+};
 
   useEffect(() => {
     
@@ -654,18 +699,19 @@ const PrestationViewScreen = () => {
         <View style={styles.diagonal2} />
       </View>
 
-      <View style={styles.seeMoreContainer}>
-        <TouchableOpacity style={styles.seeMoreButton} onPress={goToChoosePrestation}>
-          <Text style={styles.seeMoreText}>Voir les autres prestations</Text>
-          <Icon name="arrow-forward" size={20} color="white" style={{ marginLeft: 10 }} />
-        </TouchableOpacity>
+      {prestation?.type_of_remuneration?.toLowerCase().includes('prestation') ? (
+        <View style={styles.seeMoreContainer}>
+          <TouchableOpacity style={styles.seeMoreButton} onPress={goToChoosePrestation}>
+            <Text style={styles.seeMoreText}>Voir les autres prestations</Text>
+            <Icon name="arrow-forward" size={20} color="white" style={{ marginLeft: 10 }} />
+          </TouchableOpacity>
 
-        {/* Flèches jaunes façon triangle à droite */}
-        <View style={styles.seeMoreDiagonal} />
-        <View style={styles.seeMoreDiagonal2} />
-      </View>
-
-      
+          <View style={styles.seeMoreDiagonal} />
+          <View style={styles.seeMoreDiagonal2} />
+        </View>
+      ) : (
+        <View style={{ height: 120 }} />  // <-- Réserve de l'espace même sans bouton
+      )}
 
       {/* Date Picker Modal */}
       
@@ -680,14 +726,37 @@ const PrestationViewScreen = () => {
         transparent={true}
         onRequestClose={closeImageModal}
       >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity style={styles.modalBackground} onPress={closeImageModal}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={closeImageModal}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalBackground}>
             {selectedImage && (
-              <Image source={{ uri: selectedImage }} style={styles.fullScreenImage} />
+              <>
+                <Image source={{ uri: selectedImage }} style={styles.fullScreenImage} />
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={(e) => {
+                    e.stopPropagation(); // Empêche la propagation vers l'overlay
+                    likedImages.includes(selectedImage)
+                      ? unlikeImage(selectedImage)
+                      : likeImage(selectedImage);
+                  }}
+                  style={styles.modalLikeButton}
+                >
+                  <Icon
+                    name={likedImages.includes(selectedImage) ? 'favorite' : 'favorite-border'}
+                    size={32}
+                    color={likedImages.includes(selectedImage) ? 'red' : 'white'}
+                  />
+                </TouchableOpacity>
+              </>
             )}
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
       </Modal>
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -1507,9 +1576,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
     width: 250,
     
-    
-    
-    
   },
   
   reviewName: {
@@ -1524,6 +1590,16 @@ const styles = StyleSheet.create({
     color: '#555',
     fontFamily: 'Glacial-Regular',
   },
+
+  modalLikeButton: {
+  position: 'absolute',
+  top: 30,
+  right: 30,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  borderRadius: 25,
+  padding: 8,
+  zIndex: 10,
+},
   
 });
 

@@ -1,19 +1,19 @@
+import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { useNavigation } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
+  Animated,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Animated,
-  Dimensions,
+  View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import config from '../../config.json';
-import {  BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
-import { useFonts } from 'expo-font';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     overflow: 'hidden',
   },
+
   jobImage: {
     width: 50,
     height: 50,
@@ -175,11 +176,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: '#DDD',
   },
+
   jobTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontFamily : 'BebasNeue',
     flexShrink: 1,
   },
+
   skeletonTextWrapper: {
     flex: 1,
     height: 20,
@@ -187,11 +190,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#DDD',
     overflow: 'hidden',
   },
+
   skeletonText: {
     width: '100%',
     height: '100%',
     backgroundColor: '#DDD',
   },
+  
   shimmerOverlay: {
     position: 'absolute',
     top: 0,

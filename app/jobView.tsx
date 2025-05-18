@@ -1,11 +1,11 @@
+import { useAllWorkerPrestation } from '@/context/userContext';
+import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import config from '../config.json';
-import {  BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { useFonts } from 'expo-font';
-import { useAllWorkerPrestation } from '@/context/userContext';
+import React, { useEffect, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import config from '../config.json';
 
 const JobViewScreen = () => {
   const [metier, setMetier] = useState<any>(null);
@@ -74,7 +74,7 @@ const JobViewScreen = () => {
 
   // Vérifie si le métier est déjà ajouté
   const isJobAlreadyAdded = allWorkerPrestation?.some(
-    (item: any) => item.metier === metier.name
+    (item: any) => item.metier === metier?.name
   );
 
 
