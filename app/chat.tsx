@@ -91,21 +91,30 @@ const ChatScreen = () => {
   useEffect(() => {
     if (!conversation_id) return;
   
-    // Rejoindre la room WebSocket pour cette conversation
     socket.emit('joinRoom', conversation_id);
   
-    // Écouter les nouveaux messages
+    // 🔁 Écoute des messages normaux
     socket.on('newMessage', (message) => {
       console.log('Message reçu via socket :', message);
       setMessages((prev: any[]) => [...prev, message]);
     });
   
-    // Nettoyage
+    // 🧪 TEST AUTOMATIQUE DE SOCKET.IO
+    socket.emit('testMessage', 'Hello serveur, test depuis ChatScreen');
+    socket.on('testResponse', (data) => {
+      console.log('✅ Réponse test du serveur :', data);
+      // Tu peux aussi afficher une alerte temporairement :
+      // alert(data);
+    });
+  
     return () => {
       socket.off('newMessage');
+      socket.off('testResponse'); // Nettoie aussi ce listener
       socket.disconnect();
     };
   }, [conversation_id]);
+  
+  
 
   return (
     <KeyboardAvoidingView

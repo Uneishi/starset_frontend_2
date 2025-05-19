@@ -12,7 +12,6 @@ import { useFonts } from 'expo-font';
 import { Calendar } from 'react-native-calendars'; // Import the Calendar component
 import config from '../config.json';
 
-
 const PrestationViewScreen = () => {
   const [selectedTab, setSelectedTab] = useState('photos'); // Onglet par défaut: 'photos'
   const navigation = useNavigation()
@@ -134,6 +133,37 @@ const PrestationViewScreen = () => {
   const toggleDatePicker = () => {
     setDatePickerVisible(!isDatePickerVisible); // Toggle the visibility of the date picker
   };
+
+  
+
+  const toggleLikeImage = async (imageUri: string) => {
+    const user_id = await getAccountId();
+  
+    const isLiked = likedImages.includes(imageUri);
+  
+    const endpoint = isLiked
+      ? `${config.backendUrl}/api/upload/unlike-image`
+      : `${config.backendUrl}/api/upload/like-image`;
+  
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, image_id: imageUri }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erreur lors de la requête');
+      }
+  
+      setLikedImages((prev) =>
+        isLiked ? prev.filter((id) => id !== imageUri) : [...prev, imageUri]
+      );
+    } catch (error) {
+      console.error('Erreur lors du like/unlike:', error);
+    }
+  };
+  
 
   const goToChoosePrestation = async () => {
     
@@ -459,7 +489,8 @@ const unlikeImage = async (imageId: string) => {
     getPrestation();
     getAllExperience();
     getAllCertification()
-    getUnavailableDates()
+    getUnavailableDates();
+    getLikedImages()
     async function loadFonts() {
       await Font.loadAsync({
         'Glacial-Regular': require('../assets/fonts/GlacialIndifference-Regular.otf'),
@@ -475,6 +506,7 @@ const unlikeImage = async (imageId: string) => {
     getPrestation()
     getAllExperience()
     getAllCertification()
+    getLikedImages()
     
   }, [route.params.id]);
 
@@ -739,9 +771,7 @@ const unlikeImage = async (imageId: string) => {
                   activeOpacity={1}
                   onPress={(e) => {
                     e.stopPropagation(); // Empêche la propagation vers l'overlay
-                    likedImages.includes(selectedImage)
-                      ? unlikeImage(selectedImage)
-                      : likeImage(selectedImage);
+                    toggleLikeImage(selectedImage); // Appelle la fonction dédiée
                   }}
                   style={styles.modalLikeButton}
                 >
@@ -751,6 +781,7 @@ const unlikeImage = async (imageId: string) => {
                     color={likedImages.includes(selectedImage) ? 'red' : 'white'}
                   />
                 </TouchableOpacity>
+
               </>
             )}
           </View>
