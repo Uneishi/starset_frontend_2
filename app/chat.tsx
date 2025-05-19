@@ -91,6 +91,7 @@ const ChatScreen = () => {
   useEffect(() => {
     if (!conversation_id) return;
   
+    console.log(1)
     socket.emit('joinRoom', conversation_id);
   
     // 🔁 Écoute des messages normaux

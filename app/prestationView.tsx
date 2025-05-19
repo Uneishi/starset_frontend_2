@@ -36,7 +36,7 @@ const PrestationViewScreen = () => {
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [isImageModalVisible, setImageModalVisible] = useState(false); // Contrôle de la visibilité du modal
-  const [selectedImage, setSelectedImage] = useState(null); // Image sélectionnée
+  const [selectedImage, setSelectedImage] = useState<any>(null); // Image sélectionnée
   const [selectedTag, setSelectedTag] = useState<number | null>(null);
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false); // Pour le pop-up
   const [likedImages, setLikedImages] = useState<string[]>([]);
@@ -136,20 +136,21 @@ const PrestationViewScreen = () => {
 
   
 
-  const toggleLikeImage = async (imageUri: string) => {
+  const toggleLikeImage = async (image: any) => {
+    console.log(image)
     const user_id = await getAccountId();
   
-    const isLiked = likedImages.includes(imageUri);
+    const isLiked = likedImages.includes(image);
   
     const endpoint = isLiked
-      ? `${config.backendUrl}/api/upload/unlike-image`
-      : `${config.backendUrl}/api/upload/like-image`;
+      ? `${config.backendUrl}/api/uploads/unlike-image`
+      : `${config.backendUrl}/api/uploads/like-image`;
   
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id, image_id: imageUri }),
+        body: JSON.stringify({ user_id, image_adress: image.adress }),
       });
   
       if (!response.ok) {
@@ -157,7 +158,7 @@ const PrestationViewScreen = () => {
       }
   
       setLikedImages((prev) =>
-        isLiked ? prev.filter((id) => id !== imageUri) : [...prev, imageUri]
+        isLiked ? prev.filter((id) => id !== image.id) : [...prev, image.id]
       );
     } catch (error) {
       console.error('Erreur lors du like/unlike:', error);
@@ -425,8 +426,8 @@ const PrestationViewScreen = () => {
   };
   
 
-  const openImageModal = (imageUri : any) => {
-    setSelectedImage(imageUri);
+  const openImageModal = (image : any) => {
+    setSelectedImage(image);
     setImageModalVisible(true);
   };
 
@@ -439,7 +440,7 @@ const PrestationViewScreen = () => {
     const user_id = await getAccountId();
 
     try {
-      const response = await fetch(`${config.backendUrl}/api/upload/get-liked-images`, {
+      const response = await fetch(`${config.backendUrl}/api/uploads/get-liked-images`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id }),
@@ -447,7 +448,7 @@ const PrestationViewScreen = () => {
 
       const data = await response.json();
       if (data.success) {
-        setLikedImages(data.imageIds); // Un tableau d'IDs ou d'adresses d'images
+        setLikedImages(data.likedImages); // Un tableau d'IDs ou d'adresses d'images
       }
     } catch (error) {
       console.error('Erreur lors du chargement des likes:', error);
@@ -658,7 +659,7 @@ const unlikeImage = async (imageId: string) => {
       {selectedTab === 'photos' && (
         <View style={styles.photosContainer}>
           {prestationImages.map((photo : any, index : any) => (
-            <TouchableOpacity key={index} onPress={() => openImageModal(photo.adress)} style={styles.photoButton}>
+            <TouchableOpacity key={index} onPress={() => openImageModal(photo)} style={styles.photoButton}>
               <Image source={{ uri: photo.adress }} style={styles.photo} />
             </TouchableOpacity>
           ))}
@@ -766,7 +767,7 @@ const unlikeImage = async (imageId: string) => {
           <View style={styles.modalBackground}>
             {selectedImage && (
               <>
-                <Image source={{ uri: selectedImage }} style={styles.fullScreenImage} />
+                <Image source={{ uri: selectedImage?.adress }} style={styles.fullScreenImage} />
                 <TouchableOpacity
                   activeOpacity={1}
                   onPress={(e) => {
@@ -776,9 +777,9 @@ const unlikeImage = async (imageId: string) => {
                   style={styles.modalLikeButton}
                 >
                   <Icon
-                    name={likedImages.includes(selectedImage) ? 'favorite' : 'favorite-border'}
+                    name={likedImages.includes(selectedImage.adress) ? 'favorite' : 'favorite-border'}
                     size={32}
-                    color={likedImages.includes(selectedImage) ? 'red' : 'white'}
+                    color={likedImages.includes(selectedImage.adress) ? 'red' : 'white'}
                   />
                 </TouchableOpacity>
 
