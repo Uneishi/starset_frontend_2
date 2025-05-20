@@ -12,7 +12,7 @@ const JobViewScreen = () => {
   const { allWorkerPrestation,setAllWorkerPrestation } = useAllWorkerPrestation()
   const navigation = useNavigation()
   const route = useRoute() as any;
-  const {selectedJob} = route.params || '';
+  const {selectedJob} = route.params || ''; 
   // Fonction pour récupérer le métier "Professeur particulier à domicile"
   const handleValidation = async () => {
     try {

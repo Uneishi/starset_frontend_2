@@ -1,19 +1,14 @@
 import { useUser } from '@/context/userContext';
 import { FontAwesome } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
 
 const CroissanceScreen = () => {
   const [jobsOfTheDay, setJobsOfTheDay] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
   const { user } = useUser(); // Utilisation du contexte pour récupérer les infos utilisateur
 
   const news = {
@@ -39,6 +34,11 @@ const CroissanceScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleJobClick = (job: any) => {
+    setSelectedJob(job);
+    setIsModalVisible(true);
   };
 
   useEffect(() => {
@@ -105,16 +105,18 @@ const CroissanceScreen = () => {
   data={jobsOfTheDay}
   keyExtractor={(_, index) => index.toString()}
   renderItem={({ item }) => (
-    <View style={styles.jobItem}>
-      <Image
-        source={{
-          uri: item.picture_url || 'https://cdn-icons-png.flaticon.com/512/91/91501.png',
-        }}
-        style={styles.jobIcon}
-      />
-      <Text style={styles.jobText}>{item.name}</Text>
-    </View>
+    <TouchableOpacity onPress={() => handleJobClick(item)}>
+      <View style={styles.jobItem}>
+        <Image
+          source={{
+            uri: item.picture_url || 'https://cdn-icons-png.flaticon.com/512/91/91501.png',
+          }}
+          style={styles.jobIcon}
+        />
+      </View>
+    </TouchableOpacity>
   )}
+  
   showsHorizontalScrollIndicator={false}
   contentContainerStyle={{ paddingRight: 20 }}
 />
@@ -132,7 +134,7 @@ const CroissanceScreen = () => {
   renderItem={({ item }) => (
     <View style={styles.jobItem}>
       <Image source={{ uri: item.icon }} style={styles.jobIcon} />
-      <Text style={styles.jobText}>{item.name}</Text>
+      
     </View>
   )}
   showsHorizontalScrollIndicator={false}
@@ -149,6 +151,39 @@ const CroissanceScreen = () => {
         </View>
         <Text style={styles.newsDescription}>{news.description}</Text>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {/* Titre du métier */}
+            <Text style={styles.jobTitle}>{selectedJob?.name?.toUpperCase()}</Text>
+            {/* Description du métier */}
+            <Text style={styles.jobDescription}>{selectedJob?.description}</Text>
+
+            {/* Autres informations */}
+            <Text style={styles.sectionTitle}>MISSIONS</Text>
+            {/* Missions */}
+            {selectedJob?.missions?.map((mission : any, index : any) => (
+              <Text key={index} style={styles.missionItem}>
+                • {mission}
+              </Text>
+            ))}
+
+            {/* Bouton fermer */}
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.addButtonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -275,6 +310,83 @@ const styles = StyleSheet.create({
     marginRight: 15,
     position: 'relative',
     paddingBottom: 5, // évite que le badge dépasse du FlatList
+  },
+
+  jobImage: {
+    width: '100%',
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  jobTitle: {
+    fontSize: 24,
+    fontFamily : 'BebasNeue',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  jobDescription: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily : 'BebasNeue',
+    marginBottom: 10,
+  },
+
+  missionItem: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+  },
+  
+  documentText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+  },
+  addButton: {
+    backgroundColor: '#00cc66',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  disabledButton: {
+    backgroundColor: '#999', // Plus foncé
+  },
+
+  infoText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+  },
+
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
   },
 });
 
