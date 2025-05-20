@@ -99,6 +99,7 @@ const ChatScreen = () => {
       console.log('Message reçu via socket :', message);
       setMessages((prev: any[]) => [...prev, message]);
     });
+    console.log(2)
   
     // 🧪 TEST AUTOMATIQUE DE SOCKET.IO
     socket.emit('testMessage', 'Hello serveur, test depuis ChatScreen');
