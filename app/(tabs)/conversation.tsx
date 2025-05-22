@@ -1,7 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-
-
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -15,10 +13,10 @@ import {
   View,
 } from 'react-native';
 import config from '../../config.json';
+import socket from '../socket'; // ✅ Import du socket global
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// 💡 Composant Skeleton pour une ligne de message
 const SkeletonMessage = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
@@ -71,7 +69,6 @@ const ConversationScreen = () => {
 
   const getFormattedTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    
     return date.toLocaleString('fr-FR', {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       hour: '2-digit',
@@ -82,7 +79,6 @@ const ConversationScreen = () => {
     });
   };
 
-  
   const gotoChat = async (conversationId: string, contactProfilePictureUrl: string, contactFirstname: string) => {
     const sender_id = await getAccountId();
     navigation.navigate({
@@ -122,8 +118,14 @@ const ConversationScreen = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ worker_id }),
       });
+
       const data = await response.json();
       setConversations(data.conversations);
+
+      // ✅ Rejoindre toutes les rooms socket correspondantes
+      const conversationIds = data.conversations.map((conv: any) => conv.id);
+      socket.emit('joinUserConversations', conversationIds);
+
     } catch (error) {
       console.error('Erreur lors de la récupération des conversations:', error);
     } finally {
@@ -133,6 +135,26 @@ const ConversationScreen = () => {
 
   useEffect(() => {
     getAllConversation();
+
+    // ✅ Optionnel : écouter les nouveaux messages entrants pour la liste
+    socket.on('newMessage', (message: any) => {
+      setConversations((prev : any) => {
+        const updated = prev.map((conv: { id: any; }) =>
+          conv.id === message.conversation_id
+            ? { ...conv, message_text: message.message_text, timestamp: message.timestamp }
+            : conv
+        );
+      
+        // ✅ Reclasse les conversations : la plus récente en haut
+        updated.sort((a : any, b : any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+        return updated;
+      });
+    });
+
+    return () => {
+      socket.off('newMessage');
+    };
   }, []);
 
   return (
@@ -161,6 +183,7 @@ const ConversationScreen = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

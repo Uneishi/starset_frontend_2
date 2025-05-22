@@ -2,12 +2,10 @@ import { Ionicons } from '@expo/vector-icons'; // You can use icons for the send
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { io } from 'socket.io-client';
 import config from '../config.json';
+import socket from './socket';
 
-const socket = io(`${config.backendUrl}`, {
-  transports: ['websocket'], // évite les erreurs de polling sur mobile
-});
+
 
 const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState('');
@@ -15,6 +13,8 @@ const ChatScreen = () => {
   const navigation = useNavigation();
   const route = useRoute() as any;
   const { conversation_id, sender_id, sender_type , contact_profile_picture_url, contact_firstname} = route.params || {};
+
+  
 
   const getAllMessages = async () => {
     try {
@@ -78,6 +78,10 @@ const ChatScreen = () => {
 
         const data = await response.json();
         console.log('data : ', data);
+        socket.emit('newMessage', {
+          ...newMessageObject,
+          conversation_id,
+        });
       } catch (error) {
         console.error('An error occurred while fetching messages:', error);
       }
@@ -91,30 +95,18 @@ const ChatScreen = () => {
   useEffect(() => {
     if (!conversation_id) return;
   
-    console.log(1)
+    // Joindre la salle de cette conversation
     socket.emit('joinRoom', conversation_id);
   
-    // 🔁 Écoute des messages normaux
     socket.on('newMessage', (message) => {
-      console.log('Message reçu via socket :', message);
-      setMessages((prev: any[]) => [...prev, message]);
-    });
-    console.log(2)
-  
-    // 🧪 TEST AUTOMATIQUE DE SOCKET.IO
-    socket.emit('testMessage', 'Hello serveur, test depuis ChatScreen');
-    socket.on('testResponse', (data) => {
-      console.log('✅ Réponse test du serveur :', data);
-      // Tu peux aussi afficher une alerte temporairement :
-      // alert(data);
+      setMessages((prev : any) => [...prev, message]);
     });
   
     return () => {
       socket.off('newMessage');
-      socket.off('testResponse'); // Nettoie aussi ce listener
-      socket.disconnect();
     };
   }, [conversation_id]);
+  
   
   
 
