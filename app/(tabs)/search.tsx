@@ -1,17 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, GestureResponderEvent, ScrollView, FlatList,ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-
-import { StyleSheet, TextStyle, Image } from 'react-native';
-import { Ionicons,MaterialIcons } from '@expo/vector-icons';
-import config from '../../config.json';
-
-import { useFonts } from 'expo-font';
-import {  BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { LexendDeca_400Regular } from '@expo-google-fonts/lexend-deca';
-import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
-import { JosefinSans_700Bold, JosefinSans_100Thin} from '@expo-google-fonts/josefin-sans';
-import AppLoading from 'expo-app-loading';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import config from '../../config.json';
 //import axios from '../api/axios';
 import * as Font from 'expo-font';
 
@@ -35,20 +30,12 @@ const metiers = [
   { name: 'Jardinage', image: 'https://cdn-icons-png.flaticon.com/512/1518/1518965.png' }
 ];
 
-const users = [
-  { username: '@AMELIE1234', image: 'https://media.istockphoto.com/id/1487069717/fr/photo/une-belle-femme-heureuse-qui-envoie-des-sms-sur-son-t%C3%A9l%C3%A9phone-portable-pendant-relaxi.jpg?s=612x612&w=0&k=20&c=m7ZQ8pfJbSCFgViu2314rKxz1oMz9RWcZ2jKjq6nXq8=' },
-  { username: '@ELISEE1234', image: 'https://media.istockphoto.com/id/1430670068/fr/photo/m%C3%A9dias-sociaux-saisie-de-la-femme-et-du-t%C3%A9l%C3%A9phone-profil-de-rencontre-et-smartphone-sur-le.jpg?s=612x612&w=0&k=20&c=E2mLPPtGW0FTzMFGshsAzONL1fHpYjyJqRahv5WPCbM=' },
-  { username: '@MELLL1234', image: 'https://www.shutterstock.com/shutterstock/videos/1105351553/thumb/10.jpg?ip=x480' },
-  { username: '@NICK2233', image: 'https://www.foodlovers.ch/sites/default/files/2023-02/Un_espresso_s_il_vous-plait.png' },
-  { username: '@JESSICA2512', image: 'https://media.istockphoto.com/id/1487069717/fr/photo/une-belle-femme-heureuse-qui-envoie-des-sms-sur-son-t%C3%A9l%C3%A9phone-portable-pendant-relaxi.jpg?s=612x612&w=0&k=20&c=m7ZQ8pfJbSCFgViu2314rKxz1oMz9RWcZ2jKjq6nXq8=' },
-  { username: '@JACK1234', image: 'https://img.freepik.com/photos-premium/jeune-homme-barbe-detendu-dans-parasol-plage_79295-1720.jpg' }
-];
-
 const SearchScreen = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const navigation = useNavigation()
   const [prestations, setPrestations] = useState([]);
   const [workers, setWorkers] = useState([]);
+  const [mostLikedImages, setMostLikedImages] = useState([]);
   let [fontsLoaded] = useFonts({
     BebasNeue: BebasNeue_400Regular,
     LexendDeca : LexendDeca_400Regular,
@@ -99,6 +86,18 @@ const SearchScreen = () => {
       setPrestations(data.prestations);
     } catch (error) {
       console.error('Erreur lors de la récupération des prestations :', error);
+    }
+  };
+
+  const fetchMostLikedImages = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/uploads/most-liked-images`);
+      const data = await response.json();
+      if (data.success) {
+        setMostLikedImages(data.most_liked_images);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des images populaires :", error);
     }
   };
 
@@ -183,9 +182,21 @@ const SearchScreen = () => {
     </View>
   );
 
+  const renderLikedItem = ({ item } : any) => (
+    <TouchableOpacity onPress={() => goToPrestationViewWithId(item.id)}>
+      <View style={styles.userContainer}>
+        <Image source={{ uri: item.image_url }} style={styles.userImage} />
+        <View style={styles.usernameContainer}>
+          <Text style={styles.username}>@{item.pseudo || 'Utilisateur'}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
   // Utiliser useEffect pour charger les prestations lors du montage du composant
   useEffect(() => {
     fetchPrestations();
+    fetchMostLikedImages();
     getWorkers();
     async function loadFonts() {
       await Font.loadAsync({
@@ -247,12 +258,13 @@ const SearchScreen = () => {
             renderItem={renderMetierItem}
             contentContainerStyle={styles.metierList}
           />
+          
           <FlatList
-            data={users}
+            data={mostLikedImages}
             horizontal
             keyExtractor={(item, index) => index.toString()}
             showsHorizontalScrollIndicator={false}
-            renderItem={renderUserItem}
+            renderItem={renderLikedItem}
             contentContainerStyle={styles.userList}
           />
           <Text style={styles.sectionHeader}>Ce qui pourrait vous plaire</Text>

@@ -50,6 +50,7 @@ const PrestationScreen = () => {
   const [showExperienceForm, setShowExperienceForm] = useState(false);
   const [showExperienceCalendar, setShowExperienceCalendar] = useState(false);
   const [experienceDate, setExperienceDate] = useState('');
+  
 
 
   const route = useRoute() as any;
@@ -514,10 +515,7 @@ const PrestationScreen = () => {
   };
 
   const handleEditDescription = () => {
-    navigation.navigate({
-      name: 'modifyPrestationDescription',
-      params: {id : prestation_id},
-    } as never);
+    setIsEditing(true); // Active le mode édition local
   };
   
 
@@ -575,13 +573,31 @@ const PrestationScreen = () => {
       </View>
       <Text style={styles.title}>{prestation?.metier}</Text>
       <View style={styles.widthMax}>
-      <TouchableOpacity style={styles.descriptionRow} onPress={handleEditDescription}>
-          <View>
-            <Text style={styles.infoLabel}>description</Text>
-            <Text style={styles.infoValue}>{prestation?.description}</Text>
-          </View>
-          <MaterialIcons name="keyboard-arrow-right" size={24} color="black" />
-        </TouchableOpacity>
+      <View style={styles.descriptionRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.infoLabel}>description</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.descriptionInput}
+              multiline
+              value={description}
+              onChangeText={setDescription}
+              maxLength={maxDescriptionLength}
+            />
+          ) : (
+            <Text style={styles.infoValue}>{description || 'Aucune description'}</Text>
+          )}
+        </View>
+        {isEditing ? (
+          <TouchableOpacity onPress={handleSaveDescription}>
+            <MaterialIcons name="check" size={24} color="green" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={handleEditDescription}>
+            <MaterialIcons name="edit" size={24} color="black" />
+          </TouchableOpacity>
+        )}
+      </View>
       
       <Text style={styles.characterCount}>{maxDescriptionLength - description.length} caractères</Text>
 
