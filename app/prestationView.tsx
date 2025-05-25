@@ -777,12 +777,11 @@ const unlikeImage = async (imageId: string) => {
                   style={styles.modalLikeButton}
                 >
                   <Icon
-                    name={likedImages.includes(selectedImage.adress) ? 'favorite' : 'favorite-border'}
+                    name={Array.isArray(likedImages) && likedImages.includes(selectedImage?.adress) ? 'favorite' : 'favorite-border'}
                     size={32}
-                    color={likedImages.includes(selectedImage.adress) ? 'red' : 'white'}
+                    color={Array.isArray(likedImages) && likedImages.includes(selectedImage?.adress) ? 'red' : 'white'}
                   />
                 </TouchableOpacity>
-
               </>
             )}
           </View>
