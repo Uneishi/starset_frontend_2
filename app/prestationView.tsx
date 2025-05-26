@@ -1,15 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
-
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Font from 'expo-font';
 import { useFonts } from 'expo-font';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars'; // Import the Calendar component
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../config.json';
 
 const PrestationViewScreen = () => {
@@ -777,9 +776,9 @@ const unlikeImage = async (imageId: string) => {
                   style={styles.modalLikeButton}
                 >
                   <Icon
-                    name={Array.isArray(likedImages) && likedImages.includes(selectedImage?.adress) ? 'favorite' : 'favorite-border'}
+                    name={Array.isArray(likedImages) && likedImages.includes(selectedImage?.id) ? 'favorite' : 'favorite-border'}
                     size={32}
-                    color={Array.isArray(likedImages) && likedImages.includes(selectedImage?.adress) ? 'red' : 'white'}
+                    color={Array.isArray(likedImages) && likedImages.includes(selectedImage?.id) ? 'red' : 'white'}
                   />
                 </TouchableOpacity>
               </>
@@ -915,9 +914,6 @@ const unlikeImage = async (imageId: string) => {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Icon name="arrow-back" size={30} color="black" />
       </TouchableOpacity>
-    
-            
-    
             {/* Icônes à droite */}
       <View style={styles.headerIcons}>
         <TouchableOpacity

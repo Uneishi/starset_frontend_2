@@ -44,7 +44,7 @@ const CurrentWorkerPrestationContext = createContext<CurrentWorkerPrestationCont
 const AllWorkerPrestationContext = createContext<AllWorkerPrestationContextType | undefined>(undefined);
 const PlannedPrestationContext = createContext<PlannedPrestationContextType | undefined>(undefined);
 const UserConversationContext = createContext<UserConversationContextType | undefined>(undefined);
-const WorkerConversationsContext = createContext<WorkerConversationsContextType | undefined>(undefined);
+const WorkerConversationContext = createContext<WorkerConversationsContextType | undefined>(undefined);
 
 
 // Providers
@@ -89,12 +89,12 @@ export const UserConversationProvider: React.FC<{ children: React.ReactNode }> =
   );
 };
 
-export const WorkerConversationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const WorkerConversationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [workerConversations, setWorkerConversations] = useState<Conversation[] | null>(null);
   return (
-    <WorkerConversationsContext.Provider value={{ workerConversations, setWorkerConversations }}>
+    <WorkerConversationContext.Provider value={{ workerConversations, setWorkerConversations }}>
       {children}
-    </WorkerConversationsContext.Provider>
+    </WorkerConversationContext.Provider>
   );
 };
 
@@ -139,8 +139,8 @@ export const useUserConversations = () => {
   return context;
 };
 
-export const useWorkerConversations = () => {
-  const context = useContext(WorkerConversationsContext);
+export const useWorkerConversation = () => {
+  const context = useContext(WorkerConversationContext);
   if (!context) {
     throw new Error('useWorkerConversations doit être utilisé à l’intérieur de WorkerConversationsProvider');
   }
