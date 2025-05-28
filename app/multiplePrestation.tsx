@@ -1,45 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  FlatList,
-  StyleSheet,
-  Modal,
-  Alert,
-} from 'react-native';
-import config from '../config.json';
-import { useAllWorkerPrestation, useCurrentWorkerPrestation }  from '@/context/userContext';
+import { useCurrentWorkerPrestation } from '@/context/userContext';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import { Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import config from '../config.json';
 
 const PrestationsScreen = ({ route }: any) => {
-  
-
   const [customPrestations, setCustomPrestations] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  
   const [editingPrestation, setEditingPrestation] = useState<any>(null);
   const [newPrestation, setNewPrestation] = useState({ title: '', price: '', description: '' });
   const { currentWorkerPrestation: prestation, setCurrentWorkerPrestation } = useCurrentWorkerPrestation();
-
+  const [prestationImages, setPrestationImages] = useState<string[]>([]);
   const getCustomPrestations = async () => {
     try {
-      
       const response = await fetch(`${config.backendUrl}/api/prestation/get-all-custom-prestation-by-prestation-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prestation_id : prestation?.id }),
       });
-
       if (!response.ok) throw new Error('Network response was not ok');
-
       const data = await response.json();
       setCustomPrestations(data.custom_prestations);
     } catch (error) {
       console.error('Erreur chargement prestations personnalisées:', error);
     }
   };
+
+  const handleRemoveImage = (index: number) => {
+    const updated = [...prestationImages];
+    updated.splice(index, 1);
+    setPrestationImages(updated);
+  };
+
+  const handleAddImage = async () => {
+    if (prestationImages.length >= 3) {
+      Alert.alert('Limite atteinte', 'Vous ne pouvez ajouter que 3 images.');
+      return;
+    }
+  
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+    if (!permissionResult.granted) {
+      Alert.alert('Permission refusée', 'Vous devez autoriser l\'accès à vos photos.');
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setPrestationImages((prev) => [...prev, uri]);
+    }
+  };
+  
 
   const createCustomPrestation = async () => {
     try {
@@ -161,6 +178,20 @@ const PrestationsScreen = ({ route }: any) => {
               value={newPrestation.price}
               onChangeText={(text) => setNewPrestation({ ...newPrestation, price: text })}
             />
+
+            <Text style={styles.label}>Photos (max. 3)</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 }}>
+              {prestationImages.map((uri, index) => (
+                <TouchableOpacity key={index} onLongPress={() => handleRemoveImage(index)}>
+                  <Image source={{ uri }} style={{ width: 80, height: 80, marginRight: 10, borderRadius: 8 }} />
+                </TouchableOpacity>
+              ))}
+              {prestationImages.length < 3 && (
+                <TouchableOpacity onPress={handleAddImage} style={{ width: 80, height: 80, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', borderRadius: 8 }}>
+                  <Ionicons name="add" size={30} color="#888" />
+                </TouchableOpacity>
+              )}
+            </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.saveButton} onPress={createCustomPrestation}>

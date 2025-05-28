@@ -2,29 +2,18 @@ import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-const SkeletonLoader = () => {
+const CategorySkeleton = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.timing(shimmerAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 1200,
         useNativeDriver: true,
       })
     ).start();
@@ -32,20 +21,16 @@ const SkeletonLoader = () => {
 
   const translateX = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-100, SCREEN_WIDTH],
+    outputRange: [-SCREEN_WIDTH, SCREEN_WIDTH],
   });
 
   return (
-    <View style={styles.jobCard}>
-      <View style={styles.jobImage} />
-      <View style={styles.skeletonTextWrapper}>
-        <View style={styles.skeletonText} />
+    <View style={styles.categoryCard}>
+      <View style={styles.categoryImageSkeleton}>
         <Animated.View
           style={[
             styles.shimmerOverlay,
-            {
-              transform: [{ translateX }],
-            },
+            { transform: [{ translateX }] }
           ]}
         />
       </View>
@@ -58,11 +43,11 @@ const AddJobScreen = () => {
   const [metierNames, setMetierNames] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const [fields, setFields] = useState([]); // catégories
+  const [selectedField, setSelectedField] = useState(null);
   let [fontsLoaded] = useFonts({
       BebasNeue: BebasNeue_400Regular,
-      
-    });
+  });
 
   const getAllMetierNames = async () => {
     try {
@@ -94,8 +79,25 @@ const AddJobScreen = () => {
     } as never);
   };
 
+  const fetchFields = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/get-all-field`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const data = await response.json();
+      setFields(data.fields);
+    } catch (error) {
+      console.error('Erreur récupération catégories :', error);
+    }
+  };
+
   useEffect(() => {
     getAllMetierNames();
+    fetchFields();
   }, []);
 
   const filteredMetiers = metierNames.filter((metier: any) =>
@@ -114,9 +116,31 @@ const AddJobScreen = () => {
         onChangeText={setSearchTerm}
       />
 
-      {loading
-        ? Array.from({ length: 6 }).map((_, index) => <SkeletonLoader key={index} />)
-        : filteredMetiers.map((metier: any, index) => (
+          {selectedField === null ? (
+            <>
+              <Text style={styles.title}>CHOISISSEZ UNE CATÉGORIE</Text>
+
+              {loading ? (
+                Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
+              ) : (
+                fields.map((field: any, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.categoryCard}
+                    onPress={() => {
+                      setSelectedField(field);
+                      getAllMetierNames();
+                    }}
+                  >
+                    <Image source={{ uri: field.picture_url }} style={styles.categoryImage} />
+                    <View style={styles.overlay}>
+                      <Text style={styles.categoryText}>{field.name.toUpperCase()}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
+            </>
+          ) : filteredMetiers.map((metier: any, index) => (
             <TouchableOpacity
               key={index}
               style={styles.jobCard}
@@ -205,6 +229,40 @@ const styles = StyleSheet.create({
     width: 100,
     backgroundColor: 'rgba(255,255,255,0.4)',
   },
+  
+  categoryImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  
+  categoryText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+
+  categoryImageSkeleton: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e0e0e0',
+  },
+  
+  categoryCard: {
+    height: 130,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 15,
+    backgroundColor: '#f0f0f0',
+  },
+  
 });
 
 export default AddJobScreen;

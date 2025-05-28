@@ -1,12 +1,12 @@
+import { useAllWorkerPrestation, useCurrentWorkerPrestation } from '@/context/userContext';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
-
-import { useAllWorkerPrestation, useCurrentWorkerPrestation } from '@/context/userContext';
 import * as ImagePicker from 'expo-image-picker';
 import moment from 'moment'; // Si tu veux formater joliment
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../config.json';
@@ -50,6 +50,8 @@ const PrestationScreen = () => {
   const [showExperienceForm, setShowExperienceForm] = useState(false);
   const [showExperienceCalendar, setShowExperienceCalendar] = useState(false);
   const [experienceDate, setExperienceDate] = useState('');
+  const [selectedMode, setSelectedMode] = useState<'sur place' | 'distanciel'>('sur place');
+  const [showModeOptions, setShowModeOptions] = useState(false);
   
 
 
@@ -600,10 +602,48 @@ const PrestationScreen = () => {
       </View>
       
       <Text style={styles.characterCount}>{maxDescriptionLength - description.length} caractères</Text>
+      <View style={{ marginVertical: 20 }}>
+        <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>Mode de prestation</Text>
+
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 5 }}>
+            Mode de prestation
+          </Text>
+          <View style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 8,
+            overflow: 'hidden'
+          }}>
+            <Picker
+              selectedValue={selectedMode}
+              onValueChange={(itemValue) =>
+                setSelectedMode(itemValue)
+              }>
+              <Picker.Item label="Sur place" value="sur place" />
+              <Picker.Item label="Distanciel" value="distanciel" />
+            </Picker>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#00cc66',
+            padding: 12,
+            borderRadius: 8,
+          }}
+          onPress={() => setShowModeOptions(!showModeOptions)}
+        >
+          <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
+            {selectedMode.charAt(0).toUpperCase() + selectedMode.slice(1)}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       
       {/* Section pour les tarifs */}
-      <View style={styles.tarifSection}>
+      {!prestation?.type_of_remuneration?.toLowerCase().includes('prestation') ? (
+        <View style={styles.tarifSection}>
         <Text style={styles.tarifTitle}>Ajouter mes tarifs</Text>
 
         <TouchableOpacity
@@ -617,19 +657,17 @@ const PrestationScreen = () => {
           )}
         </TouchableOpacity>
       </View>
-
+    ) : (
       <View style={styles.tarifSection}>
         <Text style={styles.tarifTitle}>Ajouter des prestations</Text>
-
         <TouchableOpacity
           style={prestation?.remuneration ? styles.tarifDisplay : styles.tarifButton}
           onPress={goToMultiplePrestation}
         >
-          
-            <Text style={styles.tarifText}>ajouter des prestations</Text>
-          
+            <Text style={styles.tarifText}>ajouter des prestations</Text> 
         </TouchableOpacity>
       </View>
+    )}
 
       {/* Modal pour la saisie de la rémunération */}
       <Modal

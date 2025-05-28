@@ -722,14 +722,7 @@ const unlikeImage = async (imageId: string) => {
       </View>
 
       {/* Tarification */}
-      <View style={styles.pricingContainer}>
-        <Text style={styles.pricingText}>{prestation.remuneration ? `${prestation.remuneration}€/heure` : "Tarif non défini"}</Text>
-        <TouchableOpacity style={styles.calendarButton}>
-          <Text style={styles.calendarButtonText}>Voir le calendrier</Text>
-        </TouchableOpacity>
-        <View style={styles.diagonal} />
-        <View style={styles.diagonal2} />
-      </View>
+      
 
       {prestation?.type_of_remuneration?.toLowerCase().includes('prestation') ? (
         <View style={styles.seeMoreContainer}>
@@ -742,7 +735,14 @@ const unlikeImage = async (imageId: string) => {
           <View style={styles.seeMoreDiagonal2} />
         </View>
       ) : (
-        <View style={{ height: 120 }} />  // <-- Réserve de l'espace même sans bouton
+        <View style={styles.pricingContainer}>
+          <Text style={styles.pricingText}>{prestation.remuneration ? `${prestation.remuneration}€/heure` : "Tarif non défini"}</Text>
+          <TouchableOpacity style={styles.calendarButton}>
+            <Text style={styles.calendarButtonText}>Voir le calendrier</Text>
+          </TouchableOpacity>
+          <View style={styles.diagonal} />
+          <View style={styles.diagonal2} />
+        </View>
       )}
 
       {/* Date Picker Modal */}
@@ -1150,7 +1150,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    //marginBottom: 120,
+    marginBottom: 120,
     backgroundColor: '#00743C',
     height: 100,
     marginHorizontal: 10,

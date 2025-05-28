@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons'; // You can use icons for the send button
 import { useNavigation, useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 import socket from './socket';
+const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
 const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState('');
@@ -22,7 +24,7 @@ const ChatScreen = () => {
         },
         body: JSON.stringify({ conversation_id }),
       });
-
+      
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -44,6 +46,75 @@ const ChatScreen = () => {
       hour12: false,
     }).format(now);
   };
+
+  const handleSelectImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("Permission refusée", "Autorisez l'accès à la galerie.");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      base64: true,
+    });
+  
+    if (!result.canceled) {
+      const image = result.assets[0];
+      setSelectedImage(`data:image/jpeg;base64,${image.base64}`);
+    }
+  };
+
+  const handleSendImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("Permission refusée", "Autorisez l'accès à la galerie.");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      base64: true,
+    });
+  
+    if (!result.canceled) {
+      const image = result.assets[0];
+      const message_time = getLocalTime();
+  
+      const imageMessage = {
+        id: '',
+        conversation_id,
+        sender_id,
+        sender_type,
+        message_text: '', // vide pour image
+        image_base64: image.base64,
+        timestamp: message_time,
+        type: 'image', // pour différencier
+      };
+  
+      try {
+        const response = await fetch(`${config.backendUrl}/api/conversation/send-image-message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(imageMessage),
+        });
+  
+        if (!response.ok) throw new Error('Erreur réseau');
+  
+        const data = await response.json();
+        socket.emit('newMessage', { ...imageMessage, conversation_id });
+  
+      } catch (error) {
+        console.error('Erreur envoi image :', error);
+        Alert.alert('Erreur', 'Impossible d\'envoyer l\'image');
+      }
+    }
+  };
+  
 
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
@@ -103,9 +174,6 @@ const ChatScreen = () => {
     };
   }, [conversation_id]);
   
-  
-  
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -132,7 +200,6 @@ const ChatScreen = () => {
               message.sender_id === sender_id ? styles.myMessage : styles.otherMessage,
             ]}
           >
-            
             <View style={message.sender_id === sender_id ? styles.myTextWrapper : styles.otherTextWrapper}>
               <Text style={styles.messageText}>{message.message_text}</Text>
             </View>
@@ -142,20 +209,30 @@ const ChatScreen = () => {
 
       {/* Fixed input bar */}
       <View style={styles.inputContainer}>
-        <TouchableOpacity>
-          <Ionicons name="camera-outline" size={24} color="#008000" />
+      <TouchableOpacity onPress={handleSelectImage}>
+        <Ionicons name="camera-outline" size={24} color="#008000" />
+      </TouchableOpacity>
+      <TextInput
+        style={styles.input}
+        value={newMessage}
+        onChangeText={setNewMessage}
+        placeholder="Ajouter un message..."
+        placeholderTextColor="#808080"
+      />
+
+      {selectedImage && (
+        <TouchableOpacity onPress={() => setSelectedImage(null)}>
+          <Image
+            source={{ uri: selectedImage }}
+            style={{ width: 40, height: 40, marginRight: 8, borderRadius: 5 }}
+          />
         </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          value={newMessage}
-          onChangeText={setNewMessage}
-          placeholder="Ajouter un message..."
-          placeholderTextColor="#808080"
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Ionicons name="send" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+      )}
+
+      <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+        <Ionicons name="send" size={24} color="white" />
+      </TouchableOpacity>
+    </View>
     </KeyboardAvoidingView>
   );
 };
@@ -165,11 +242,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+
   header: {
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 10,
   },
+  
   headerImage: {
     width: 100,
     height: 100,
