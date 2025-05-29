@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 import socket from './socket';
-const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
 
 const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState('');
@@ -13,6 +13,7 @@ const ChatScreen = () => {
   const navigation = useNavigation();
   const route = useRoute() as any;
   const { conversation_id, sender_id, sender_type , contact_profile_picture_url, contact_firstname} = route.params || {};
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const getAllMessages = async () => {
     try {
