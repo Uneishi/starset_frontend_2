@@ -49,6 +49,26 @@ const AddJobScreen = () => {
       BebasNeue: BebasNeue_400Regular,
   });
 
+  const getMetiersByField = async (fieldName: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/filter-job-with-field`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field: fieldName }),
+      });
+
+      if (!response.ok) throw new Error('Erreur réseau');
+
+      const data = await response.json();
+      setMetierNames(data.metiers);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des métiers filtrés :', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getAllMetierNames = async () => {
     try {
       const response = await fetch(`${config.backendUrl}/api/mission/get-all-metier-names`, {
@@ -76,6 +96,13 @@ const AddJobScreen = () => {
     navigation.navigate({
       name: 'jobView',
       params: { selectedJob },
+    } as never);
+  };
+
+  const goToMetierList = (field: string) => {
+    navigation.navigate({
+      name: 'metierList',
+      params: { field },
     } as never);
   };
 
@@ -116,49 +143,51 @@ const AddJobScreen = () => {
         onChangeText={setSearchTerm}
       />
 
-          {selectedField === null ? (
-            <>
-              <Text style={styles.title}>CHOISISSEZ UNE CATÉGORIE</Text>
-
-              {loading ? (
-                Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
-              ) : (
-                fields.map((field: any, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.categoryCard}
-                    onPress={() => {
-                      setSelectedField(field);
-                      getAllMetierNames();
-                    }}
-                  >
-                    <Image source={{ uri: field.picture_url }} style={styles.categoryImage} />
-                    <View style={styles.overlay}>
-                      <Text style={styles.categoryText}>{field.name.toUpperCase()}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-            </>
-          ) : filteredMetiers.map((metier: any, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.jobCard}
-              onPress={() => gotoJobView(metier)}
-            >
-              <Image
-                source={{
-                  uri: metier.picture_url
-                    ? metier.picture_url
-                    : 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png',
+      {selectedField === null ? (
+        <>
+          <Text style={styles.title}>CHOISISSEZ UNE CATÉGORIE</Text>
+          {loading ? (
+            Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
+          ) : (
+            fields.map((field: any, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.categoryCard}
+                onPress={() => {
+                  
+                  goToMetierList(field); // ⚠️ Appel au nouvel endpoint
                 }}
-                style={styles.jobImage}
-              />
-              <Text style={styles.jobTitle}>{metier.name.toUpperCase()}</Text>
-            </TouchableOpacity>
-          ))}
+              >
+                <Image source={{ uri: field.picture_url }} style={styles.categoryImage} />
+                <View style={styles.overlay}>
+                  <Text style={styles.categoryText}>{field.name.toUpperCase()}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </>
+      ) : loading ? (
+        Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
+      ) : (
+        filteredMetiers.map((metier: any, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.jobCard}
+            onPress={() => gotoJobView(metier)}
+          >
+            <Image
+              source={{
+                uri: metier.picture_url || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png',
+              }}
+              style={styles.jobImage}
+            />
+            <Text style={styles.jobTitle}>{metier.name.toUpperCase()}</Text>
+          </TouchableOpacity>
+        ))
+      )}
     </ScrollView>
-  );
+
+    );
 };
 
 const styles = StyleSheet.create({
@@ -183,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
   },
+
   jobCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -262,7 +292,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f0f0f0',
   },
-  
 });
 
 export default AddJobScreen;

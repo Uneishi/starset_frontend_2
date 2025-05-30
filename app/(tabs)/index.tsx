@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import config from '../../config.json';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import config from '../../config.json';
 
 const profiles = [
   {
@@ -168,6 +167,14 @@ const HomeScreen = () => {
     } as never);
   };
 
+  const goToWorkerByField = (field : any) => {
+    console.log(123)
+    navigation.navigate({
+      name: 'workerByField',
+      params: { field },
+    } as never);
+  };
+
 
   const renderProfileItem = ({ item }: any) => (
     <TouchableOpacity
@@ -221,7 +228,6 @@ const HomeScreen = () => {
       </View>
     </View>
   );
-
  
   const CategoryItem = ({ item } : any) => {
     const [isPressed, setIsPressed] = useState(false);
@@ -232,7 +238,7 @@ const HomeScreen = () => {
           styles.categoryContainer,
          
         ]}
-        onPress={() => searchWorkersByField(item.name)}
+        onPress={() => goToWorkerByField(item)}
         onPressIn={() => setIsPressed(true)} // Activer le zoom
         onPressOut={() => setIsPressed(false)} // Désactiver le zoom
       >
@@ -606,9 +612,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ccc',
     opacity: 0.3,
   },
-
-  
-  
 
 });
 

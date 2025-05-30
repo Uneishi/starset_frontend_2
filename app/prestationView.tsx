@@ -133,8 +133,6 @@ const PrestationViewScreen = () => {
     setDatePickerVisible(!isDatePickerVisible); // Toggle the visibility of the date picker
   };
 
-  
-
   const toggleLikeImage = async (image: any) => {
     console.log(image)
     const user_id = await getAccountId();
@@ -310,7 +308,6 @@ const PrestationViewScreen = () => {
       name: 'chat',
       params: {conversation_id : conversation_id , sender_id : account_id , sender_type : 'user', contact_profile_picture_url : profilePictureUrl},
     } as never);
-  
   }
 
   const goToOtherPrestation = async (prestation_id : any, metier : any) => {
@@ -319,7 +316,6 @@ const PrestationViewScreen = () => {
       name: 'prestationView',
       params: {id : prestation_id},
     } as never);
-  
   }
 
   const getAllCertification = async () => {
@@ -541,8 +537,7 @@ const unlikeImage = async (imageId: string) => {
     const daysWorked = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1; // inclure le dernier jour
 
     toggleCalendar()
-    toggleArrivalTimePicker()
-    toggleDepartureTimePicker()
+    setCalendarVisible(false); // Toggle the visibility of the calendar
 
     const hoursWorked = (departureTime.getTime() - arrivalTime.getTime()) / (1000 * 60 * 60); // conversion ms → heures
 
@@ -862,10 +857,12 @@ const unlikeImage = async (imageId: string) => {
                     onChangeText={(text) => handleMinuteChange(text, setArrivalMinute)}
                   />
                 </View>
+                
                 <TouchableOpacity
-                  style={styles.nextButton}
+                  style={[styles.nextButton, !(arrivalHour.length === 2 && arrivalMinute.length === 2) && { backgroundColor: '#ccc' }]}
+                  disabled={!(arrivalHour.length === 2 && arrivalMinute.length === 2)}
                   onPress={() => {
-                    setModalType('departure'); // Changer pour l'heure de départ
+                    setModalType('departure');
                   }}
                 >
                   <Text style={styles.nextButtonText}>Suivant</Text>
@@ -895,9 +892,11 @@ const unlikeImage = async (imageId: string) => {
                     onChangeText={(text) => handleMinuteChange(text, setDepartureMinute)}
                   />
                 </View>
+                
                 <TouchableOpacity
-                  style={styles.nextButton}
-                  onPress={() => goToSummary()}
+                  style={[styles.nextButton, !(departureHour.length === 2 && departureMinute.length === 2) && { backgroundColor: '#ccc' }]}
+                  disabled={!(departureHour.length === 2 && departureMinute.length === 2)}
+                  onPress={goToSummary}
                 >
                   <Text style={styles.nextButtonText}>Confirmer</Text>
                 </TouchableOpacity>
@@ -1150,7 +1149,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 120,
+    //marginBottom: 120,
     backgroundColor: '#00743C',
     height: 100,
     marginHorizontal: 10,
