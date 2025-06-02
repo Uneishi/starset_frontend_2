@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import config from '../../config.json';
@@ -52,6 +52,8 @@ const HomeScreen = () => {
   const [fetchedCategories, setFetchedCategories] = useState([]); // Nouvel état pour stocker les catégories
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation()
+  const route = useRoute() as any;
+  
   const suggestions = [
     'Babysitter de nuit',
   ];
@@ -265,6 +267,23 @@ const HomeScreen = () => {
     fetchCategories();
     loadRecentSearches();
   }, []);
+
+  useEffect(() => {
+    fetchCategories();
+    loadRecentSearches();
+  
+    if (route.params?.searchQuery) {
+      const query = route.params.searchQuery;
+      setSearch(query);
+      setShowProfiles(true);
+      setShowSuggestions(false);
+      saveRecentSearch(query);
+      setTimeout(() => {
+        searchWorkersByField(query);
+      }, 100); // léger délai pour laisser React rendre le composant
+    }
+  }, [route.params?.searchQuery]);
+  
 
   const fetchCategories = async () => {
     try {

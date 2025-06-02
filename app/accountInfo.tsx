@@ -14,9 +14,7 @@ const AccountInfoScreen = () => {
   
   const [phoneNumber, setPhoneNumber] = useState('');
   const phoneInputRef = useRef<PhoneInput>(null);
-
   const [showDatePicker, setShowDatePicker] = useState(false);
-
   const [countryCode, setCountryCode] = useState<any>('FR'); // Code du pays initial, ici la France
   const [callingCode, setCallingCode] = useState('+33'); // Code du pays initial
   const [showCountryPicker, setShowCountryPicker] = useState(false); // Afficher ou cacher le picker du pays
@@ -324,6 +322,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderRadius: 8,
   },
+  
   countryCodeText: {
     fontSize: 15,
     color: 'black',

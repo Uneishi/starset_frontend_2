@@ -21,20 +21,12 @@ const profilePictures = [
   "https://www.utopix.com/fr/blog/wp-content/uploads/2024/04/Y2E4OTI3NzQtNmUyOC00YmU2LWE5ZjctODcxY2RlMzg2ZDIy_26dfc43e-31dd-463f-ad04-56f39a430691_profilhomme1-scaled.jpg"
 ];
 
-const metiers = [
-  { name: 'Coiffure', image: 'https://cdn-icons-png.flaticon.com/512/773/773179.png' },
-  { name: 'Pestitting', image: 'https://cdn-icons-png.flaticon.com/512/194/194279.png' },
-  { name: 'Manucure', image: 'https://cdn-icons-png.flaticon.com/512/96/96514.png' },
-  { name: 'Plomberie', image: 'https://cdn-icons-png.flaticon.com/512/312/312971.png' },
-  { name: 'Électricité', image: 'https://cdn-icons-png.flaticon.com/512/550/550264.png' },
-  { name: 'Jardinage', image: 'https://cdn-icons-png.flaticon.com/512/1518/1518965.png' }
-];
-
 const SearchScreen = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const navigation = useNavigation()
   const [prestations, setPrestations] = useState([]);
   const [workers, setWorkers] = useState([]);
+  const [metiers, setMetiers] = useState([]);
   const [mostLikedImages, setMostLikedImages] = useState([]);
   let [fontsLoaded] = useFonts({
     BebasNeue: BebasNeue_400Regular,
@@ -58,6 +50,14 @@ const SearchScreen = () => {
     navigation.navigate({
       name: 'prestationView',
       params: { id },
+    } as never);
+  };
+
+  const goToSearchInHomeScreen = (metierName: string) => {
+    
+    navigation.navigate({
+      name: 'prestationView',
+      params: { searchQuery : metierName },
     } as never);
   };
 
@@ -88,6 +88,21 @@ const SearchScreen = () => {
       console.error('Erreur lors de la récupération des prestations :', error);
     }
   };
+
+  const fetchMetiers = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/get-job-of-the-day`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('Échec lors de la récupération des métiers');
+      const data = await response.json();
+      setMetiers(data.metiers || []);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des métiers :", error);
+    }
+  };
+  
 
   const fetchMostLikedImages = async () => {
     try {
@@ -164,12 +179,13 @@ const SearchScreen = () => {
     </TouchableOpacity>
   );
   
-  const renderMetierItem = ({ item } : any) => (
-    <TouchableOpacity style={styles.metierContainer}>
-      
-      <Image source={{ uri: item.image }} style={styles.metierImage} />
+  const renderMetierItem = ({ item }: any) => (
+    <TouchableOpacity style={styles.metierContainer} onPress={() => goToSearchInHomeScreen(item.name)}>
+      <Image
+        source={{ uri: item.picture_url || 'https://cdn-icons-png.flaticon.com/512/91/91501.png' }}
+        style={styles.metierImage}
+      />
       <Text style={styles.metierText}>{item.name}</Text>
-      
     </TouchableOpacity>
   );
 
@@ -195,6 +211,7 @@ const SearchScreen = () => {
 
   // Utiliser useEffect pour charger les prestations lors du montage du composant
   useEffect(() => {
+    fetchMetiers();
     fetchPrestations();
     fetchMostLikedImages();
     getWorkers();
@@ -232,9 +249,9 @@ const SearchScreen = () => {
             <Ionicons name="notifications-outline" size={28} color="#000" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.fakeSearchBar}>
-  <Ionicons name="location-sharp" size={16} color="#999" style={{ marginRight: 8 }} />
-  <Text style={styles.fakeSearchText}>Top Worker</Text>
-</TouchableOpacity>
+            <Ionicons name="location-sharp" size={16} color="#999" style={{ marginRight: 8 }} />
+            <Text style={styles.fakeSearchText}>Top Worker</Text>
+          </TouchableOpacity>
           <FlatList
             data={prestations}
             horizontal
@@ -322,6 +339,7 @@ const styles = StyleSheet.create({
     marginHorizontal : 20,
     fontFamily: 'BebasNeue-Regular', // Utilisation de la police
   },
+
   profileContainer: {
     //flexGrow: 1, // Assure que le ScrollView peut s'étendre
     alignItems: 'flex-start', // Centre les éléments pour éviter les espaces
@@ -525,9 +543,7 @@ const styles = StyleSheet.create({
   userList: {
     flexDirection: 'row',
     paddingHorizontal: 10,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#d3d3d3', // Gris clair
+    
     marginHorizontal: 20, // <-- C'est ça qui fait que la ligne ne va pas jusqu'au bout
     borderRadius: 10, // (optionnel) rend les coins légèrement arrondis
     backgroundColor: '#fff', // (optionnel) si tu veux garder un fond blanc

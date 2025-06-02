@@ -1547,10 +1547,8 @@ const styles = StyleSheet.create({
   seeMoreContainer: {
     backgroundColor: '#FFD700',
     marginHorizontal: 10,
-    
     paddingVertical: 15,
     paddingHorizontal: 20,
-    
     position: 'relative',
     overflow: 'hidden',
     marginBottom: 120,
@@ -1601,7 +1599,6 @@ const styles = StyleSheet.create({
     padding: 15,
     marginRight: 10,
     width: 250,
-    
   },
   
   reviewName: {
@@ -1618,14 +1615,14 @@ const styles = StyleSheet.create({
   },
 
   modalLikeButton: {
-  position: 'absolute',
-  top: 30,
-  right: 30,
-  backgroundColor: 'rgba(0,0,0,0.4)',
-  borderRadius: 25,
-  padding: 8,
-  zIndex: 10,
-},
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 25,
+    padding: 8,
+    zIndex: 10,
+  },
   
 });
 

@@ -17,8 +17,8 @@ const AccountScreen = () => {
   const [plannedPrestations, setPlannedPrestations] = useState<any[]>([]);
   const [workerPlannedPrestations, setWorkerPlannedPrestations] = useState<any[]>([]);
   const [isWorkerRequestModalVisible, setWorkerRequestModalVisible] = useState(false); // Modal qui affiche les missions planifiées du worker
-
-  const [statusFilter, setStatusFilter] = useState<'waiting' | 'in_progress' | 'finished'>('waiting');
+  
+  const [statusFilter, setStatusFilter] = useState<any>('waiting');
   const [selectedStatusTitle, setSelectedStatusTitle] = useState('');
   const [statusModalVisible, setStatusModalVisible] = useState(false);
 
@@ -297,7 +297,7 @@ const AccountScreen = () => {
 
         <TouchableOpacity
           onPress={() => {
-            setStatusFilter('in_progress');
+            setStatusFilter('inProgress');
             setSelectedStatusTitle('En cours');
             setStatusModalVisible(true);
           }}
@@ -503,34 +503,34 @@ const AccountScreen = () => {
       </Modal>
 
       <Modal
-  visible={statusModalVisible}
-  animationType="slide"
-  transparent={true}
-  onRequestClose={() => setStatusModalVisible(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.historyModalContent}>
-      <Text style={styles.historyModalTitle}>Prestations {selectedStatusTitle}</Text>
-
-      <ScrollView style={{ width: '100%' }}>
-        {plannedPrestations.filter(p => p.status === statusFilter).map((p, index) => (
-          <View key={index} style={styles.prestationCard}>
-            <Text style={styles.prestationCardTitle}>{p.title}</Text>
-            <Text style={styles.prestationCardDate}>{p.date}</Text>
-            <Text style={styles.prestationCardDescription}>{p.description}</Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      <TouchableOpacity
-        style={styles.closeButton}
-        onPress={() => setStatusModalVisible(false)}
+        visible={statusModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setStatusModalVisible(false)}
       >
-        <Text style={styles.closeButtonText}>Fermer</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+        <View style={styles.modalOverlay}>
+          <View style={styles.historyModalContent}>
+            <Text style={styles.historyModalTitle}>Prestations {selectedStatusTitle}</Text>
+
+            <ScrollView style={{ width: '100%' }}>
+              {plannedPrestations.filter(p => p.status === statusFilter).map((p, index) => (
+                <View key={index} style={styles.prestationCard}>
+                  <Text style={styles.prestationCardTitle}>{p.title}</Text>
+                  <Text style={styles.prestationCardDate}>{p.date}</Text>
+                  <Text style={styles.prestationCardDescription}>{p.description}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setStatusModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
 
 
