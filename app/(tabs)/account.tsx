@@ -146,6 +146,8 @@ const AccountScreen = () => {
       }
   
       const data = await response.json();
+      console.log(2);
+
       console.log('Planned Prestation:', data.plannedPrestations);
       setPlannedPrestations(data.plannedPrestations);
   
@@ -213,6 +215,7 @@ const AccountScreen = () => {
 
   useEffect(() => {
     getProfile();
+    getUserPlannedPrestation();
   }, []);
 
   useLayoutEffect(() => {
