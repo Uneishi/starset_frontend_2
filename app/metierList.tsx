@@ -1,14 +1,15 @@
+import { BebasNeue_400Regular, useFonts } from '@expo-google-fonts/bebas-neue';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import config from '../config.json';
 
@@ -19,6 +20,9 @@ const MetierListScreen = () => {
 
   const [metiers, setMetiers] = useState([]);
   const [loading, setLoading] = useState(true);
+  let [fontsLoaded] = useFonts({
+        BebasNeue: BebasNeue_400Regular,
+    });
 
   const getMetiersByField = async () => {
     try {
@@ -123,16 +127,17 @@ const styles = StyleSheet.create({
   },
 
   jobImage: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     marginRight: 15,
     borderRadius: 25,
-    backgroundColor: '#DDD',
   },
 
   jobTitle: {
     fontSize: 20,
     fontWeight: '600',
+    fontFamily : 'BebasNeue',
+    flexWrap : 'wrap'
   },
 
   emptyText: {

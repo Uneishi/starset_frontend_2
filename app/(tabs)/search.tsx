@@ -55,9 +55,14 @@ const SearchScreen = () => {
 
   const goToSearchInHomeScreen = (metierName: string) => {
     
+    //navigation.navigate({
+    //  name: 'index',
+    //  params: { searchQuery : metierName },
+    //} as never);
+
     navigation.navigate({
-      name: 'prestationView',
-      params: { searchQuery : metierName },
+      name: '(tabs)',
+      params: { screen: 'Account_Worker', searchQuery : metierName},
     } as never);
   };
 
@@ -241,7 +246,7 @@ const SearchScreen = () => {
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.5}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 60 }} // <-- AJOUTE CECI
+      contentContainerStyle={{ paddingBottom: 10 }} // <-- AJOUTE CECI
       ListHeaderComponent={
         <View style={styles.container}>
           <Text style={styles.headerText}>Star Set</Text>

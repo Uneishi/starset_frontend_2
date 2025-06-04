@@ -216,6 +216,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 10,
     justifyContent: 'flex-end',
+    borderTopWidth: 0.5,
+    borderBottomWidth: 0.5,
+    borderColor: '#ccc',
+    paddingVertical: 10,
   },
   statText: {
     fontSize: 14,
@@ -382,6 +386,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  
   modalContent: {
     backgroundColor: '#FFFFFF',
     padding: 20,

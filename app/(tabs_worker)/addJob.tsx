@@ -145,7 +145,7 @@ const AddJobScreen = () => {
 
       {selectedField === null ? (
         <>
-          <Text style={styles.title}>CHOISISSEZ UNE CATÉGORIE</Text>
+          
           {loading ? (
             Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
           ) : (
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingTop: 50,
+    paddingBottom : 40
   },
   title: {
     fontWeight: 'bold',

@@ -6,7 +6,6 @@ import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, T
 import config from '../config.json';
 import socket from './socket';
 
-
 const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<any>([]);

@@ -2,13 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import config from '../config.json';
 
@@ -20,10 +20,10 @@ const WorkersByFieldScreen = () => {
   const [loading, setLoading] = useState(true);
   const fetchWorkersByField = async () => {
     try {
-      const response = await fetch(`${config.backendUrl}/api/mission/filter-workers-by-field`, {
+      const response = await fetch(`${config.backendUrl}/api/mission/get-workers-with-metiers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: field.name }),
+        body: JSON.stringify({ }),
       });
       const data = await response.json();
       setWorkers(data.workers);

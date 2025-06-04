@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useUser } from '@/context/userContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 
 const ProfilePhotoScreen = () => {
@@ -90,7 +90,7 @@ const ProfilePhotoScreen = () => {
         {photo ? (
           <Image source={photo} style={styles.profilePhoto} />
         ) : (
-          <Image source={{ uri: 'https://img.20mn.fr/wb0GX0XqSd2N4Y3ItfLEGik/1444x920_squeezie-youtubeur-chanteur-et-desormais-auteur-de-bd' }} style={styles.profilePhoto} />
+          <Image source={{ uri: 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' }} style={styles.profilePhoto} />
         )}
       </View>
       <View style={{ width: '100%', height: 10 }}></View>

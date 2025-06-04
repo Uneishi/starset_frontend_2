@@ -603,8 +603,7 @@ const PrestationScreen = () => {
       
       <Text style={styles.characterCount}>{maxDescriptionLength - description.length} caractères</Text>
       <View style={{ marginVertical: 20 }}>
-        <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>Mode de prestation</Text>
-
+        
         <View style={{ marginBottom: 20 }}>
           <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 5 }}>
             Mode de prestation
@@ -1611,10 +1610,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
-
-  
-  
-  
 
   inputLabel: {
     fontWeight: 'bold',

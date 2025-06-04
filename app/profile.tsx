@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Modal } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import config from '../config.json';
+import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const ProfileScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -51,7 +50,7 @@ const ProfileScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://img.20mn.fr/wb0GX0XqSd2N4Y3ItfLEGik/1444x920_squeezie-youtubeur-chanteur-et-desormais-auteur-de-bd' }}
+          source={{ uri: 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'}}
           style={styles.profilePicture}
         />
         <Text style={styles.profileName}>Chloé</Text>

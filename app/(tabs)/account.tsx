@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../../config.json';
 import { saveMode } from '../chooseAccount';
@@ -21,6 +22,9 @@ const AccountScreen = () => {
   const [statusFilter, setStatusFilter] = useState<any>('waiting');
   const [selectedStatusTitle, setSelectedStatusTitle] = useState('');
   const [statusModalVisible, setStatusModalVisible] = useState(false);
+
+  const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
   const changeToWorker = async () => {
     saveMode('worker');
@@ -211,8 +215,6 @@ const AccountScreen = () => {
   };
 
   
-  
-
   useEffect(() => {
     getProfile();
     getUserPlannedPrestation();
@@ -257,6 +259,11 @@ const AccountScreen = () => {
   }, [navigation]);
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+  <ScrollView
+    showsVerticalScrollIndicator={false}
+    contentInsetAdjustmentBehavior="automatic"
+  >
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.profileHeader} onPress={goToProfilePicture}>
@@ -270,7 +277,6 @@ const AccountScreen = () => {
             style={styles.profilePicture}
           />
           </View>
-          
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{account?.firstname} {account?.lastname}</Text>
             <Text style={styles.profileHandle}>@{account?.pseudo}</Text>
@@ -282,7 +288,6 @@ const AccountScreen = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-
       <View style={styles.statusIconsContainer}>
         <TouchableOpacity
           onPress={() => {
@@ -492,7 +497,6 @@ const AccountScreen = () => {
                   </Text>
                 )}
               </View>
-
               {/* Bouton pour fermer le modal */}
               <TouchableOpacity
                 style={styles.inProgressCloseButton}
@@ -516,15 +520,77 @@ const AccountScreen = () => {
             <Text style={styles.historyModalTitle}>Prestations {selectedStatusTitle}</Text>
 
             <ScrollView style={{ width: '100%' }}>
-              {plannedPrestations.filter(p => p.status === statusFilter).map((p, index) => (
-                <View key={index} style={styles.prestationCard}>
-                  <Text style={styles.prestationCardTitle}>{p.title}</Text>
-                  <Text style={styles.prestationCardDate}>{p.date}</Text>
-                  <Text style={styles.prestationCardDescription}>{p.description}</Text>
-                </View>
-              ))}
-            </ScrollView>
+            {(() => {
+  // 1. Filtrer les prestations par statut
+  const filtered = plannedPrestations.filter(p => p.status === statusFilter);
 
+  // 2. Trier par date de début
+  const sorted = filtered.sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+
+  // 3. Grouper par mois et année
+  const grouped: { [key: string]: any[] } = {};
+  sorted.forEach((prestation) => {
+    const date = new Date(prestation.start_date);
+    const month = date.getMonth(); // 0-11
+    const year = date.getFullYear();
+    const key = `${month}-${year}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(prestation);
+  });
+
+  // 4. Afficher par groupe
+  return Object.entries(grouped).map(([key, prestations], index) => {
+    const [monthIndex, year] = key.split('-');
+    const monthLabel = `${monthNames[+monthIndex]} ${year}`;
+
+    return (
+      <View key={key} style={{ width: '100%' }}>
+        <Text style={styles.modalSubtitle}>{monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}</Text>
+        {prestations.map((prestation, i) => (
+          <TouchableOpacity key={i} style={styles.missionItem}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.dayContainer}>
+                <Text style={styles.dayText}>{new Date(prestation.start_date).getUTCDate()}</Text>
+              </View>
+              <View style={{ marginLeft: 10 }}>
+                <Text style={styles.missionInProgressText}>{prestation.metier}</Text>
+                <Text style={styles.missionTime}>
+                  {prestation.start_time} → {prestation.end_time}
+                </Text>
+                {prestation.status === "waiting" && (
+                  <>
+                    <View style={[styles.statusBadge, { backgroundColor: 'orange' }]}>
+                      <Text style={styles.statusText}>Waiting</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => cancelPrestation(prestation._id)}
+                    >
+                      <Text style={styles.cancelButtonText}>Annuler</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                {prestation.status === "inProgress" && (
+                  <View style={[styles.statusBadge, { backgroundColor: '#00cc66' }]}>
+                    <Text style={styles.statusText}>In Progress</Text>
+                  </View>
+                )}
+                {prestation.status === "rejected" && (
+                  <View style={[styles.statusBadge, { backgroundColor: 'red' }]}>
+                    <Text style={styles.statusText}>Rejected</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+            <Text style={styles.missionPrice}>{prestation.remuneration}€</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  });
+})()}
+
+            </ScrollView>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setStatusModalVisible(false)}
@@ -534,10 +600,9 @@ const AccountScreen = () => {
           </View>
         </View>
       </Modal>
-
-
-
     </View>
+    </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -546,7 +611,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 20,
-    marginTop : 40
+    marginTop : 40,
+    paddingBottom : 60    //A CHANGER
   },
   profileHeader: {
     flexDirection: 'row',
@@ -761,17 +827,15 @@ const styles = StyleSheet.create({
   },
 
   modalSubtitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#00cc66',
-    textAlign: 'center',
+    color: 'black',
+    textAlign: 'left',
   },
 
   modalContent: {
     backgroundColor: 'white',
-    
-    
     borderRadius: 10,
     alignItems: 'center',
     justifyContent : 'center',
