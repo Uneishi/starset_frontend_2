@@ -20,10 +20,10 @@ const WorkersByFieldScreen = () => {
   const [loading, setLoading] = useState(true);
   const fetchWorkersByField = async () => {
     try {
-      const response = await fetch(`${config.backendUrl}/api/mission/get-workers-with-metiers`, {
+      const response = await fetch(`${config.backendUrl}/api/mission/filter-workers-by-field`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ }),
+        body: JSON.stringify({ field : field.name}),
       });
       const data = await response.json();
       setWorkers(data.workers);
