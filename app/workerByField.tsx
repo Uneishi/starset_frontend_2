@@ -23,7 +23,9 @@ const WorkersByFieldScreen = () => {
       const response = await fetch(`${config.backendUrl}/api/mission/filter-workers-by-field`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+
         body: JSON.stringify({ field : field.name }),
+
       });
       const data = await response.json();
       console.log(field)
