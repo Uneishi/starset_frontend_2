@@ -20,12 +20,16 @@ const WorkersByFieldScreen = () => {
   const [loading, setLoading] = useState(true);
   const fetchWorkersByField = async () => {
     try {
-      const response = await fetch(`${config.backendUrl}/api/mission/get-workers-with-metiers`, {
+      const response = await fetch(`${config.backendUrl}/api/mission/filter-workers-by-field`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ }),
+        body: JSON.stringify({ field : field.name }),
       });
       const data = await response.json();
+      console.log(field)
+      console.log(data)
+      console.log(123)
+      console.log(123)
       setWorkers(data.workers);
     } catch (error) {
       console.error('Erreur lors de la récupération des travailleurs :', error);
@@ -57,11 +61,13 @@ const WorkersByFieldScreen = () => {
         <Text style={styles.profilePseudo}>{item.pseudo}</Text>
         <Text style={styles.profileDescription}>{item.description}</Text>
         <View style={styles.profileCategories}>
-          {item.metiers.slice(0, 3).map((metier: any, index: number) => (
-            <View key={index} style={styles.categoryBadge}>
-              <Text style={styles.badgeText}>{metier.name}</Text>
-            </View>
-          ))}
+          {Array.from(new Map(item.metiers.map((m: { name: any; })=> [m.name, m])).values())
+  .slice(0, 3)
+  .map((metier: any, index: number) => (
+    <View key={index} style={styles.categoryBadge}>
+      <Text style={styles.badgeText}>{metier.name}</Text>
+    </View>
+))}
         </View>
       </View>
     </TouchableOpacity>

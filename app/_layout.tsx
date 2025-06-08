@@ -29,8 +29,8 @@ function RootLayoutNav() {
                     
                     <Stack.Screen name="starsetScreen"   options={{ headerShown: false }}/>
                     <Stack.Screen name="index"   options={{ headerShown: false }}/>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }}/>
-                    <Stack.Screen name="(tabs_worker)" options={{ headerShown: false }}/>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false, gestureEnabled:false}}/>
+                    <Stack.Screen name="(tabs_worker)" options={{ headerShown: false , gestureEnabled:false}}/>
                     <Stack.Screen name="connexion" options={{ headerShown: false }}/>
                     <Stack.Screen name="prestationView"  options={{ headerShown : false }} />
                     <Stack.Screen name="paymentMethod"  />
