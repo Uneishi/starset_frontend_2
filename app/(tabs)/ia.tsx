@@ -117,8 +117,8 @@ const AiScreen = () => {
 
         {/* Messages */}
         <ScrollView
-          style={styles.messageContainer}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          style={{ flex: 1, width: '100%' }}
+          contentContainerStyle={[styles.messageContainer, { paddingBottom: 20 }]}
           keyboardShouldPersistTaps="handled"
         >
           {messages.map((message, index) => (

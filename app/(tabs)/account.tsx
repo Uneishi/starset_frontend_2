@@ -1,4 +1,4 @@
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
@@ -332,11 +332,12 @@ const AccountScreen = () => {
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>Mode paiement</Text>
         <TouchableOpacity style={styles.balanceCard} onPress={goToCard}>
-          <Text style={styles.balanceAmount}>0,00 €</Text>
-          <Image
-            source={{ uri: 'https://example.com/wallet-icon.png' }} // Replace with actual URL
-            style={styles.walletIcon}
-          />
+          <View style={styles.walletInfoContainer}>
+            <FontAwesome name="credit-card" size={24} color="#000" style={styles.walletIconLeft} />
+            <Text style={styles.balanceAmount}>0,00 €</Text>
+          </View>
+          
+          <FontAwesome5 name="wallet" size={30} color="#000" style={styles.walletIcon} />
         </TouchableOpacity>
       </View>
 
@@ -1010,6 +1011,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 10,
   },
+
+  walletInfoContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+walletIconLeft: {
+  marginRight: 10,
+},
   
 });
 

@@ -257,16 +257,18 @@ const styles = StyleSheet.create({
   },
   jobItem: {
     alignItems: 'center',
+    justifyContent : 'center',
     marginRight: 15,
     backgroundColor: '#E3E3E3',
     borderRadius: 6,
     padding: 10,
     paddingHorizontal: 10,
-    width: 90,
+    width: 80,
+    height : 80
   },
   jobIcon: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     marginBottom: 5,
   },
   jobText: {

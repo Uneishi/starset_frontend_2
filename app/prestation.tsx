@@ -52,6 +52,7 @@ const PrestationScreen = () => {
   const [experienceDate, setExperienceDate] = useState('');
   const [selectedMode, setSelectedMode] = useState<'sur place' | 'distanciel'>('sur place');
   const [showModeOptions, setShowModeOptions] = useState(false);
+  const [certificationImages, setCertificationImages] = useState<any[]>([]);
   
 
 
@@ -178,6 +179,26 @@ const PrestationScreen = () => {
       ]
     );
   };
+
+  const pickCertificationImage = async () => {
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+  if (!permissionResult.granted) {
+    Alert.alert("Permission refusée", "Autorisez l'accès à la galerie.");
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 1,
+  });
+
+  if (!result.canceled && result.assets && certificationImages.length < 3) {
+    setCertificationImages(prev => [...prev, result.assets[0].uri]);
+  } else if (certificationImages.length >= 3) {
+    Alert.alert("Limite atteinte", "Vous ne pouvez ajouter que 3 images.");
+  }
+};
 
   const addPrestationPhoto = async () => {
     // Demander la permission d'accès à la bibliothèque d'images
@@ -429,38 +450,62 @@ const PrestationScreen = () => {
   }
 
   const handleAddCertification = async () => {
-    try {
-      const newCertification = {
-        title: certificationTitle,
-        institution: certificationInstitution,
-        date: certificationDate,
-        description: certificationDescription,
-        image: certificationImage, // Optionnel
-      };
-  
-      const response = await fetch(`${config.backendUrl}/api/mission/create-certification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ...newCertification, prestation_id }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'ajout de la certification');
-      }
-  
-      const data = await response.json();
-      
-      setCertifications((prev : any) => [...prev, data.certification]);
-      setCertificationFormVisible(false);
-  
-      Alert.alert('Succès', 'Certification ajoutée avec succès');
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de la certification:', error);
-      Alert.alert('Erreur', 'Impossible d\'ajouter la certification');
+  try {
+    if (certificationImages.length === 0) {
+      Alert.alert('Erreur', 'Veuillez ajouter au moins une image de certification.');
+      return;
     }
-  };
+
+    const base64Images = [];
+
+    for (const uri of certificationImages) {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const reader = new FileReader();
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      base64Images.push(base64); // Inclut le préfixe "data:image/jpeg;base64,..."
+    }
+
+    const newCertification = {
+      title: certificationTitle,
+      institution: certificationInstitution,
+      date: certificationDate,
+      description: certificationDescription,
+      images: base64Images, // tableau d’images base64
+    };
+
+    const response = await fetch(`${config.backendUrl}/api/mission/create-certification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newCertification, prestation_id }),
+    });
+
+    if (!response.ok) throw new Error("Erreur lors de l'ajout de la certification");
+
+    const data = await response.json();
+    setCertifications((prev : any) => [...prev, data.certification]);
+
+    // Reset
+    setCertificationFormVisible(false);
+    setCertificationTitle('');
+    setCertificationInstitution('');
+    setCertificationDate('');
+    setCertificationDescription('');
+    setCertificationImages([]);
+
+    Alert.alert('Succès', 'Certification ajoutée avec succès');
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de la certification:', error);
+    Alert.alert('Erreur', 'Impossible d\'ajouter la certification');
+  }
+};
+
 
   const confirmTogglePrestationPublished = () => {
     const action = prestation?.published ? "dépublier" : "publier";
@@ -625,24 +670,25 @@ const PrestationScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#00cc66',
-            padding: 12,
-            borderRadius: 8,
-          }}
-          onPress={() => setShowModeOptions(!showModeOptions)}
-        >
-          <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
-            {selectedMode.charAt(0).toUpperCase() + selectedMode.slice(1)}
-          </Text>
-        </TouchableOpacity>
+        
       </View>
 
       
       {/* Section pour les tarifs */}
-      {!prestation?.type_of_remuneration?.toLowerCase().includes('prestation') ? (
-        <View style={styles.tarifSection}>
+      {!prestation?.type_of_remuneration?.toLowerCase().includes('heure') &&
+ !prestation?.type_of_remuneration?.toLowerCase().includes('hourly') ? (
+       <View style={styles.tarifSection}>
+        <Text style={styles.tarifTitle}>Ajouter des prestations</Text>
+        <TouchableOpacity
+          style={prestation?.remuneration ? styles.tarifDisplay : styles.tarifButton}
+          onPress={goToMultiplePrestation}
+        >
+            <Text style={styles.tarifText}>ajouter des prestations</Text> 
+        </TouchableOpacity>
+      </View>
+    ) : (
+      
+      <View style={styles.tarifSection}>
         <Text style={styles.tarifTitle}>Ajouter mes tarifs</Text>
 
         <TouchableOpacity
@@ -654,16 +700,6 @@ const PrestationScreen = () => {
           ) : (
             <FontAwesome name="euro" size={30} color="black" />
           )}
-        </TouchableOpacity>
-      </View>
-    ) : (
-      <View style={styles.tarifSection}>
-        <Text style={styles.tarifTitle}>Ajouter des prestations</Text>
-        <TouchableOpacity
-          style={prestation?.remuneration ? styles.tarifDisplay : styles.tarifButton}
-          onPress={goToMultiplePrestation}
-        >
-            <Text style={styles.tarifText}>ajouter des prestations</Text> 
         </TouchableOpacity>
       </View>
     )}
@@ -910,22 +946,37 @@ const PrestationScreen = () => {
 
       {/* Placeholder for the "Certifications" tab */}
       {selectedTab === 'certifications' && (
-        <View>
-        {certifications.length > 0 ? (
-          certifications.map((certification : any, index : any) => (
-            <View key={index} style={styles.certificationCard}>
-              <Text style={styles.certificationTitle}>{certification.title}</Text>
-              <Text style={styles.certificationInstitution}>{certification.institution}</Text>
-              <Text style={styles.certificationDate}>{certification.date}</Text>
-              <Text style={styles.certificationDescription}>{certification.description}</Text>
-              {certification.image && (
-                <Image source={{ uri: certification.image }} style={styles.certificationImage} />
-              )}
-            </View>
-          ))
-        ) : (
-          <Text>Aucune certification disponible</Text>
-        )}
+  <View>
+    {certifications.length > 0 ? (
+      certifications.map((certification: any, index: number) => (
+        <View key={index} style={styles.certificationCardUpdated}>
+          <View style={styles.certificationHeader}>
+  <Text style={styles.certificationTitle}>{certification.title}</Text>
+  <Text style={styles.certificationDate}>{certification.date}</Text>
+</View>
+          <Text style={styles.certificationInstitution}>
+            <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+          </Text>
+          <Text style={styles.certificationDescription}>{certification.description}</Text>
+          <View style={styles.certificationImagesRow}>
+            {[
+              "https://cdn.prod.website-files.com/63fcd4b2c4986bf723dff93d/65ca3646cfda78971e7fb752_Capture%20d%E2%80%99e%CC%81cran%202024-02-12%20a%CC%80%2016.16.12.png",
+              "https://www.managementdelaformation.fr/wp-content/uploads/2021/06/RHEXIS_Reformes_R%C3%A9former_la_r%C3%A9forme_Blog.jpg",
+              "https://www.cybermalveillance.gouv.fr/medias/2021/12/formation_cybersecurite.jpg"
+            ].map((uri, i) => (
+              <Image
+                key={i}
+                source={{ uri }}
+                style={styles.certificationMiniImage}
+              />
+            ))}
+          </View>
+          <View style={styles.separator} />
+        </View>
+      ))
+    ) : (
+      <Text style={{ textAlign: 'center' }}>Aucune certification disponible</Text>
+    )}
     
         {!isCertificationFormVisible ? (
           <TouchableOpacity
@@ -968,14 +1019,21 @@ const PrestationScreen = () => {
     onChangeText={setCertificationDescription}
   />
 
-  <Text style={styles.inputLabel}>Certification</Text>
-  <TouchableOpacity style={styles.addPhotoButton} onPress={() => { /* ouverture image */ }}>
-    {certificationImage ? (
-      <Image source={{ uri: certificationImage }} style={styles.uploadedImage} />
-    ) : (
-      <FontAwesome name="plus" size={30} color="gray" />
+  <Text style={styles.inputLabel}>Photos de certification (max 3)</Text>
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+    {certificationImages.map((img, index) => (
+      <Image key={index} source={{ uri: img }} style={{ width: 80, height: 80, borderRadius: 6 }} />
+    ))}
+
+    {certificationImages.length < 3 && (
+      <TouchableOpacity
+        style={[styles.addPhotoButton, { width: 80, height: 80 }]}
+        onPress={pickCertificationImage}
+      >
+        <FontAwesome name="plus" size={24} color="gray" />
+      </TouchableOpacity>
     )}
-  </TouchableOpacity>
+  </View>
 
   <TouchableOpacity style={styles.submitButton} onPress={handleAddCertification}>
     <Text style={styles.submitButtonText}>Valider</Text>
@@ -1134,10 +1192,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   experienceCard: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#EEEEEE',
     borderRadius: 15,
     padding: 15,
     marginBottom: 20,
+    margin : 10
   },
   experienceHeader: {
     flexDirection: 'row',
@@ -1299,21 +1358,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     margin : 15
   },
-  certificationTitle: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginBottom: 5,
-  },
+  
   certificationInstitution: {
     fontSize: 14,
     color: '#666',
     marginBottom: 5,
   },
-  certificationDate: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
-  },
+  
   certificationDescription: {
     fontSize: 14,
     color: '#333',
@@ -1633,6 +1684,56 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 10,
   },
+
+  certificationCardUpdated: {
+  padding: 15,
+  marginBottom: 10,
+},
+
+certificationHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 5,
+},
+certificationTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#000',
+  flexShrink: 1,
+},
+certificationDate: {
+  fontSize: 12,
+  color: '#555',
+},
+
+certificationDateRight: {
+  fontSize: 12,
+  color: '#555',
+},
+
+
+
+certificationImagesRow: {
+  flexDirection: 'row',
+  justifyContent: 'flex-start',
+  gap: 10,
+  marginBottom: 10,
+},
+
+certificationMiniImage: {
+  width: 80,
+  height: 60,
+  borderRadius: 6,
+  marginRight: 8,
+},
+
+separator: {
+  height: 1,
+  backgroundColor: '#ccc',
+  marginTop: 10,
+},
+
 
 });
 

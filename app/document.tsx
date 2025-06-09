@@ -1,44 +1,58 @@
+import { useUser } from '@/context/userContext';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
-import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import React, { useEffect, useState } from 'react';
+import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 
 const DocumentsScreen = () => {
+  const { user } = useUser();
+  const worker_id = user?.worker;
+
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedDocType, setSelectedDocType] = useState('identite');
+  const [selectedDocType, setSelectedDocType] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [allDocs, setAllDocs] = useState<string[]>([]);
+  const [uploadedDocs, setUploadedDocs] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const documentOptions = [
-    { label: 'Pièce d’identité', value: 'identite' },
-    { label: 'Casier B3', value: 'casier_b3' },
-    { label: 'Permis B', value: 'permis_b' },
-    { label: 'ACACED', value: 'acaced' },
-  ];
 
-  const requiredDocuments = [
-    { name: 'Pièce d’identité', status: 'ok' },
-    { name: 'Casier B3', status: 'missing' },
-  ];
+  useEffect(() => {
+    if (!worker_id) return;
 
-  const recommendedDocuments = [
-    { name: 'Permis B', status: 'missing' },
-  ];
+    const fetchData = async () => {
+      try {
+        // Get all document names
+        const allDocRes = await fetch(`${config.backendUrl}/api/mission/get-all-unique-document`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const allDocData = await allDocRes.json();
+        setAllDocs(allDocData.documents || []);
 
-  const addedDocuments = [
-    { name: 'ACACED', status: 'ok' },
-  ];
+        // Get already uploaded docs
+        const uploadedRes = await fetch(`${config.backendUrl}/api/mission/get-worker-document`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ worker_id }),
+        });
+        const uploadedData = await uploadedRes.json();
+        const uploadedNames = uploadedData.documents?.map((doc: any) => doc.name) || [];
+        setUploadedDocs(uploadedNames);
+      } catch (err) {
+        console.error('Erreur lors du chargement des documents :', err);
+      }
+    };
 
-  const renderDocument = (doc: any) => (
+    fetchData();
+  }, [worker_id]);
+
+  const renderDocument = (doc: string, isUploaded: boolean) => (
     <TouchableOpacity
-      key={doc.name}
-      style={[
-        styles.docButton,
-        doc.status === 'ok' ? styles.okButton : styles.missingButton,
-      ]}
+      key={doc}
+      style={[styles.docButton, isUploaded ? styles.okButton : styles.missingButton]}
     >
-      <Text style={styles.docText}>{doc.name}</Text>
+      <Text style={styles.docText}>{doc}</Text>
     </TouchableOpacity>
   );
 
@@ -46,7 +60,7 @@ const DocumentsScreen = () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permission refusée', 'Vous devez autoriser l\'accès à la galerie pour continuer.');
+      Alert.alert('Permission refusée', 'Vous devez autoriser l\'accès à la galerie.');
       return;
     }
 
@@ -77,21 +91,30 @@ const DocumentsScreen = () => {
           data: base64Data,
         };
 
-        const object_id = 'user-document'; // remplace par l’ID réel
-        const type_object = 'document';
-
-        const uploadResponse = await fetch(`${config.backendUrl}/api/uploads/upload`, {
+        const uploadResponse = await fetch(`${config.backendUrl}/api/uploads/upload-document`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ file, object_id, type_object }),
+          body: JSON.stringify({
+            file,
+            object_id: worker_id,
+            type_object: 'document',
+          }),
         });
 
-        if (uploadResponse.ok) {
-          Alert.alert('Succès', 'Document téléchargé avec succès');
-          setModalVisible(false);
-        } else {
-          Alert.alert('Erreur', 'Échec du téléchargement');
+        if (!uploadResponse.ok) {
+          throw new Error('Échec du téléchargement');
         }
+
+        // Save document reference
+        await fetch(`${config.backendUrl}/api/mission/add-worker-document`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ worker_id, name: selectedDocType }),
+        });
+
+        Alert.alert('Succès', 'Document téléchargé');
+        setUploadedDocs((prev) => [...prev, selectedDocType]);
+        setModalVisible(false);
       };
 
       reader.readAsDataURL(blob);
@@ -103,16 +126,14 @@ const DocumentsScreen = () => {
     }
   };
 
+  const filteredDocs = allDocs.filter(doc =>
+  doc.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.sectionTitle}>DOCUMENTS OBLIGATOIRES</Text>
-      {requiredDocuments.map(renderDocument)}
-
-      <Text style={styles.sectionTitle}>DOCUMENTS RECOMMANDÉS</Text>
-      {recommendedDocuments.map(renderDocument)}
-
-      <Text style={styles.sectionTitle}>DOCUMENTS AJOUTÉS</Text>
-      {addedDocuments.map(renderDocument)}
+      <Text style={styles.sectionTitle}>DOCUMENTS DISPONIBLES</Text>
+      {allDocs.map(doc => renderDocument(doc, uploadedDocs.includes(doc)))}
 
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>AJOUTER UN DOCUMENT</Text>
@@ -122,18 +143,25 @@ const DocumentsScreen = () => {
         <View style={styles.modalBackground}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Sélectionnez un type de document :</Text>
+            <TextInput
+  style={styles.searchInput}
+  placeholder="Rechercher un document..."
+  placeholderTextColor="#888"
+  value={searchQuery}
+  onChangeText={setSearchQuery}
+/>
+
             <Picker
               selectedValue={selectedDocType}
               onValueChange={(itemValue) => setSelectedDocType(itemValue)}
             >
-              {documentOptions.map((doc) => (
-                <Picker.Item key={doc.value} label={doc.label} value={doc.value} />
-              ))}
+             {filteredDocs.map(doc => renderDocument(doc, uploadedDocs.includes(doc)))}
+
             </Picker>
 
             <TouchableOpacity
               style={[styles.addButton, { marginTop: 20 }]}
-              onPress={() => console.log(1)}//{/*handleUploadDocument*/}
+              onPress={handleUploadDocument}
               disabled={uploading}
             >
               <Text style={styles.addButtonText}>
@@ -195,7 +223,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
@@ -213,6 +240,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+
+  searchInput: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 8,
+  padding: 10,
+  marginBottom: 15,
+  fontSize: 16,
+  color: '#000',
+},
+
+
+  
 });
 
 export default DocumentsScreen;

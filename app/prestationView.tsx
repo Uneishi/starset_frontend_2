@@ -1,6 +1,7 @@
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Font from 'expo-font';
@@ -66,6 +67,16 @@ const PrestationViewScreen = () => {
       JosefinSans_700Bold,
       JosefinSans_100Thin,
     });
+
+    const experienceData = {
+    title: 'Baby Sitting de Emma et Louis',
+    date: 'Le 21/09/2022',
+    description: 'C’est joie que j’ai pu garder les Emma et Louis ! Louis ayant des carences en gluten, j’ai eu l’obligation de cuisiner des repas dans "Gluten Free". Ce fut une expérience enrichissante car désormais, je sais m’adapter aux besoins de différents enfants, et à n’importe quelle situation.',
+    images: [
+      { uri: 'https://images.pexels.com/photos/1104012/pexels-photo-1104012.jpeg' },
+      { uri: 'https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg' }
+    ],
+  };
 
     const reviews = [
       {
@@ -568,9 +579,7 @@ const unlikeImage = async (imageId: string) => {
             scrollEventThrottle={16}
           >
       <View style={styles.header}>
-        
         <Text style={styles.profileName}>{account?.firstname}</Text>
-        
       </View>
 
       <View style={styles.tagsContainer}>
@@ -607,7 +616,16 @@ const unlikeImage = async (imageId: string) => {
 
       {/* Section des statistiques */}
       <View style={styles.descriptionContainer}>
-        <Text style={styles.metierName}>{prestation.metier}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          
+          <Text style={styles.metierName}>{prestation.metier} {prestation.picture_url && (
+            <Image
+              source={{ uri: prestation.picture_url }}
+              style={{ width: 30, height: 30, marginRight: 8 }}
+            />
+          )}</Text>
+          
+        </View>
         <Text style={styles.descriptionContainerText}>
         {prestation.description || "Aucune description disponible"}
         </Text>
@@ -618,7 +636,7 @@ const unlikeImage = async (imageId: string) => {
           </View>
           <View style={styles.stat}>
             <Text style={styles.statNumber}>15</Text>
-            <Text style={styles.statLabel}>❤️</Text>
+            <MaterialIcons name="favorite" size={20} color="red" />
           </View>
           <View style={styles.stat}>
             <Text style={styles.statNumber}>“Passionée”</Text>
@@ -668,32 +686,55 @@ const unlikeImage = async (imageId: string) => {
             <Text>Aucune expérience disponible.</Text>
           ) : (
             experiences.map((experience : any, index) => (
-              <View key={index} style={styles.experienceCard}>
-                <Text style={styles.experienceTitle}>{experience.title}</Text>
-                <Text style={styles.experienceDate}>{experience.date}</Text>
-                <Text style={styles.experienceDescription}>{experience.description}</Text>
-                
-              </View>
+              <View style={styles.experienceCard}>
+            <View style={styles.experienceHeader}>
+              <Text style={styles.experienceTitle}>{experience.title} <FontAwesome name="smile-o" size={20} /></Text>
+              <Text style={styles.experienceDate}>{experience.date}</Text>
+            </View>
+            <Text style={styles.experienceDescription}>{experience.description}</Text>
+            <View style={styles.experienceImages}>
+              {experienceData.images.map((image : any, index : any) => (
+                <Image key={index} source={{ uri: image.uri }} style={styles.experienceImage} />
+              ))}
+            </View>
+          </View>
             ))
           )}
         </View>
       )}
 
       {selectedTab === 'certifications' && (
-        <View style={styles.experienceContainer}>
-        {certifications.length === 0 ? (
-          <Text>Aucune certification disponible.</Text>
-        ) : (
-          certifications.map((certification : any, index) => (
-            <View key={index} style={styles.experienceCard}>
-              <Text style={styles.experienceTitle}>{certification.title}</Text>
-              <Text style={styles.experienceDate}>{certification.date}</Text>
-              <Text style={styles.experienceDate}>{certification.establishment}</Text>
-              <Text style={styles.experienceDescription}>{certification.description}</Text>
-              
-            </View>
-          ))
-        )}
+        <View>
+          {certifications.length > 0 ? (
+            certifications.map((certification: any, index: number) => (
+              <View key={index} style={styles.certificationCardUpdated}>
+                <View style={styles.certificationHeader}>
+                  <Text style={styles.certificationTitle}>{certification.title}</Text>
+                  <Text style={styles.certificationDateRight}>{certification.date}</Text>
+                </View>
+                <Text style={styles.certificationInstitution}>
+                  <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+                </Text>
+                <Text style={styles.certificationDescription}>{certification.description}</Text>
+                <View style={styles.certificationImagesRow}>
+                  {[
+                    "https://cdn.prod.website-files.com/63fcd4b2c4986bf723dff93d/65ca3646cfda78971e7fb752_Capture%20d%E2%80%99e%CC%81cran%202024-02-12%20a%CC%80%2016.16.12.png",
+                    "https://www.managementdelaformation.fr/wp-content/uploads/2021/06/RHEXIS_Reformes_R%C3%A9former_la_r%C3%A9forme_Blog.jpg",
+                    "https://www.cybermalveillance.gouv.fr/medias/2021/12/formation_cybersecurite.jpg"
+                  ].map((uri, i) => (
+                    <Image
+                      key={i}
+                      source={{ uri }}
+                      style={styles.certificationMiniImage}
+                    />
+                  ))}
+                </View>
+                <View style={styles.separator} />
+              </View>
+            ))
+          ) : (
+            <Text style={{ textAlign: 'center' }}>Aucune certification disponible</Text>
+          )}
       </View>
       )}
 
@@ -719,7 +760,8 @@ const unlikeImage = async (imageId: string) => {
       {/* Tarification */}
       
 
-      {prestation?.type_of_remuneration?.toLowerCase().includes('prestation') ? (
+      {!prestation?.type_of_remuneration?.toLowerCase().includes('heure') &&
+ !prestation?.type_of_remuneration?.toLowerCase().includes('hourly') ? (
         <View style={styles.seeMoreContainer}>
           <TouchableOpacity style={styles.seeMoreButton} onPress={goToChoosePrestation}>
             <Text style={styles.seeMoreText}>Voir les autres prestations</Text>
@@ -1099,7 +1141,11 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   experienceCard: {
+    backgroundColor: '#EEEEEE',
+    borderRadius: 15,
+    padding: 15,
     marginBottom: 20,
+    margin : 10
   },
   experienceTitle: {
     fontSize: 18,
@@ -1117,12 +1163,13 @@ const styles = StyleSheet.create({
   },
   experienceImages: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   experienceImage: {
-    width: '48%',
-    height: 100,
-    borderRadius: 5,
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    marginRight: 10,
   },
   certificationsContainer: {
     padding: 10,
@@ -1149,7 +1196,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    //marginBottom: 120,
+    marginBottom: 120,
     backgroundColor: '#00743C',
     height: 100,
     marginHorizontal: 10,
@@ -1623,6 +1670,146 @@ const styles = StyleSheet.create({
     padding: 8,
     zIndex: 10,
   },
+
+  certificationCardStyled: {
+  paddingHorizontal: 15,
+  marginBottom: 20,
+},
+
+certificationRow: {
+  flexDirection: 'row',
+  marginBottom: 8,
+},
+
+certificationImageStyled: {
+  width: 80,
+  height: 80,
+  borderRadius: 8,
+  marginRight: 12,
+  resizeMode: 'cover',
+},
+
+certificationPlaceholderImage: {
+  width: 80,
+  height: 80,
+  backgroundColor: '#ddd',
+  borderRadius: 8,
+  marginRight: 12,
+},
+
+certificationInfo: {
+  flex: 1,
+  justifyContent: 'space-between',
+},
+
+certificationTitleStyled: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#000',
+},
+
+certificationInstitutionStyled: {
+  fontStyle: 'italic',
+  color: '#444',
+},
+
+certificationDateStyled: {
+  textAlign: 'right',
+  color: '#888',
+  fontSize: 12,
+},
+
+certificationDescriptionStyled: {
+  fontSize: 14,
+  color: '#333',
+  marginTop: 5,
+},
+
+certificationSeparator: {
+  marginTop: 10,
+  height: 1,
+  backgroundColor: '#e0e0e0',
+},
+
+certificationImageContainer: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  
+  uploadedImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+
+  certificationCardUpdated: {
+  padding: 15,
+  marginBottom: 10,
+},
+
+certificationHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 5,
+},
+
+certificationTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+
+certificationDateRight: {
+  fontSize: 12,
+  color: '#555',
+},
+
+
+
+certificationImagesRow: {
+  flexDirection: 'row',
+  justifyContent: 'flex-start',
+  gap: 10,
+  marginBottom: 10,
+},
+
+certificationMiniImage: {
+  width: 80,
+  height: 60,
+  borderRadius: 6,
+  marginRight: 8,
+},
+
+separator: {
+  height: 1,
+  backgroundColor: '#ccc',
+  marginTop: 10,
+},
+
+certificationInstitution: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+
+  certificationDescription: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 10,
+  },
+
+  experienceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+
   
 });
 

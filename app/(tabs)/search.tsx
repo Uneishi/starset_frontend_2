@@ -258,15 +258,19 @@ const SearchScreen = () => {
             <Text style={styles.fakeSearchText}>Top Worker</Text>
           </TouchableOpacity>
           <FlatList
-            data={prestations}
+            data={workers}
             horizontal
             keyExtractor={(item, index) => index.toString()}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.profileContainerFlatList}
-            renderItem={({ item, index }) => (
-              <TouchableOpacity onPress={() => goToPrestationView(item)}>
+            renderItem={({ item , index } : { item: any; index: number }) => (
+              <TouchableOpacity onPress={() => goToPrestationView(item )}>
                 <View style={styles.workerContainer}>
-                  <Image source={{ uri: profilePictures[index % profilePictures?.length] }} style={styles.profilePicture} />
+                   {item.profile_picture_url ? (
+      <Image source={{ uri: item.profile_picture_url }} style={styles.profilePicture} />
+    ) : (
+      <Image source={{ uri: "https://static.vecteezy.com/ti/vecteur-libre/p1/7033146-icone-de-profil-login-head-icon-vectoriel.jpg"}} style={styles.profilePicture} />
+    )}
                   <Image source={require('../../assets/images/valide_or.png')} style={styles.statusIndicator} />
                 </View>
               </TouchableOpacity>

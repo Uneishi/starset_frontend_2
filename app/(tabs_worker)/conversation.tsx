@@ -61,6 +61,7 @@ const ConversationScreen = () => {
   const navigation = useNavigation();
   const [conversations, setConversations] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const pendingConversationsCount = conversations.filter((conv: any) => conv.accepted === false).length;
 
   const getWorkerId = async () => {
     try {
@@ -186,11 +187,15 @@ const acceptConversation = async (conversation_id: string) => {
           placeholderTextColor="#666"
         />
         <TouchableOpacity style={styles.searchButton} onPress={() => setModalVisible(true)}>
-          <View style = {styles.searchButton}>
-            <FontAwesome name="user" size={25} color="#000" style={styles.searchIcon} />
-          </View>
-        
-        </TouchableOpacity>
+  <View style={styles.searchButton}>
+    <FontAwesome name="user" size={25} color="#000" style={styles.searchIcon} />
+    {pendingConversationsCount > 0 && (
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{pendingConversationsCount}</Text>
+      </View>
+    )}
+  </View>
+</TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -201,7 +206,7 @@ const acceptConversation = async (conversation_id: string) => {
         </>
       ) : (
         <FlatList
-          data={conversations}
+          data={conversations.filter((conv: any) => conv.accepted === true)}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
         />
@@ -433,6 +438,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+
+  badge: {
+  position: 'absolute',
+  top: -5,
+  right: -5,
+  backgroundColor: 'red',
+  borderRadius: 10,
+  width: 20,
+  height: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+},
+badgeText: {
+  color: 'white',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
   
 
 });

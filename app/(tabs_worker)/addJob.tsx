@@ -185,6 +185,7 @@ const AddJobScreen = () => {
           </TouchableOpacity>
         ))
       )}
+      <View style={{height: 50}}></View>
     </ScrollView>
 
     );

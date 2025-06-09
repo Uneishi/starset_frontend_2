@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useAllWorkerPrestation } from '@/context/userContext';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
-import { useAllWorkerPrestation } from '@/context/userContext';
 
 
 const JobsScreen = () => {
@@ -18,6 +18,8 @@ const JobsScreen = () => {
   const [workerPlannedPrestations, setWorkerPlannedPrestations] = useState<any[]>([]);
   const [isWorkerRequestModalVisible, setWorkerRequestModalVisible] = useState(false); // Modal qui affiche les missions planifiées du worker
   const { allWorkerPrestation, setAllWorkerPrestation } = useAllWorkerPrestation();
+  const [selectedPrestationToDelete, setSelectedPrestationToDelete] = useState<any>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const handleJobSelection = (jobTitle : any) => {
     setSelectedJob(jobTitle);
@@ -156,6 +158,32 @@ const JobsScreen = () => {
       console.error('Erreur lors de la mise à jour du statut:', error);
     }
   };
+
+  const handleDeletePrestation = async () => {
+  if (!selectedPrestationToDelete) return;
+
+  try {
+    const response = await fetch(`${config.backendUrl}/api/mission/delete-prestation-if-no-planned`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prestation_id: selectedPrestationToDelete.id }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Mise à jour de la liste
+      await getAllPrestation();
+      setShowDeleteConfirmation(false);
+      setSelectedPrestationToDelete(null);
+    } else {
+      alert(data.message || "Impossible de supprimer la prestation.");
+    }
+  } catch (error) {
+    console.error("Erreur lors de la suppression :", error);
+    alert("Erreur serveur.");
+  }
+};
   
   
   const openWorkerRequestModal = async () => {
@@ -199,7 +227,18 @@ const JobsScreen = () => {
         >
           <View style={styles.jobHeader}>
             <Text style={styles.jobTitle}>{prestation.metier}</Text>
+            
+            {/* Trois points verticaux pour options */}
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedPrestationToDelete(prestation);
+                setShowDeleteConfirmation(true);
+              }}
+            >
+              <FontAwesome name="ellipsis-v" size={20} color="#666" />
+            </TouchableOpacity>
           </View>
+
           <Text style={styles.jobStats}>({prestation.completedprestation}) Missions effectuées</Text>
           <Text style={styles.jobStats}>(0) Multimédia</Text>
           <Text style={styles.jobRequests}>(0) Demandes missions</Text>
@@ -359,6 +398,36 @@ const JobsScreen = () => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        transparent={true}
+        visible={showDeleteConfirmation}
+        animationType="slide"
+        onRequestClose={() => setShowDeleteConfirmation(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Supprimer la prestation ?</Text>
+            <Text style={{ textAlign: 'center', marginBottom: 20 }}>
+              Cette action est irréversible. Voulez-vous vraiment continuer ?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.rejectButton}
+                onPress={() => setShowDeleteConfirmation(false)}
+              >
+                <Text style={styles.modalButtonText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.acceptButton}
+                onPress={handleDeletePrestation}
+              >
+                <Text style={styles.modalButtonText}>Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -368,6 +437,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 10,
+    marginTop : 30
   },
   title: {
     fontWeight: 'bold',
@@ -502,36 +572,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+
   requestModalDetail: {
     fontSize: 16,
     color: '#00cc66',
     marginBottom: 15,
   },
+
   requestModalSectionTitle: {
     fontWeight: 'bold',
     marginBottom: 5,
   },
+
   requestModalInfo: {
     fontSize: 14,
     marginBottom: 5,
   },
+
   requestModalTotal: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#00cc66',
     marginVertical: 10,
   },
+
   requestModalLink: {
     color: '#007BFF',
     textDecorationLine: 'underline',
     marginBottom: 20,
   },
+
   acceptButton: {
     backgroundColor: '#00cc66',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
   },
+
   acceptButtonText: {
     color: 'white',
     fontWeight: 'bold',
@@ -544,6 +621,7 @@ const styles = StyleSheet.create({
     marginTop : 10,
     zIndex: 10, // Assure que l'icône est au-dessus du reste du contenu
   },
+
   iconCircle: {
     backgroundColor: '#00cc66', // Vert
     width: 40, // Taille du cercle
@@ -579,6 +657,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width : '100%'
   },
+
   missionInProgressText: {
     marginLeft: 10,
     fontSize: 16,
@@ -660,6 +739,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 5,
   },
+
   statusText: {
     color: 'white',
     fontWeight: 'bold',
