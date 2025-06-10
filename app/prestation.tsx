@@ -46,13 +46,23 @@ const PrestationScreen = () => {
   const [selectedImage, setSelectedImage] = useState(null); // Image sélectionnée
   const { allWorkerPrestation, setAllWorkerPrestation } = useAllWorkerPrestation();
   const [showCalendar, setShowCalendar] = useState(false);
-
   const [showExperienceForm, setShowExperienceForm] = useState(false);
   const [showExperienceCalendar, setShowExperienceCalendar] = useState(false);
   const [experienceDate, setExperienceDate] = useState('');
   const [selectedMode, setSelectedMode] = useState<'sur place' | 'distanciel'>('sur place');
   const [showModeOptions, setShowModeOptions] = useState(false);
   const [certificationImages, setCertificationImages] = useState<any[]>([]);
+  const [experienceImages, setExperienceImages] = useState<string[]>([]);
+
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [editType, setEditType] = useState<'experience' | 'certification' | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editInstitution, setEditInstitution] = useState(''); // uniquement pour certification
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [showEditCalendar, setShowEditCalendar] = useState(false);
   
 
 
@@ -88,6 +98,31 @@ const PrestationScreen = () => {
     } catch (e) {
       console.error('Erreur lors de la récupération du type de compte', e);
     }
+  };
+
+  const openOptions = (item: any, type: 'experience' | 'certification') => {
+  setSelectedItem(item);
+  setEditType(type);
+  setEditModalVisible(true);
+};
+
+  const openEditForm = () => {
+    if (!selectedItem) return;
+
+    setEditTitle(selectedItem.title);
+    setEditDate(selectedItem.date);
+    setEditDescription(selectedItem.description);
+    if (editType === 'certification') {
+      setEditInstitution(selectedItem.institution || '');
+    }
+    setEditImages(selectedItem.images || []);
+    setEditModalVisible(false);
+    setShowExperienceForm(false); // cacher formulaire création normal
+    setCertificationFormVisible(false);
+
+    // ouvrir formulaire édition selon type
+    if (editType === 'experience') setShowExperienceForm(true);
+    else if (editType === 'certification') setCertificationFormVisible(true);
   };
 
   const toggleCalendar = () => {
@@ -128,6 +163,95 @@ const PrestationScreen = () => {
       },
     };
   };
+
+  const handleDelete = async () => {
+    if (!selectedItem || !editType) return;
+
+    Alert.alert(
+      `Supprimer cette ${editType} ?`,
+      "Cette action est irréversible.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const url = editType === 'experience' ? 
+                `${config.backendUrl}/api/mission/delete-experience` : 
+                `${config.backendUrl}/api/mission/delete-certification`;
+
+              const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: selectedItem.id }),
+              });
+
+              if (!response.ok) throw new Error('Erreur réseau');
+
+              if (editType === 'experience') {
+                setExperiences(prev => prev.filter(e => e.id !== selectedItem.id));
+              } else {
+                setCertifications((prev: any[]) => prev.filter(c => c.id !== selectedItem.id));
+              }
+              setEditModalVisible(false);
+              setSelectedItem(null);
+              Alert.alert('Succès', `${editType} supprimée.`);
+            } catch (error) {
+              Alert.alert('Erreur', `Impossible de supprimer la ${editType}.`);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const updateExperience = async () => {
+  try {
+    // Convertir les images si besoin comme pour création
+    const base64Images = [];
+    for (const uri of editImages) {
+      if (uri.startsWith('data:image')) {
+        base64Images.push(uri); // déjà base64
+      } else {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        base64Images.push(base64);
+      }
+    }
+
+    const response = await fetch(`${config.backendUrl}/api/mission/update-experience`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: selectedItem.id,
+        title: editTitle,
+        date: editDate,
+        experienceDescription: editDescription,
+        images: base64Images,
+        prestation_id,
+      }),
+    });
+
+    if (!response.ok) throw new Error('Erreur réseau');
+
+    const data = await response.json();
+    setExperiences(prev => prev.map(e => e.id === selectedItem.id ? data.experience : e));
+    setShowExperienceForm(false);
+    setSelectedItem(null);
+    Alert.alert('Succès', 'Expérience mise à jour');
+  } catch (error) {
+    Alert.alert('Erreur', 'Impossible de mettre à jour l\'expérience');
+  }
+};
+
+
 
   const handleDeletePhoto = async (index : any) => {
     const photoToDelete = prestationPhotos[index]; // Récupérer la photo à supprimer
@@ -178,6 +302,26 @@ const PrestationScreen = () => {
         },
       ]
     );
+  };
+
+  const pickExperienceImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+    if (!permissionResult.granted) {
+      Alert.alert("Permission refusée", "Autorisez l'accès à la galerie.");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets && experienceImages.length < 3) {
+      setExperienceImages(prev => [...prev, result.assets[0].uri]);
+    } else if (experienceImages.length >= 3) {
+      Alert.alert("Limite atteinte", "Vous ne pouvez ajouter que 3 images.");
+    }
   };
 
   const pickCertificationImage = async () => {
@@ -275,6 +419,8 @@ const PrestationScreen = () => {
       setUploading(false);
     }
   }
+
+
 
   const handleSaveRemuneration = async () => {
     // Code pour sauvegarder la rémunération
@@ -405,32 +551,47 @@ const PrestationScreen = () => {
 
   const createExperience = async () => {
     try {
+      const base64Images = [];
+  
+      for (const uri of experienceImages) {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+  
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+  
+        base64Images.push(base64);
+      }
+  
       const response = await fetch(`${config.backendUrl}/api/mission/create-experience`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title, date: experienceDate, experienceDescription, prestation_id }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          date: experienceDate,
+          experienceDescription,
+          images: base64Images,
+          prestation_id,
+        }),
       });
   
-      if (!response.ok) throw new Error('Network response was not ok');
+      if (!response.ok) throw new Error('Erreur réseau');
   
       const data = await response.json();
-  
-      // 🟢 Ajoute l'expérience directement à la liste
       setExperiences(prev => [...prev, data.experience[0]]);
-  
-      // 🟢 Ferme le formulaire
       setShowExperienceForm(false);
-  
-      // 🟢 Réinitialise les champs du formulaire
       setTitle('');
       setExperienceDate('');
       setExperienceDescription('');
+      setExperienceImages([]); // reset images
   
       Alert.alert('Succès', 'Expérience ajoutée avec succès');
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de l\'expérience:', error);
+      console.error('Erreur création expérience:', error);
       Alert.alert('Erreur', 'Impossible d\'ajouter l\'expérience');
     }
   };
@@ -865,8 +1026,8 @@ const PrestationScreen = () => {
             </View>
             <Text style={styles.experienceDescription}>{experience.description}</Text>
             <View style={styles.experienceImages}>
-              {experienceData.images.map((image, index) => (
-                <Image key={index} source={{ uri: image.uri }} style={styles.experienceImage} />
+              {experience.images?.map((imageUri: string, index: number) => (
+                <Image key={index} source={{ uri: imageUri }} style={styles.experienceImage} />
               ))}
             </View>
           </View>
@@ -899,12 +1060,27 @@ const PrestationScreen = () => {
 
           <Text style={styles.inputLabel}>Description</Text>
           <TextInput
-            style={[styles.input]}
+            style={[styles.descriptionInput2]}
             placeholder="Description de l'expérience"
             multiline
             value={experienceDescription}
             onChangeText={setExperienceDescription}
           />
+          <Text style={styles.inputLabel}>Photos de l'expérience (max 3)</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {experienceImages.map((img, index) => (
+              <Image key={index} source={{ uri: img }} style={{ width: 80, height: 80, borderRadius: 6 }} />
+            ))}
+
+            {experienceImages.length < 3 && (
+              <TouchableOpacity
+                style={[styles.addPhotoButton, { width: 80, height: 80 }]}
+                onPress={pickExperienceImage}
+              >
+                <FontAwesome name="plus" size={24} color="gray" />
+              </TouchableOpacity>
+            )}
+          </View>
 
           <TouchableOpacity style={styles.submitButton} onPress={createExperience}>
             <Text style={styles.submitButtonText}>Valider</Text>
@@ -918,7 +1094,6 @@ const PrestationScreen = () => {
           </TouchableOpacity>
         </View>
 )}
-          
         </View>
       )}
 
@@ -1012,7 +1187,7 @@ const PrestationScreen = () => {
 
   <Text style={styles.inputLabel}>Description</Text>
   <TextInput
-    style={[styles.input]}
+    style={[styles.descriptionInput2]}
     placeholder="Description"
     multiline
     value={certificationDescription}
@@ -1241,6 +1416,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
   },
+
+  descriptionInput2: {
+    
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 10,
+  },
+
   submitButton: {
     backgroundColor: '#00cc66',
     borderRadius: 10,
@@ -1711,8 +1897,6 @@ certificationDateRight: {
   fontSize: 12,
   color: '#555',
 },
-
-
 
 certificationImagesRow: {
   flexDirection: 'row',

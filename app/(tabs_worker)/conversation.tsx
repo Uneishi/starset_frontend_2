@@ -456,7 +456,6 @@ badgeText: {
   fontSize: 12,
   fontWeight: 'bold',
 },
-  
 
 });
 

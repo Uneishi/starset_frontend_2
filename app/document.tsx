@@ -16,13 +16,12 @@ const DocumentsScreen = () => {
   const [uploadedDocs, setUploadedDocs] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-
   useEffect(() => {
     if (!worker_id) return;
 
     const fetchData = async () => {
       try {
-        // Get all document names
+        // Récupérer tous les documents possibles
         const allDocRes = await fetch(`${config.backendUrl}/api/mission/get-all-unique-document`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -30,7 +29,7 @@ const DocumentsScreen = () => {
         const allDocData = await allDocRes.json();
         setAllDocs(allDocData.documents || []);
 
-        // Get already uploaded docs
+        // Récupérer les documents déjà uploadés par le worker
         const uploadedRes = await fetch(`${config.backendUrl}/api/mission/get-worker-document`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -47,16 +46,22 @@ const DocumentsScreen = () => {
     fetchData();
   }, [worker_id]);
 
-  const renderDocument = (doc: string, isUploaded: boolean) => (
+  const renderDocument = (doc: string) => (
     <TouchableOpacity
       key={doc}
-      style={[styles.docButton, isUploaded ? styles.okButton : styles.missingButton]}
+      style={[styles.docButton, styles.okButton]} // Tous sont uploadés ici donc vert
+      activeOpacity={0.7}
     >
       <Text style={styles.docText}>{doc}</Text>
     </TouchableOpacity>
   );
 
   const handleUploadDocument = async () => {
+    if (!selectedDocType) {
+      Alert.alert('Attention', 'Veuillez sélectionner un type de document.');
+      return;
+    }
+
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
@@ -105,7 +110,7 @@ const DocumentsScreen = () => {
           throw new Error('Échec du téléchargement');
         }
 
-        // Save document reference
+        // Enregistrer la référence du document uploadé
         await fetch(`${config.backendUrl}/api/mission/add-worker-document`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -113,8 +118,16 @@ const DocumentsScreen = () => {
         });
 
         Alert.alert('Succès', 'Document téléchargé');
-        setUploadedDocs((prev) => [...prev, selectedDocType]);
+
+        setUploadedDocs((prev) => {
+          if (!prev.includes(selectedDocType)) {
+            return [...prev, selectedDocType];
+          }
+          return prev;
+        });
         setModalVisible(false);
+        setSelectedDocType('');
+        setSearchQuery('');
       };
 
       reader.readAsDataURL(blob);
@@ -127,13 +140,15 @@ const DocumentsScreen = () => {
   };
 
   const filteredDocs = allDocs.filter(doc =>
-  doc.toLowerCase().includes(searchQuery.toLowerCase())
-);
+    doc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.sectionTitle}>DOCUMENTS DISPONIBLES</Text>
-      {allDocs.map(doc => renderDocument(doc, uploadedDocs.includes(doc)))}
+      {/* Affiche les documents possibles avec statut uploadé */}
+      {uploadedDocs.length === 0 && <Text>Aucun document téléchargé pour l'instant.</Text>}
+      {uploadedDocs.map(doc => renderDocument(doc))}
 
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>AJOUTER UN DOCUMENT</Text>
@@ -144,25 +159,33 @@ const DocumentsScreen = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Sélectionnez un type de document :</Text>
             <TextInput
-  style={styles.searchInput}
-  placeholder="Rechercher un document..."
-  placeholderTextColor="#888"
-  value={searchQuery}
-  onChangeText={setSearchQuery}
-/>
+              style={styles.searchInput}
+              placeholder="Rechercher un document..."
+              placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
 
             <Picker
               selectedValue={selectedDocType}
               onValueChange={(itemValue) => setSelectedDocType(itemValue)}
             >
-             {filteredDocs.map(doc => renderDocument(doc, uploadedDocs.includes(doc)))}
-
+              <Picker.Item label="Sélectionnez un document..." value="" />
+              {filteredDocs.map(doc => (
+                <Picker.Item
+                  key={doc}
+                  label={doc}
+                  value={doc}
+                  color={uploadedDocs.includes(doc) ? '#45D188' : '#EF3E3E'}
+                />
+              ))}
             </Picker>
 
             <TouchableOpacity
               style={[styles.addButton, { marginTop: 20 }]}
               onPress={handleUploadDocument}
-              disabled={uploading}
+              disabled={uploading || !selectedDocType}
             >
               <Text style={styles.addButtonText}>
                 {uploading ? 'Téléchargement...' : 'Sélectionner un fichier'}
@@ -240,19 +263,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-
   searchInput: {
-  borderWidth: 1,
-  borderColor: '#ccc',
-  borderRadius: 8,
-  padding: 10,
-  marginBottom: 15,
-  fontSize: 16,
-  color: '#000',
-},
-
-
-  
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    color: '#000',
+  },
 });
 
 export default DocumentsScreen;
