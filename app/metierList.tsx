@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     marginRight: 15,
-    borderRadius: 25,
+    
   },
 
   jobTitle: {

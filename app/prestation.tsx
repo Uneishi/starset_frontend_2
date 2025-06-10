@@ -206,6 +206,52 @@ const PrestationScreen = () => {
     );
   };
 
+  const updateCertification = async () => {
+  try {
+    const base64Images = [];
+    for (const uri of editImages) {
+      if (uri.startsWith('data:image')) {
+        base64Images.push(uri);
+      } else {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        base64Images.push(base64);
+      }
+    }
+
+    const response = await fetch(`${config.backendUrl}/api/mission/update-certification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: selectedItem.id,
+        title: editTitle,
+        institution: editInstitution,
+        date: editDate,
+        description: editDescription,
+        images: base64Images,
+        prestation_id,
+      }),
+    });
+
+    if (!response.ok) throw new Error('Erreur réseau');
+
+    const data = await response.json();
+    setCertifications((prev: any[]) => prev.map(c => c.id === selectedItem.id ? data.certification : c));
+    setCertificationFormVisible(false);
+    setSelectedItem(null);
+    Alert.alert('Succès', 'Certification mise à jour');
+  } catch (error) {
+    Alert.alert('Erreur', 'Impossible de mettre à jour la certification');
+  }
+};
+
+
   const updateExperience = async () => {
   try {
     // Convertir les images si besoin comme pour création
