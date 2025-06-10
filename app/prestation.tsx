@@ -288,6 +288,9 @@ const PrestationScreen = () => {
     if (!response.ok) throw new Error('Erreur réseau');
 
     const data = await response.json();
+    console.log("ICI ...")
+    console.log(data)
+    console.log(data.experience)
     setExperiences(prev => prev.map(e => e.id === selectedItem.id ? data.experience : e));
     setShowExperienceForm(false);
     setSelectedItem(null);
@@ -296,8 +299,6 @@ const PrestationScreen = () => {
     Alert.alert('Erreur', 'Impossible de mettre à jour l\'expérience');
   }
 };
-
-
 
   const handleDeletePhoto = async (index : any) => {
     const photoToDelete = prestationPhotos[index]; // Récupérer la photo à supprimer
@@ -619,7 +620,7 @@ const PrestationScreen = () => {
         body: JSON.stringify({
           title,
           date: experienceDate,
-          experienceDescription,
+          description : experienceDescription,
           images: base64Images,
           prestation_id,
         }),
@@ -628,7 +629,10 @@ const PrestationScreen = () => {
       if (!response.ok) throw new Error('Erreur réseau');
   
       const data = await response.json();
-      setExperiences(prev => [...prev, data.experience[0]]);
+      console.log("ICI ...")
+    console.log(data)
+    console.log(data.experience)
+      setExperiences(prev => [...prev, data.experience]);
       setShowExperienceForm(false);
       setTitle('');
       setExperienceDate('');
@@ -1067,7 +1071,7 @@ const PrestationScreen = () => {
           {experiences.map((experience : any) => (
             <View style={styles.experienceCard}>
             <View style={styles.experienceHeader}>
-              <Text style={styles.experienceTitle}>{experience.title} <FontAwesome name="smile-o" size={20} /></Text>
+              <Text style={styles.experienceTitle}>{experience?.title} <FontAwesome name="smile-o" size={20} /></Text>
               <Text style={styles.experienceDate}>{experience.date}</Text>
             </View>
             <Text style={styles.experienceDescription}>{experience.description}</Text>
@@ -1172,7 +1176,7 @@ const PrestationScreen = () => {
       certifications.map((certification: any, index: number) => (
         <View key={index} style={styles.certificationCardUpdated}>
           <View style={styles.certificationHeader}>
-  <Text style={styles.certificationTitle}>{certification.title}</Text>
+  <Text style={styles.certificationTitle}>{certification?.title}</Text>
   <Text style={styles.certificationDate}>{certification.date}</Text>
 </View>
           <Text style={styles.certificationInstitution}>
@@ -1425,9 +1429,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   experienceTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#000',
+  flexShrink: 1,
+  flex: 1, // pour occuper l'espace restant
+  marginRight: 8, // petit espace avant la date
+},
   experienceDate: {
     fontSize: 14,
     color: '#666',
