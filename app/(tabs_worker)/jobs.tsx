@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
 
-
 const JobsScreen = () => {
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(false); // Modal for "Nouveau"
@@ -39,9 +38,7 @@ const JobsScreen = () => {
       console.error('Erreur lors de la récupération du type de compte', e);
     }
   };
-
   
-
   const getAllPrestation = async () => {
     try {
       const account_id = await getAccountId();
@@ -230,6 +227,7 @@ const JobsScreen = () => {
             
             {/* Trois points verticaux pour options */}
             <TouchableOpacity
+              style={styles.deleteButtonTouchable}
               onPress={() => {
                 setSelectedPrestationToDelete(prestation);
                 setShowDeleteConfirmation(true);
@@ -247,8 +245,6 @@ const JobsScreen = () => {
           </View>
         </TouchableOpacity>
       ))}
-
-      
 
       {/* New Modal for "Demande de missions" */}
       <Modal
@@ -294,7 +290,6 @@ const JobsScreen = () => {
               >
                 <Text style={styles.modalButtonText}>Refuser</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={styles.acceptButton}
                 onPress={() => handleChangePlannedPrestationStatus(selectedJob.id, 'inProgress')}
@@ -302,7 +297,6 @@ const JobsScreen = () => {
                 <Text style={styles.modalButtonText}>Accepter</Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </View>
       </Modal>
@@ -744,6 +738,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 12,
+  },
+
+  deleteButtonTouchable: {
+    padding: 10,       // augmente la zone cliquable autour de l'icône
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   
 });

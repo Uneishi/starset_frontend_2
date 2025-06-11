@@ -8,6 +8,7 @@ import moment from 'moment'; // Si tu veux formater joliment
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { IconButton, Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../config.json';
 
@@ -22,6 +23,7 @@ const PrestationScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [prestationPhotos, setPrestationPhotos] = useState<any>([])
   const [uploading, setUploading] = useState<boolean>(false);
+  const [menuVisibleId, setMenuVisibleId] = useState<string | null>(null);
 
   //const [prestation, setPrestation] = useState<any>({});
   const { currentWorkerPrestation: prestation, setCurrentWorkerPrestation } = useCurrentWorkerPrestation();
@@ -63,6 +65,12 @@ const PrestationScreen = () => {
   const [editInstitution, setEditInstitution] = useState(''); // uniquement pour certification
   const [editImages, setEditImages] = useState<string[]>([]);
   const [showEditCalendar, setShowEditCalendar] = useState(false);
+
+  // Ouvre le menu pour une certification spécifique
+  const openMenu = (id: string) => setMenuVisibleId(id);
+
+  // Ferme le menu
+  const closeMenu = () => setMenuVisibleId(null);
   
 
 
@@ -129,6 +137,20 @@ const PrestationScreen = () => {
     setShowCalendar(!showCalendar);
   };
 
+  const handleEditCertification = (certification: any) => {
+    closeMenu();
+    // Ta logique d'édition ici (ex: setSelectedItem, ouvrir formulaire...)
+    //openEditFormForCertification(certification);
+  };
+
+  const handleDeleteCertification = (certification: any) => {
+    closeMenu();
+    // Ta logique de suppression ici (ex: setSelectedItem, confirmer suppression...)
+    setSelectedItem(certification);
+    setEditType('certification');
+    //confirmDeleteCertification(); // Ou ta fonction d’alerte de confirmation
+  };
+
   const handleDateSelect = (day: any) => {
     const formatted = moment(day.dateString).format('DD/MM/YYYY');
     setCertificationDate(formatted);
@@ -179,7 +201,7 @@ const PrestationScreen = () => {
             try {
               const url = editType === 'experience' ? 
                 `${config.backendUrl}/api/mission/delete-experience` : 
-                `${config.backendUrl}/api/mission/delete-certification`;
+                `${config.backendUrl}/api/mission/delete-certification` ;
 
               const response = await fetch(url, {
                 method: 'POST',
@@ -288,9 +310,7 @@ const PrestationScreen = () => {
     if (!response.ok) throw new Error('Erreur réseau');
 
     const data = await response.json();
-    console.log("ICI ...")
-    console.log(data)
-    console.log(data.experience)
+    
     setExperiences(prev => prev.map(e => e.id === selectedItem.id ? data.experience : e));
     setShowExperienceForm(false);
     setSelectedItem(null);
@@ -1143,7 +1163,7 @@ const PrestationScreen = () => {
             <Text style={styles.cancelButtonText}>Annuler</Text>
           </TouchableOpacity>
         </View>
-)}
+        )}
         </View>
       )}
 
@@ -1176,9 +1196,27 @@ const PrestationScreen = () => {
       certifications.map((certification: any, index: number) => (
         <View key={index} style={styles.certificationCardUpdated}>
           <View style={styles.certificationHeader}>
-  <Text style={styles.certificationTitle}>{certification?.title}</Text>
-  <Text style={styles.certificationDate}>{certification.date}</Text>
-</View>
+            <View>
+              <Text style={styles.certificationTitle}>{certification.title}</Text>
+              <Text style={styles.certificationDate}>{certification.date}</Text>
+            </View>
+
+            {/* Menu avec bouton trois points */}
+            <Menu
+              visible={menuVisibleId === certification.id}
+              onDismiss={closeMenu}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={24}
+                  onPress={() => openMenu(certification.id)}
+                />
+              }
+            >
+              <Menu.Item onPress={() => handleEditCertification(certification)} title="Modifier" />
+              <Menu.Item onPress={() => handleDeleteCertification(certification)} title="Supprimer" />
+            </Menu>
+          </View>
           <Text style={styles.certificationInstitution}>
             <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
           </Text>
@@ -1301,7 +1339,7 @@ const PrestationScreen = () => {
         </View>
       </Modal>
       
-<Modal
+      <Modal
         animationType="slide"
         transparent={true}
         visible={showCalendar}
