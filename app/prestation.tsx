@@ -795,6 +795,7 @@ const PrestationScreen = () => {
     }).catch((error: any)  => console.error(error));
     
     getAllExperience(prestation_id).then((data : any) => {
+      
       setExperiences(data.experiences);
     }).catch((error: any) => console.error(error));
 
@@ -1223,44 +1224,50 @@ const PrestationScreen = () => {
         <View key={index} style={styles.certificationCardUpdated}>
           <View style={styles.certificationHeader}>
             {/* Colonne images */}
-            <View style={styles.certificationImagesColumn}>
-              {certification.images.length === 3 ? (
-                <>
-                  <Image
-                    source={{ uri: certification.images[0] }}
-                    style={styles.certificationBigImage}
-                  />
-                  <View style={styles.certificationSmallImagesRow}>
-                    <Image
-                      source={{ uri: certification.images[1] }}
-                      style={styles.certificationSmallImage}
-                    />
-                    <Image
-                      source={{ uri: certification.images[2] }}
-                      style={styles.certificationSmallImage}
-                    />
-                  </View>
-                </>
-              ) : (
-                certification.images.map((uri: string, i: number) => (
-                  <Image
-                    key={i}
-                    source={{ uri }}
-                    style={styles.certificationMiniImage}
-                  />
-                ))
-              )}
-            </View>
+            <View
+              style={[
+                styles.certificationImagesColumn,
+                { width: certification.images && certification.images.length > 0 ? 80 : 0, marginRight: certification.images && certification.images.length > 0 ? 10 : 0,  }
+              ]}
+            >
+  {certification.images && certification.images.length === 3 ? (
+    <>
+      <Image
+        source={{ uri: certification.images[0] }}
+        style={styles.certificationBigImage}
+      />
+      <View style={styles.certificationSmallImagesRow}>
+        <Image
+          source={{ uri: certification.images[1] }}
+          style={styles.certificationSmallImage}
+        />
+        <Image
+          source={{ uri: certification.images[2] }}
+          style={styles.certificationSmallImage}
+        />
+      </View>
+    </>
+  ) : (
+    certification.images && certification.images.length > 0 &&
+    certification.images.map((uri: string, i: number) => (
+      <Image
+        key={i}
+        source={{ uri }}
+        style={styles.certificationMiniImage}
+      />
+    ))
+  )}
+</View>
 
-            {/* Texte à droite */}
-            <View style={styles.certificationTextContent}>
-              <Text style={styles.certificationTitle}>{certification.title}</Text>
-              <Text style={styles.certificationDate}>{certification.date}</Text>
-              <Text style={styles.certificationInstitution}>
-                <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
-              </Text>
-              <Text style={styles.certificationDescription}>{certification.description}</Text>
-            </View>
+{/* Texte à droite */}
+<View style={[styles.certificationTextContent, { flex: 1 }]}>
+  <Text style={styles.certificationTitle}>{certification.title}</Text>
+  <Text style={styles.certificationDate}>{certification.date}</Text>
+  <Text style={styles.certificationInstitution}>
+    <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+  </Text>
+  <Text style={styles.certificationDescription}>{certification.description}</Text>
+</View>
           </View>
           <View style={styles.separator} />
         </View>
@@ -2056,7 +2063,7 @@ certificationHeader: {
 
 certificationImagesColumn: {
   flexShrink: 0,
-  width: 120, // Largeur fixe à gauche pour images
+  //width: 120, // Largeur fixe à gauche pour images
   marginRight: 10,
 },
 

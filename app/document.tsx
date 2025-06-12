@@ -51,7 +51,7 @@ const DocumentsScreen = () => {
     fetchData();
   }, [worker_id]);
 
-  const renderDocument = (doc: string, isMandatory: boolean) => {
+  const renderDocument = (doc: any, isMandatory: boolean) => {
     const isUploaded = uploadedDocs.includes(doc);
     return (
       <TouchableOpacity
@@ -63,7 +63,7 @@ const DocumentsScreen = () => {
         ]}
         activeOpacity={0.7}
       >
-        <Text style={styles.docText}>{doc}</Text>
+        <Text style={styles.docText}>{doc.document_type}</Text>
       </TouchableOpacity>
     );
   };
