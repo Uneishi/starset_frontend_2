@@ -4,12 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import moment from 'moment'; // Si tu veux formater joliment
+import moment from 'moment';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { IconButton, Menu } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import config from '../config.json';
 
 import {
@@ -78,20 +78,10 @@ const PrestationScreen = () => {
   const prestation_id = route.params?.id;
 
   const maxDescriptionLength = 300;
-  const photos = [
-    
-  ];
+  
   const navigation = useNavigation();
 
-  const experienceData = {
-    title: 'Baby Sitting de Emma et Louis',
-    date: 'Le 21/09/2022',
-    description: 'C’est joie que j’ai pu garder les Emma et Louis ! Louis ayant des carences en gluten, j’ai eu l’obligation de cuisiner des repas dans "Gluten Free". Ce fut une expérience enrichissante car désormais, je sais m’adapter aux besoins de différents enfants, et à n’importe quelle situation.',
-    images: [
-      { uri: 'https://images.pexels.com/photos/1104012/pexels-photo-1104012.jpeg' },
-      { uri: 'https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg' }
-    ],
-  };
+  
 
   const goToAvailability = async () => {
     navigation.navigate('availability' as never);
@@ -1100,6 +1090,42 @@ const PrestationScreen = () => {
                 <Image key={index} source={{ uri: imageUri }} style={styles.experienceImage} />
               ))}
             </View>
+            {/* Menu des 3 points vertical */}
+            <View style={styles.experienceMenuContainer}>
+              <Menu
+                visible={menuVisibleId === experience.id}
+                onDismiss={closeMenu}
+                anchor={
+                  <IconButton
+                    icon="dots-vertical"
+                    size={24}
+                    onPress={() => openMenu(experience.id)}
+                    style={styles.menuIconButton}
+                  />
+                }
+                contentStyle={styles.menuContent} // pour coins arrondis
+              >
+                <Menu.Item
+                  onPress={() => {
+                    handleEditToggle();
+                    setSelectedItem(experience);
+                    setEditType('experience');
+                    closeMenu();
+                  }}
+                  title="Modifier"
+                />
+                <Menu.Item
+                  onPress={() => {
+                    setSelectedItem(experience);
+                    setEditType('experience');
+                    handleDelete();
+                    closeMenu();
+                  }}
+                  title="Supprimer"
+                  titleStyle={{ color: 'red' }}
+                />
+              </Menu>
+            </View>
           </View>
           ))}
 
@@ -1196,43 +1222,45 @@ const PrestationScreen = () => {
       certifications.map((certification: any, index: number) => (
         <View key={index} style={styles.certificationCardUpdated}>
           <View style={styles.certificationHeader}>
-            <View>
-              <Text style={styles.certificationTitle}>{certification.title}</Text>
-              <Text style={styles.certificationDate}>{certification.date}</Text>
+            {/* Colonne images */}
+            <View style={styles.certificationImagesColumn}>
+              {certification.images.length === 3 ? (
+                <>
+                  <Image
+                    source={{ uri: certification.images[0] }}
+                    style={styles.certificationBigImage}
+                  />
+                  <View style={styles.certificationSmallImagesRow}>
+                    <Image
+                      source={{ uri: certification.images[1] }}
+                      style={styles.certificationSmallImage}
+                    />
+                    <Image
+                      source={{ uri: certification.images[2] }}
+                      style={styles.certificationSmallImage}
+                    />
+                  </View>
+                </>
+              ) : (
+                certification.images.map((uri: string, i: number) => (
+                  <Image
+                    key={i}
+                    source={{ uri }}
+                    style={styles.certificationMiniImage}
+                  />
+                ))
+              )}
             </View>
 
-            {/* Menu avec bouton trois points */}
-            <Menu
-              visible={menuVisibleId === certification.id}
-              onDismiss={closeMenu}
-              anchor={
-                <IconButton
-                  icon="dots-vertical"
-                  size={24}
-                  onPress={() => openMenu(certification.id)}
-                />
-              }
-            >
-              <Menu.Item onPress={() => handleEditCertification(certification)} title="Modifier" />
-              <Menu.Item onPress={() => handleDeleteCertification(certification)} title="Supprimer" />
-            </Menu>
-          </View>
-          <Text style={styles.certificationInstitution}>
-            <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
-          </Text>
-          <Text style={styles.certificationDescription}>{certification.description}</Text>
-          <View style={styles.certificationImagesRow}>
-            {[
-              "https://cdn.prod.website-files.com/63fcd4b2c4986bf723dff93d/65ca3646cfda78971e7fb752_Capture%20d%E2%80%99e%CC%81cran%202024-02-12%20a%CC%80%2016.16.12.png",
-              "https://www.managementdelaformation.fr/wp-content/uploads/2021/06/RHEXIS_Reformes_R%C3%A9former_la_r%C3%A9forme_Blog.jpg",
-              "https://www.cybermalveillance.gouv.fr/medias/2021/12/formation_cybersecurite.jpg"
-            ].map((uri, i) => (
-              <Image
-                key={i}
-                source={{ uri }}
-                style={styles.certificationMiniImage}
-              />
-            ))}
+            {/* Texte à droite */}
+            <View style={styles.certificationTextContent}>
+              <Text style={styles.certificationTitle}>{certification.title}</Text>
+              <Text style={styles.certificationDate}>{certification.date}</Text>
+              <Text style={styles.certificationInstitution}>
+                <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+              </Text>
+              <Text style={styles.certificationDescription}>{certification.description}</Text>
+            </View>
           </View>
           <View style={styles.separator} />
         </View>
@@ -1968,12 +1996,7 @@ const styles = StyleSheet.create({
   marginBottom: 10,
 },
 
-certificationHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 5,
-},
+
 certificationTitle: {
   fontSize: 16,
   fontWeight: 'bold',
@@ -2009,6 +2032,57 @@ separator: {
   backgroundColor: '#ccc',
   marginTop: 10,
 },
+
+experienceMenuContainer: {
+  position: 'absolute',
+  bottom: 10,
+  right: 10,
+},
+
+menuContent: {
+  borderRadius: 12,
+},
+
+menuIconButton: {
+  margin: 0, // pour réduire l'espace autour de l'icône
+  padding: 0,
+},
+
+certificationHeader: {
+  flexDirection: 'row',
+  alignItems: 'flex-start',
+  marginBottom: 5,
+},
+
+certificationImagesColumn: {
+  flexShrink: 0,
+  width: 120, // Largeur fixe à gauche pour images
+  marginRight: 10,
+},
+
+certificationBigImage: {
+  width: '100%',
+  height: 120,
+  borderRadius: 10,
+  marginBottom: 5,
+},
+
+certificationSmallImagesRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+},
+
+certificationSmallImage: {
+  width: '48%',
+  height: 60,
+  borderRadius: 10,
+},
+
+certificationTextContent: {
+  flex: 1,
+  justifyContent: 'flex-start',
+},
+
 
 
 });
