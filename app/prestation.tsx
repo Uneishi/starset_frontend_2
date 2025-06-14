@@ -24,7 +24,6 @@ const PrestationScreen = () => {
   const [prestationPhotos, setPrestationPhotos] = useState<any>([])
   const [uploading, setUploading] = useState<boolean>(false);
   const [menuVisibleId, setMenuVisibleId] = useState<string | null>(null);
-
   //const [prestation, setPrestation] = useState<any>({});
   const { currentWorkerPrestation: prestation, setCurrentWorkerPrestation } = useCurrentWorkerPrestation();
 
@@ -68,21 +67,14 @@ const PrestationScreen = () => {
 
   // Ouvre le menu pour une certification spécifique
   const openMenu = (id: string) => setMenuVisibleId(id);
-
   // Ferme le menu
   const closeMenu = () => setMenuVisibleId(null);
-  
-
 
   const route = useRoute() as any;
   const prestation_id = route.params?.id;
-
   const maxDescriptionLength = 300;
   
   const navigation = useNavigation();
-
-  
-
   const goToAvailability = async () => {
     navigation.navigate('availability' as never);
   };
@@ -640,8 +632,8 @@ const PrestationScreen = () => {
   
       const data = await response.json();
       console.log("ICI ...")
-    console.log(data)
-    console.log(data.experience)
+      console.log(data)
+      console.log(data.experience)
       setExperiences(prev => [...prev, data.experience]);
       setShowExperienceForm(false);
       setTitle('');
@@ -891,8 +883,6 @@ const PrestationScreen = () => {
             </Picker>
           </View>
         </View>
-
-        
       </View>
 
       
@@ -2069,8 +2059,7 @@ certificationImagesColumn: {
 
 certificationBigImage: {
   width: '100%',
-  height: 120,
-  borderRadius: 10,
+  aspectRatio: 16 / 9,
   marginBottom: 5,
 },
 
@@ -2081,16 +2070,14 @@ certificationSmallImagesRow: {
 
 certificationSmallImage: {
   width: '48%',
-  height: 60,
-  borderRadius: 10,
+  aspectRatio: 16 / 9,
+  
 },
 
 certificationTextContent: {
   flex: 1,
   justifyContent: 'flex-start',
 },
-
-
 
 });
 

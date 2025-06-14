@@ -18,48 +18,54 @@ const DocumentsScreen = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [mandatoryDocs, setMandatoryDocs] = useState<string[]>([]);
   const [recommendedDocs, setRecommendedDocs] = useState<string[]>([]);
+  const [mandatoryWorkerDocs, setMandatoryWorkerDocs] = useState<any[]>([]);
+  const [recommendedWorkerDocs, setRecommendedWorkerDocs] = useState<any[]>([]);
+  const [allDocTypes, setAllDocTypes] = useState<string[]>([]);
+
+  const fetchWorkerDocs = async () => {
+    try {
+      const res = await fetch(`${config.backendUrl}/api/mission/get-worker-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ worker_id }),
+      });
+
+      const data = await res.json();
+
+      setMandatoryWorkerDocs(data.mandatory_documents || []);
+      setRecommendedWorkerDocs(data.recommended_documents || []);
+    } catch (err) {
+      console.error('Erreur lors du chargement des documents :', err);
+    }
+  };
+
+  const fetchAllDocTypes = async () => {
+    const allDocRes = await fetch(`${config.backendUrl}/api/mission/get-all-unique-document`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const allDocData = await allDocRes.json();
+
+    const combined = [
+      ...(allDocData.mandatory_documents || []),
+      ...(allDocData.recommended_documents || []),
+    ];
+    setAllDocTypes(combined);
+  };
 
   useEffect(() => {
     if (!worker_id) return;
-
-    const fetchData = async () => {
-      try {
-        // Récupérer tous les documents possibles, séparés en obligatoires et recommandés
-        const allDocRes = await fetch(`${config.backendUrl}/api/mission/get-all-unique-document`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const allDocData = await allDocRes.json();
-
-        setMandatoryDocs(allDocData.mandatory_documents || []);
-        setRecommendedDocs(allDocData.recommended_documents || []);
-
-        // Récupérer les documents déjà uploadés par le worker
-        const uploadedRes = await fetch(`${config.backendUrl}/api/mission/get-worker-document`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ worker_id }),
-        });
-        const uploadedData = await uploadedRes.json();
-        const uploadedNames = uploadedData.documents?.map((doc: any) => doc.name) || [];
-        setUploadedDocs(uploadedNames);
-      } catch (err) {
-        console.error('Erreur lors du chargement des documents :', err);
-      }
-    };
-
-    fetchData();
+    fetchAllDocTypes();
+    fetchWorkerDocs();
   }, [worker_id]);
 
   const renderDocument = (doc: any, isMandatory: boolean) => {
-    const isUploaded = uploadedDocs.includes(doc);
     return (
       <TouchableOpacity
-        key={doc}
+        key={doc.id}
         style={[
           styles.docButton,
-          isMandatory ? (isUploaded ? styles.okButton : styles.mandatoryMissingButton)
-                      : (isUploaded ? styles.okButton : styles.recommendedMissingButton)
+          isMandatory ? styles.okButton : styles.recommendedMissingButton,
         ]}
         activeOpacity={0.7}
       >
@@ -140,27 +146,29 @@ const DocumentsScreen = () => {
   };
   
 
-  const allDocs = [...mandatoryDocs, ...recommendedDocs];
-  const filteredDocs = allDocs.filter(doc =>
+  const filteredDocs = allDocTypes.filter(doc =>
     doc.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.sectionTitle}>DOCUMENTS OBLIGATOIRES</Text>
-      {mandatoryDocs.length === 0 && <Text>Aucun document obligatoire disponible.</Text>}
-      {mandatoryDocs.map(doc => renderDocument(doc, true))}
+      {mandatoryWorkerDocs.length === 0 && (
+        <Text>Aucun document obligatoire envoyé.</Text>
+      )}
+      {mandatoryWorkerDocs.map(doc => renderDocument(doc, true))}
 
       <Text style={[styles.sectionTitle, { marginTop: 30 }]}>DOCUMENTS RECOMMANDÉS</Text>
-      {recommendedDocs.length === 0 && <Text>Aucun document recommandé disponible.</Text>}
-      {recommendedDocs.map(doc => renderDocument(doc, false))}
+      {recommendedWorkerDocs.length === 0 && (
+        <Text>Aucun document recommandé envoyé.</Text>
+      )}
+      {recommendedWorkerDocs.map(doc => renderDocument(doc, false))}
 
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>AJOUTER UN DOCUMENT</Text>
       </TouchableOpacity>
 
-      {/* Modal reste inchangé, sauf l'utilisation de allDocs pour la Picker */}
-
+      {/* Modal inchangé */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalBackground}>
           <View style={styles.modalContent}>
@@ -180,12 +188,7 @@ const DocumentsScreen = () => {
             >
               <Picker.Item label="Sélectionnez un document..." value="" />
               {filteredDocs.map(doc => (
-                <Picker.Item
-                  key={doc}
-                  label={doc}
-                  value={doc}
-                  color={uploadedDocs.includes(doc) ? '#45D188' : '#EF3E3E'}
-                />
+                <Picker.Item key={doc} label={doc} value={doc} />
               ))}
             </Picker>
 
@@ -246,6 +249,7 @@ const styles = StyleSheet.create({
   },
   docButton: {
     paddingVertical: 12,
+    paddingHorizontal : 10,
     borderRadius: 20,
     alignItems: 'center',
     marginBottom: 10,

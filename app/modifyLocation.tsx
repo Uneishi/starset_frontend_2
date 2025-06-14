@@ -1,4 +1,3 @@
-
 import { useUser } from '@/context/userContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
@@ -10,7 +9,6 @@ const ModifyLocationScreen = () => {
   const navigation = useNavigation();
   const route = useRoute() as any;
   const { user, setUser } = useUser(); // Utilisation du contexte pour récupérer et mettre à jour les infos utilisateur
-
   const [address, setAddress] = useState(user?.address || '');
   const [coordinates, setCoordinates] = useState<any>(null);
 
