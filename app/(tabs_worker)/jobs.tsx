@@ -20,6 +20,29 @@ const JobsScreen = () => {
   const [selectedPrestationToDelete, setSelectedPrestationToDelete] = useState<any>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
+  const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+  const groupMissionsByMonth = (missions: any[]) => {
+    const grouped: { [key: string]: any[] } = {};
+
+    missions.forEach((mission) => {
+      const date = new Date(mission.start_date);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const key = `${month}-${year}`;
+
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(mission);
+    });
+
+    return Object.entries(grouped).sort((a, b) => {
+      const [monthA, yearA] = a[0].split('-').map(Number);
+      const [monthB, yearB] = b[0].split('-').map(Number);
+      return new Date(yearA, monthA).getTime() - new Date(yearB, monthB).getTime();
+    });
+  };
+
   const handleJobSelection = (jobTitle : any) => {
     setSelectedJob(jobTitle);
   };
@@ -267,7 +290,7 @@ const JobsScreen = () => {
             {/* Affichage des infos de la mission */}
             {selectedJob && (
               <View style={styles.missionInProgressItemContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', width : "100%"  }}>
                   <View style={styles.dayContainer}>
                     <Text style={styles.dayText}>{new Date(selectedJob.start_date).getUTCDate()}</Text>
                   </View>
@@ -305,32 +328,44 @@ const JobsScreen = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>MISSIONS EN COURS</Text>
-            {workerPlannedPrestations.filter(p => p.status === 'inProgress').length > 0 ? (
-              workerPlannedPrestations.filter(p => p.status === 'inProgress').map((prestation, index) => (
-                <TouchableOpacity 
-                    key={index} 
-                    style={styles.missionItem}
-                    onPress={() => {
-                     
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <View style={styles.dayContainer}>
-                        <Text style={styles.dayText}>{new Date(prestation.start_date).getUTCDate()}</Text>
-                      </View>
-                      <View style={{ marginLeft: 10 }}>
-                        <Text style={styles.missionInProgressText}>{prestation.metier}</Text> {/* Nom par défaut */}
-                        <Text style={styles.missionTime}>
-                          {prestation.start_time} → {prestation.end_time}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.missionPrice}>{prestation.remuneration}€</Text>
-                  </TouchableOpacity>
-                ))
-              ) : (
-              <Text style={styles.noMissionsText}>Aucune mission en cours.</Text>
-            )}
+            <ScrollView contentContainerStyle={styles.missionInProgressItemContainer}>
+  {workerPlannedPrestations.filter(p => p.status === 'inProgress').length > 0 ? (
+    groupMissionsByMonth(workerPlannedPrestations.filter(p => p.status === 'inProgress')).map(([key, prestations]) => {
+      const [monthIndex, year] = key.split('-');
+      const monthLabel = `${monthNames[+monthIndex]} ${year}`;
+
+      return (
+        <View key={key} style={styles.missionList}>
+          <Text style={styles.modalSubtitle}>
+            {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
+          </Text>
+
+          {prestations.map((prestation: any, index: number) => (
+            <TouchableOpacity key={index} style={styles.missionItem}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={styles.dayContainer}>
+                  <Text style={styles.dayText}>
+                    {new Date(prestation.start_date).getUTCDate()}
+                  </Text>
+                </View>
+                <View style={{ marginLeft: 10 }}>
+                  <Text style={styles.missionInProgressText}>{prestation.metier}</Text>
+                  <Text style={styles.missionTime}>
+                    {prestation.start_time} → {prestation.end_time}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.missionPrice}>{prestation.remuneration}€</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    })
+  ) : (
+    <Text style={styles.noMissionsText}>Aucune mission en cours.</Text>
+  )}
+</ScrollView>
+
             <TouchableOpacity onPress={() => setInProgressModalVisible(false)}
               style={styles.inProgressCloseButton}>
               <Text style={styles.inProgressCloseButtonText}>FERMER</Text>
@@ -350,37 +385,53 @@ const JobsScreen = () => {
             <Text style={styles.modalSubtitle}>Missions en attente</Text>
 
             {/* Liste des prestations récupérées */}
-            <View style={styles.missionInProgressItemContainer}>
-              {workerPlannedPrestations.length > 0 ? (
-                workerPlannedPrestations.filter(p => p.status === 'waiting').map((prestation, index) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    style={styles.missionItem}
-                    onPress={() => {
-                      setSelectedJob(prestation); // Stocker la prestation sélectionnée
-                      setRequestModalVisible(true); // Ouvrir le modal de demande
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <View style={styles.dayContainer}>
-                        <Text style={styles.dayText}>{new Date(prestation.start_date).getUTCDate()}</Text>
-                      </View>
-                      <View style={{ marginLeft: 10 }}>
-                        <Text style={styles.missionInProgressText}>{prestation.metier}</Text> {/* Nom par défaut */}
-                        <Text style={styles.missionTime}>
-                          {prestation.start_time} → {prestation.end_time}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.missionPrice}>{prestation.remuneration}€</Text>
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <Text style={{ textAlign: 'center', marginTop: 10, color: '#666' }}>
-                  Aucune mission en attente.
-                </Text>
-              )}
-            </View>
+           <ScrollView contentContainerStyle={styles.missionInProgressItemContainer}>
+  {workerPlannedPrestations.filter(p => p.status === 'waiting').length > 0 ? (
+    groupMissionsByMonth(workerPlannedPrestations.filter(p => p.status === 'waiting')).map(([key, prestations]) => {
+      const [monthIndex, year] = key.split('-');
+      const monthLabel = `${monthNames[+monthIndex]} ${year}`;
+
+      return (
+        <View key={key} style={styles.missionList}>
+          <Text style={styles.modalSubtitle}>
+            {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)}
+          </Text>
+
+          {prestations.map((prestation: any, index: number) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.missionItem}
+              onPress={() => {
+                setSelectedJob(prestation);
+                setRequestModalVisible(true);
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={styles.dayContainer}>
+                  <Text style={styles.dayText}>
+                    {new Date(prestation.start_date).getUTCDate()}
+                  </Text>
+                </View>
+                <View style={{ marginLeft: 10 }}>
+                  <Text style={styles.missionInProgressText}>{prestation.metier}</Text>
+                  <Text style={styles.missionTime}>
+                    {prestation.start_time} → {prestation.end_time}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.missionPrice}>{prestation.remuneration}€</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    })
+  ) : (
+    <Text style={{ textAlign: 'center', marginTop: 10, color: '#666' }}>
+      Aucune mission en attente.
+    </Text>
+  )}
+</ScrollView>
+
 
             {/* Bouton pour fermer le modal */}
             <TouchableOpacity
@@ -626,11 +677,11 @@ const styles = StyleSheet.create({
   },
 
   modalSubtitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#00cc66',
-    textAlign: 'center',
+    color: 'black',
+    textAlign: 'left',
   },
   
   missionItem: {
@@ -649,7 +700,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'flex-start',
     marginVertical: 10,
-    width : '100%'
+    width : '100%',
+    
   },
 
   missionInProgressText: {
@@ -744,6 +796,11 @@ const styles = StyleSheet.create({
     padding: 10,       // augmente la zone cliquable autour de l'icône
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  missionList: {
+    width : "100%",
+    
   },
   
 });

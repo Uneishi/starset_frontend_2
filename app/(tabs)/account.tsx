@@ -34,21 +34,13 @@ const AccountScreen = () => {
     } as never);
   };
 
-  const goToTest = async () => {
-    navigation.navigate('test' as never);
-  };
-
-  const goToMistral = async () => {
-    navigation.navigate('mistral' as never);
-  };
+  
 
   const goToCard = async () => {
     navigation.navigate('paymentMethod' as never);
   };
 
-  const goToTestImage = async () => {
-    navigation.navigate('testImage' as never);
-  };
+  
 
   const goToProfilePicture = async () => {
     navigation.navigate('modifyAccount' as never);
@@ -64,18 +56,6 @@ const AccountScreen = () => {
 
   const goToHistory = async () => {
     navigation.navigate('history' as never);
-  };
-
-  const goToVerificationCode = async () => {
-    navigation.navigate('verificationCode' as never);
-  };
-
-  const goToNote = async () => {
-    navigation.navigate('note' as never);
-  };
-
-  const goToValidation = async () => {
-    navigation.navigate('validation' as never);
   };
 
   const goToAvailability = async () => {
@@ -778,7 +758,7 @@ const styles = StyleSheet.create({
   },
 
   missionItem: {
-    width : 250,
+    width : "100%",
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between', // Équilibre entre les éléments
