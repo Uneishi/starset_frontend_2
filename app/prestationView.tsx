@@ -1,3 +1,4 @@
+import { useCart } from '@/context/userContext';
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
@@ -7,8 +8,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Font from 'expo-font';
 import { useFonts } from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars'; // Import the Calendar component
+import { IconButton, Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../config.json';
 
@@ -52,8 +54,9 @@ const PrestationViewScreen = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [modalType, setModalType] = useState<string | null>('date'); // 'date', 'arrival', 'departure'
   const [unavailableDates, setUnavailableDates] = useState<string[]>([]);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const { addToCart } = useCart();
 
-  
     const profileImageSize = scrollY.interpolate({
       inputRange: [0, 70],
       outputRange: [120, 80],
@@ -139,6 +142,20 @@ const PrestationViewScreen = () => {
       setMinute(value);
     }
   };
+
+  const confirmReport = () => {
+    Alert.alert(
+      "Confirmer le signalement",
+      "Êtes-vous sûr de vouloir signaler cette personne ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Oui", onPress: () => console.log("Personne signalée") }
+      ],
+      { cancelable: false }
+    );
+    setMenuVisible(false);
+  };
+  
 
   const toggleDatePicker = () => {
     setDatePickerVisible(!isDatePickerVisible); // Toggle the visibility of the date picker
@@ -537,7 +554,56 @@ const unlikeImage = async (imageId: string) => {
     }
   }, [arrivalHour, arrivalMinute]);
 
-  const goToSummary = () => {
+  const handleAddToCart = () => {
+    if (!startDate || !endDate || arrivalHour.length !== 2 || arrivalMinute.length !== 2 || departureHour.length !== 2 || departureMinute.length !== 2) {
+      Alert.alert("Erreur", "Merci de remplir toutes les informations de date et horaire.");
+      return;
+    }
+  
+    const arrivalTime = new Date();
+    arrivalTime.setHours(parseInt(arrivalHour, 10), parseInt(arrivalMinute, 10), 0);
+  
+    const departureTime = new Date();
+    departureTime.setHours(parseInt(departureHour, 10), parseInt(departureMinute, 10), 0);
+  
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+  
+    // Calcul du nombre de jours (incluant le dernier)
+    const daysWorked = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  
+    const hoursWorked = (departureTime.getTime() - arrivalTime.getTime()) / (1000 * 60 * 60);
+  
+    const totalRemuneration = prestation.remuneration * hoursWorked * daysWorked;
+  
+    // Crée un objet avec les infos à stocker dans le panier
+    const cartItem = {
+      prestation,
+      startDate,
+      endDate,
+      arrivalTime,
+      departureTime,
+      totalRemuneration,
+      daysWorked,
+      hoursWorked,
+      profilePictureUrl,
+    };
+  
+    addToCart(cartItem);
+  
+    Alert.alert("Succès", "La prestation a été ajoutée au panier.");
+  
+    // Optionnel : reset des champs date et horaires si tu veux
+    setStartDate('');
+    setEndDate('');
+    setArrivalHour('');
+    setArrivalMinute('');
+    setDepartureHour('');
+    setDepartureMinute('');
+    setCalendarVisible(false);
+  };
+
+  /*const goToSummary = () => {
     const arrivalTime = new Date();
     arrivalTime.setHours(parseInt(arrivalHour, 10), parseInt(arrivalMinute, 10),  0);
     const departureTime = new Date();
@@ -559,7 +625,15 @@ const unlikeImage = async (imageId: string) => {
       name: 'summary',
       params: {startDate : startDate, endDate: endDate, arrivalTime : arrivalTime, departureTime : departureTime, prestation : prestation, profilePictureUrl : profilePictureUrl, totalRemuneration: totalRemuneration, },
     } as never);
-  }
+  }*/
+
+    const goToSummary = () => {
+      navigation.navigate({
+        name: 'summary',
+        
+      } as never);
+    }
+
 
   return (
     <View>
@@ -774,7 +848,7 @@ const unlikeImage = async (imageId: string) => {
       ) : (
         <View style={styles.pricingContainer}>
           <Text style={styles.pricingText}>{prestation.remuneration ? `${prestation.remuneration}€/heure` : "Tarif non défini"}</Text>
-          <TouchableOpacity style={styles.calendarButton}>
+          <TouchableOpacity style={styles.calendarButton} onPress={toggleCalendar}>
             <Text style={styles.calendarButtonText}>Voir le calendrier</Text>
           </TouchableOpacity>
           <View style={styles.diagonal} />
@@ -938,7 +1012,7 @@ const unlikeImage = async (imageId: string) => {
                 <TouchableOpacity
                   style={[styles.nextButton, !(departureHour.length === 2 && departureMinute.length === 2) && { backgroundColor: '#ccc' }]}
                   disabled={!(departureHour.length === 2 && departureMinute.length === 2)}
-                  onPress={goToSummary}
+                  onPress={handleAddToCart}
                 >
                   <Text style={styles.nextButtonText}>Confirmer</Text>
                 </TouchableOpacity>
@@ -964,19 +1038,27 @@ const unlikeImage = async (imageId: string) => {
           <Icon name="mail" size={30} color="black" />
         </TouchableOpacity>
     
-        <TouchableOpacity
-          onPress={() => console.log("✅ Icône paramètres cliquée !")}
-          style={styles.iconButton}
-        >
-          <Icon name="more-vert" size={30} color="black" />
-        </TouchableOpacity>
+        <Menu
+  visible={menuVisible}
+  onDismiss={() => setMenuVisible(false)}
+  anchor={
+    <IconButton
+      icon="dots-vertical"
+      size={30}
+      
+      onPress={() => setMenuVisible(true)}
+    />
+  }
+>
+  <Menu.Item onPress={confirmReport} title="Signaler" />
+</Menu>
       </View>
     </View>
     {/* Ajouter au panier */}
     
     <View style={styles.addButtonFixedContainer}>
         
-        <TouchableOpacity style={styles.addButton} onPress={toggleCalendar}>
+        <TouchableOpacity style={styles.addButton} onPress={goToSummary}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={styles.addButtonText}>Ajouter</Text>
             <Icon name="shopping-cart" size={24} color="white" style={{ marginLeft: 8 }} />
@@ -1234,8 +1316,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   calendarButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#FFF',
+    fontWeight : 'bold'
   },
   addButtoncontainer: {
     width: '100%',

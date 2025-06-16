@@ -1,4 +1,4 @@
-import { AllWorkerPrestationProvider, CurrentWorkerPrestationProvider, UserConversationProvider, UserProvider, WorkerConversationProvider } from '@/context/userContext';
+import { AllWorkerPrestationProvider, CartProvider, CurrentWorkerPrestationProvider, UserConversationProvider, UserProvider, WorkerConversationProvider } from '@/context/userContext';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
@@ -18,6 +18,7 @@ function RootLayoutNav() {
 
   return (
     <PaperProvider>
+    <CartProvider>
     <StripeProvider
       publishableKey="pk_test_51QhAaYAVD111mkgn6K7YTlVYj4VZUKi6vb3j4xHIGcgxUgGEcPoJ34pxGca9XJIbeTwDmraHaAfo7LtBnh19Sggy00D7gjtYhJ" // <- ta clé publique Stripe ici
     >
@@ -50,6 +51,7 @@ function RootLayoutNav() {
         </WorkerConversationProvider>
       </UserProvider>
     </StripeProvider>
+    </CartProvider>
     </PaperProvider>
   );
 }

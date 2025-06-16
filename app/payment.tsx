@@ -1,22 +1,17 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, Alert, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import config from '../config.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import config from '../config.json';
 
 const PaymentScreen = () => {
   const route = useRoute() as any;
   const navigation = useNavigation();
-  
-  const { 
-    startDate, 
-    endDate, 
-    arrivalTime, 
-    departureTime, 
-    prestation, 
-    profilePictureUrl,
-    totalRemuneration
-  } = route.params;
+
+  // On récupère cart, instruction, totalRemuneration depuis params
+  const { cart = [], instruction = '', totalRemuneration = 0 } = route.params || {};
+
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const getAccountId = async () => {
     try {
@@ -28,92 +23,118 @@ const PaymentScreen = () => {
   };
 
   const handlePayment = async () => {
-    const user_id = await getAccountId();
-    try {
-      const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          worker_id: prestation.worker_id,
-          user_id: user_id,
-          prestation_id: prestation.id,
-          start_date: startDate,
-          end_date: endDate,
-          type_of_remuneration: 'hours',
-          remuneration: totalRemuneration,
-          start_time: arrivalTime,
-          end_time: departureTime,
-        }),
-      });
+    if (cart.length === 0) {
+      Alert.alert('Panier vide', 'Votre panier est vide.');
+      return;
+    }
 
-      const data = await response.json();
-      if (data.success) {
-        navigation.navigate('validation' as never);
-      } else {
-        Alert.alert("Erreur", "Une erreur est survenue lors du paiement.");
+    setIsLoading(true);
+
+    try {
+      const user_id = await getAccountId();
+
+      // Envoyer une requête pour chaque prestation dans le panier
+      for (const item of cart) {
+        const {
+          prestation,
+          startDate,
+          endDate,
+          arrivalTime,
+          departureTime,
+          totalRemuneration: itemRemuneration,
+        } = item;
+
+        const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            worker_id: prestation.worker_id,
+            user_id,
+            prestation_id: prestation.id,
+            start_date: startDate,
+            end_date: endDate,
+            type_of_remuneration: 'hours',
+            remuneration: itemRemuneration,
+            start_time: arrivalTime,
+            end_time: departureTime,
+            instruction, // Optionnel, tu peux l'ajouter si applicable globalement
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(`Erreur lors de la création de la prestation ${prestation.metier}`);
+        }
       }
+
+      setIsLoading(false);
+      Alert.alert('Succès', 'Le paiement et les prestations ont bien été enregistrés.');
+      navigation.navigate('validation' as never);
     } catch (error) {
+      setIsLoading(false);
       console.error('Erreur paiement :', error);
-      Alert.alert("Erreur", "Impossible de valider le paiement. Vérifiez votre connexion.");
+      Alert.alert('Erreur', 'Impossible de valider le paiement. Vérifiez votre connexion.');
     }
   };
 
+  // Affichage résumé des prestations dans le panier
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.headerText}>Paiement</Text>
 
-      <View style={styles.profileContainer}>
-        <Image
-          source={{ uri: profilePictureUrl || prestation.picture_url }}
-          style={styles.profilePicture}
-        />
-      </View>
+      {cart.map((item: any, index: number) => {
+        const {
+          prestation,
+          profilePictureUrl,
+          totalRemuneration: itemRemuneration,
+        } = item;
 
-      <Text style={styles.sectionHeader}>Détails de la prestation</Text>
-      <View style={styles.infoContainer}>
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>{prestation.metier}</Text>
-        </View>
-        <Text style={styles.descriptionText}>{prestation.description}</Text>
-      </View>
-
-      <Text style={styles.sectionHeader}>Résumé du paiement</Text>
-      <View style={styles.paymentContainer}>
-        <Text style={styles.paymentText}>Total heures</Text>
-        <Text style={styles.paymentAmount}>{parseFloat(totalRemuneration).toFixed(2)}€</Text>
-      </View>
+        return (
+          <View key={index} style={styles.prestationContainer}>
+            <Image
+              source={{ uri: profilePictureUrl || prestation.picture_url }}
+              style={styles.profilePicture}
+            />
+            <Text style={styles.prestationTitle}>{prestation.metier}</Text>
+            <Text style={styles.descriptionText}>{prestation.description}</Text>
+            <Text style={styles.paymentAmount}>Montant : {itemRemuneration?.toFixed(2)} €</Text>
+          </View>
+        );
+      })}
 
       <View style={styles.separator} />
 
-      <View style={styles.paymentContainer}>
-        <Text style={[styles.paymentText, { fontWeight: 'bold' }]}>Total final</Text>
-        <Text style={[styles.paymentAmount, { fontWeight: 'bold' }]}>
-          {(parseFloat(totalRemuneration) + 3 + 1.30).toFixed(2)}€
-        </Text>
-      </View>
+      <Text style={styles.totalText}>Total global : {parseFloat(totalRemuneration).toFixed(2)} €</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handlePayment}>
-        <Text style={styles.buttonText}>Valider le paiement</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && { backgroundColor: '#666' }]}
+        onPress={handlePayment}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>{isLoading ? 'Traitement...' : 'Valider le paiement'}</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    padding: 20,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
+    marginBottom: 20,
   },
-  profileContainer: {
-    marginTop: 20,
+  prestationContainer: {
+    width: '100%',
+    backgroundColor: '#f0f9f0',
+    padding: 15,
+    borderRadius: 10,
     marginBottom: 20,
     alignItems: 'center',
   },
@@ -122,63 +143,44 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
   },
-  sectionHeader: {
+  prestationTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-  },
-  infoContainer: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  tag: {
-    backgroundColor: '#d9f9d9',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  tagText: {
-    fontSize: 16,
-    color: '#000',
+    marginTop: 10,
   },
   descriptionText: {
     fontSize: 14,
     color: '#555',
-  },
-  paymentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 10,
-  },
-  paymentText: {
-    fontSize: 16,
-    color: '#000',
+    marginVertical: 10,
+    textAlign: 'center',
   },
   paymentAmount: {
     fontSize: 16,
-    color: '#000',
+    fontWeight: 'bold',
+    color: 'green',
   },
   separator: {
     height: 1,
     width: '100%',
     backgroundColor: '#ccc',
-    marginVertical: 10,
+    marginVertical: 20,
+  },
+  totalText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 30,
   },
   button: {
     backgroundColor: 'green',
     padding: 15,
     borderRadius: 8,
-    marginTop: 30,
     width: '100%',
     alignItems: 'center',
   },
   buttonText: {
-    fontSize: 16,
     color: '#FFF',
     fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

@@ -5,6 +5,7 @@ type User = Record<string, any>;
 type Prestation = Record<string, any>;
 type PlannedPrestation = Record<string, any>;
 type Conversation = Record<string, any>; // Tu peux remplacer par un vrai type plus tard si tu veux
+type CartItem = Record<string, any>; // adapte au besoin
 
 
 // Interfaces de contextes
@@ -38,6 +39,13 @@ interface WorkerConversationsContextType {
   setWorkerConversations: (conversations: Conversation[]) => void;
 }
 
+interface CartContextType {
+  cart: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (index: number) => void;  // ou selon identifiant
+  clearCart: () => void;
+}
+
 // Contexts
 const UserContext = createContext<UserContextType | undefined>(undefined);
 const CurrentWorkerPrestationContext = createContext<CurrentWorkerPrestationContextType | undefined>(undefined);
@@ -45,6 +53,7 @@ const AllWorkerPrestationContext = createContext<AllWorkerPrestationContextType 
 const PlannedPrestationContext = createContext<PlannedPrestationContextType | undefined>(undefined);
 const UserConversationContext = createContext<UserConversationContextType | undefined>(undefined);
 const WorkerConversationContext = createContext<WorkerConversationsContextType | undefined>(undefined);
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
 
 // Providers
@@ -98,6 +107,28 @@ export const WorkerConversationProvider: React.FC<{ children: React.ReactNode }>
   );
 };
 
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [cart, setCart] = useState<CartItem[]>([]);
+
+  const addToCart = (item: CartItem) => {
+    setCart(prev => [...prev, item]);
+  };
+
+  const removeFromCart = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  return (
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+      {children}
+    </CartContext.Provider>
+  );
+};
+
 // Hooks pour utiliser les contextes
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -143,6 +174,14 @@ export const useWorkerConversation = () => {
   const context = useContext(WorkerConversationContext);
   if (!context) {
     throw new Error('useWorkerConversations doit être utilisé à l’intérieur de WorkerConversationsProvider');
+  }
+  return context;
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart doit être utilisé à l’intérieur de CartProvider');
   }
   return context;
 };

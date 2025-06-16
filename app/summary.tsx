@@ -1,151 +1,90 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, GestureResponderEvent } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-
-import { StyleSheet, TextStyle, Image } from 'react-native';
-import config from '../config.json';
-import { useUser } from '@/context/userContext';
-
-
+import { useCart } from '@/context/userContext';
+import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const SummaryScreen = () => {
-  const [isSelected, setSelection] = React.useState(false);
-  const {user , setUser} = useUser()
-  const [addressParts, setAddressParts] = useState({ street: 'N/A', city: 'N/A', country: 'N/A' });
-
-
-  const route = useRoute() as any;
-  route.params
-  console.log('ICI')
-  console.log(route.params)
-
   const navigation = useNavigation();
-  
-  const { startDate, endDate, arrivalTime, departureTime, prestation, profilePictureUrl,totalRemuneration } = route.params;
-  console.log("route.params")
-  console.log(route.params)
-  console.log(arrivalTime)
-  console.log(departureTime)
-  
+  const { cart } = useCart();
 
-  let formattedStartDate = 'N/A';
-  let formattedEndDate = 'N/A';
-  let formattedStartTime = 'N/A';
-  let formattedEndTime = 'N/A';
+  const [instruction, setInstruction] = useState('');
 
-  if (startDate && endDate) {
-    formattedStartDate = new Date(startDate).toLocaleDateString();
-    formattedEndDate = new Date(endDate).toLocaleDateString();
-    formattedStartTime = new Date(arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    formattedEndTime = new Date(departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    console.log(formattedStartDate);
-    console.log(formattedEndDate);
-    console.log(formattedStartTime);
-    console.log(formattedEndTime);
-  } else {
-    console.log('startDate or endDate is null or undefined');
-  }
-
-  useEffect(() => {
-      const { street, city, country } = extractAddressParts(user?.address);
-      setAddressParts({ street, city, country });
-  }, []);
-
-  
-const extractAddressParts = (address : any) => {
-  console.log("123456789")
-
-  const parts = address.split(',');
-  
-  if (parts.length < 3) return { street: 'N/A', city: 'N/A', postalCode: 'N/A' };
-  
-  const street = parts[0]?.trim() || 'N/A';
-  const city = parts[1]?.trim() || 'N/A';
-  const country = parts[2]?.trim() || 'N/A';
-  console.log(street)
-  return { street, city, country };
-};
-  
-
-  
+  // Calcul total global
+  const totalRemuneration = cart.reduce((sum, item) => sum + (item.totalRemuneration || 0), 0);
 
   const nextStep = () => {
-    
     navigation.navigate({
       name: 'payment',
-      params: { startDate :startDate,endDate : endDate,  arrivalTime : arrivalTime, departureTime : departureTime, prestation :prestation, profilePictureUrl : profilePictureUrl,totalRemuneration : totalRemuneration },
+      params: { cart, instruction, totalRemuneration },
     } as never);
   };
 
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
+    const {
+      prestation,
+      startDate,
+      endDate,
+      arrivalTime,
+      departureTime,
+      totalRemuneration,
+      profilePictureUrl,
+    } = item;
+
+    const formattedStartDate = startDate ? new Date(startDate).toLocaleDateString() : 'N/A';
+    const formattedEndDate = endDate ? new Date(endDate).toLocaleDateString() : 'N/A';
+    const formattedArrivalTime = arrivalTime ? new Date(arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+    const formattedDepartureTime = departureTime ? new Date(departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+
+    return (
+      <View style={styles.prestationCard}>
+        <Text style={styles.prestationTitle}>{prestation.metier || 'Prestation'}</Text>
+        <Image source={{ uri: profilePictureUrl }} style={styles.profilePicture} />
+        <View style={styles.dateRow}>
+          <Text>Début : {formattedStartDate}</Text>
+          <Text>Fin : {formattedEndDate}</Text>
+        </View>
+        <View style={styles.dateRow}>
+          <Text>Arrivée : {formattedArrivalTime}</Text>
+          <Text>Départ : {formattedDepartureTime}</Text>
+        </View>
+        <Text>Total Prestation: {totalRemuneration?.toFixed(2)} €</Text>
+      </View>
+    );
+  };
+
+  if (cart.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text>Votre panier est vide.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>RÉCAPITULATIF</Text>
-      
-      <View style={styles.profileContainer}>
-        <Image
-          source={{ uri: profilePictureUrl }} // Replace with the actual profile picture URL
-          style={styles.profilePicture}
-        />
-      </View>
-      <View style={{
-            width : '100%',
-            height : 50,
-            
-      }}></View>
+      <Text style={styles.headerText}>Récapitulatif du panier</Text>
 
-      <View style={styles.infoContainer}>
-        <View style={styles.daterow}>
-          <View style={styles.date}>
-            <Text style={styles.infoText}>{formattedStartDate}</Text>
-          </View>
-          
-          <Text style={styles.infoText}>➔</Text>
-          <View style={styles.date}>
-            <Text style={styles.infoText}>{formattedEndDate}</Text>
-          </View>
-        </View>
-
-        <View style={styles.daterow}>
-          <View style={styles.date}>
-            <Text style={styles.infoText}>{formattedStartTime}</Text>
-          </View>
-          
-          <Text style={styles.infoText}>➔</Text>
-          <View style={styles.date}>
-            <Text style={styles.infoText}>{formattedEndTime}</Text>
-          </View>
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.case}>
-            <Text style={styles.infoText}>{addressParts?.street}</Text>
-          </View>
-          <View style={styles.case}>
-            <Text style={styles.infoText}>{addressParts?.city}</Text>
-          </View>
-        </View>
-        
-        <View style={styles.row}>
-          <View style={styles.date}>
-            <Text style={styles.infoText}>{addressParts?.country}</Text>
-          </View>
-        </View>
-      </View>
+      <FlatList
+        data={cart}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={renderItem}
+        style={styles.list}
+      />
 
       <TextInput
         style={styles.input}
         placeholder="Ajouter une instruction ou information primordiale"
+        value={instruction}
+        onChangeText={setInstruction}
       />
 
-      <View style={styles.totalpurchase}>
-        <Text style={styles.totalText}>Total achat:</Text>
-        <Text style={styles.totalText}>{totalRemuneration}</Text>
+      <View style={styles.totalRow}>
+        <Text style={styles.totalText}>Total achat :</Text>
+        <Text style={styles.totalText}>{totalRemuneration.toFixed(2)} €</Text>
       </View>
-      
 
-      <TouchableOpacity style={styles.button}  onPress={nextStep}>
-        <Text style={styles.buttonText}>Étape suivante</Text>
+      <TouchableOpacity style={styles.nextButton} onPress={nextStep}>
+        <Text style={styles.nextButtonText}>Étape suivante</Text>
       </TouchableOpacity>
     </View>
   );
@@ -154,127 +93,71 @@ const extractAddressParts = (address : any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     padding: 20,
+    backgroundColor: '#fff',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
     marginBottom: 20,
   },
-  profileContainer: {
+  list: {
     marginBottom: 20,
+  },
+  prestationCard: {
+    marginBottom: 20,
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: '#ccc',
+  },
+  prestationTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   profilePicture: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginVertical: 10,
   },
-  stepContainer: {
+  dateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 20,
-  },
-  step: {
-    alignItems: 'center',
-  },
-  stepText: {
-    fontSize: 24,
-  },
-  infoContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#000',
-    marginVertical: 5,
-    textAlign: 'center'
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
   input: {
-    width: '100%',
-    height: 40,
-    borderColor: 'gray',
+    borderColor: '#ccc',
     borderWidth: 1,
     padding: 10,
-    marginBottom: 10,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
     marginBottom: 20,
+    borderRadius: 5,
+    height: 40,
   },
-  checkbox: {
-    alignSelf: 'center',
-  },
-  label: {
-    margin: 8,
-    fontSize: 16,
-    color: '#000',
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   totalText: {
-    fontSize: 20,
-    color: '#000',
-    marginBottom: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  button: {
+  nextButton: {
     backgroundColor: 'green',
     padding: 15,
     borderRadius: 5,
-    width: '100%',
     alignItems: 'center',
   },
-  buttonText: {
+  nextButtonText: {
+    color: 'white',
     fontSize: 16,
-    color: '#FFFFFF',
   },
-
-  daterow : {
-    width : '100%',
-    
-    flexDirection : 'row',
-    justifyContent: 'space-between'
-  },
-
-  row : {
-    width : '100%',
-    
-    flexDirection : 'row',
-    justifyContent: 'flex-start'
-  },
-
-  date : {
-    width : 150,
-    margin : 3,
-    padding : 5,
-    backgroundColor:  '#D3D3D3',
-    borderRadius : 10
-  },
-
-  case : {
-    
-    margin : 3,
-    padding : 5,
-    paddingHorizontal: 15,
-    backgroundColor:  '#D3D3D3',
-    borderRadius : 10
-  },
-
-  totalpurchase : {
-    width : "100%",
-    flexDirection : "row",
-    margin : 10,
-    padding : 10,
-    justifyContent : 'space-between',
-    fontSize : 200
-  },
-
-  purchasetext : {
-
-  }
 });
 
 export default SummaryScreen;
