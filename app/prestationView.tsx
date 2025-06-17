@@ -260,7 +260,6 @@ const PrestationViewScreen = () => {
       setAccount(data.account)
       setPrestationImages(data.images)
       
-      
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
     }
@@ -652,9 +651,24 @@ const unlikeImage = async (imageId: string) => {
             )}
             scrollEventThrottle={16}
           >
+
+        {account && (
+            <View style={styles.peopleIconContainer}>
+              <Image
+                source={
+                  account.is_company
+                    ? require('../assets/images/company.png')
+                    : require('../assets/images/people.png')
+                }
+                style={styles.peopleIcon}
+              />
+            </View>
+          )}      
       <View style={styles.header}>
         <Text style={styles.profileName}>{account?.firstname}</Text>
       </View>
+      
+      
 
       <View style={styles.tagsContainer}>
         <ScrollView
@@ -767,8 +781,8 @@ const unlikeImage = async (imageId: string) => {
             </View>
             <Text style={styles.experienceDescription}>{experience.description}</Text>
             <View style={styles.experienceImages}>
-              {experienceData.images.map((image : any, index : any) => (
-                <Image key={index} source={{ uri: image.uri }} style={styles.experienceImage} />
+              {experience.images?.map((imageUri: string, idx: number) => (
+                <Image key={idx} source={{ uri: imageUri }} style={styles.experienceImage} />
               ))}
             </View>
           </View>
@@ -783,25 +797,51 @@ const unlikeImage = async (imageId: string) => {
             certifications.map((certification: any, index: number) => (
               <View key={index} style={styles.certificationCardUpdated}>
                 <View style={styles.certificationHeader}>
-                  <Text style={styles.certificationTitle}>{certification.title}</Text>
-                  <Text style={styles.certificationDateRight}>{certification.date}</Text>
-                </View>
-                <Text style={styles.certificationInstitution}>
-                  <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
-                </Text>
-                <Text style={styles.certificationDescription}>{certification.description}</Text>
-                <View style={styles.certificationImagesRow}>
-                  {[
-                    "https://cdn.prod.website-files.com/63fcd4b2c4986bf723dff93d/65ca3646cfda78971e7fb752_Capture%20d%E2%80%99e%CC%81cran%202024-02-12%20a%CC%80%2016.16.12.png",
-                    "https://www.managementdelaformation.fr/wp-content/uploads/2021/06/RHEXIS_Reformes_R%C3%A9former_la_r%C3%A9forme_Blog.jpg",
-                    "https://www.cybermalveillance.gouv.fr/medias/2021/12/formation_cybersecurite.jpg"
-                  ].map((uri, i) => (
-                    <Image
-                      key={i}
-                      source={{ uri }}
-                      style={styles.certificationMiniImage}
-                    />
-                  ))}
+                  <View
+                    style={[
+                      styles.certificationImagesColumn,
+                      {
+                        width: certification.images?.length ? 80 : 0,
+                        marginRight: certification.images?.length ? 10 : 0,
+                      },
+                    ]}
+                  >
+                    {certification.images?.length === 3 ? (
+                      <>
+                        <Image
+                          source={{ uri: certification.images[0] }}
+                          style={styles.certificationBigImage}
+                        />
+                        <View style={styles.certificationSmallImagesRow}>
+                          <Image
+                            source={{ uri: certification.images[1] }}
+                            style={styles.certificationSmallImage}
+                          />
+                          <Image
+                            source={{ uri: certification.images[2] }}
+                            style={styles.certificationSmallImage}
+                          />
+                        </View>
+                      </>
+                    ) : (
+                      certification.images?.map((uri: string, i: number) => (
+                        <Image
+                          key={i}
+                          source={{ uri }}
+                          style={styles.certificationMiniImage}
+                        />
+                      ))
+                    )}
+                  </View>
+
+                  <View style={styles.certificationTextContent}>
+                    <Text style={styles.certificationTitle}>{certification.title}</Text>
+                    <Text style={styles.certificationDate}>{certification.date}</Text>
+                    <Text style={styles.certificationInstitution}>
+                      <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+                    </Text>
+                    <Text style={styles.certificationDescription}>{certification.description}</Text>
+                  </View>
                 </View>
                 <View style={styles.separator} />
               </View>
@@ -809,6 +849,7 @@ const unlikeImage = async (imageId: string) => {
           ) : (
             <Text style={{ textAlign: 'center' }}>Aucune certification disponible</Text>
           )}
+
       </View>
       )}
 
@@ -1245,7 +1286,7 @@ const styles = StyleSheet.create({
   },
   experienceImages: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   experienceImage: {
     width: 80,
@@ -1892,6 +1933,46 @@ certificationInstitution: {
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+
+  
+  certificationImagesColumn: {
+    flexShrink: 0,
+  },
+  certificationBigImage: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    marginBottom: 5,
+  },
+  certificationSmallImagesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  certificationSmallImage: {
+    width: '48%',
+    aspectRatio: 16 / 9,
+  },
+  
+  certificationTextContent: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  
+  certificationDate: {
+    fontSize: 12,
+    color: '#555',
+  },
+
+  peopleIconContainer: {
+    position : 'absolute',
+    left: 8,
+    top : 8,
+  },
+  peopleIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  
 
   
 });

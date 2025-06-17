@@ -327,12 +327,12 @@ const PrestationScreen = () => {
               });
   
               if (!response.ok) {
-                console.log(response)
+                //console.log(response)
                 throw new Error('Erreur lors de la suppression de la photo');
               }
   
               const data = await response.json();
-  
+
               if (data.success) {
                 // Supprimez la photo localement
                 const updatedPhotos = [...prestationPhotos];
@@ -351,6 +351,19 @@ const PrestationScreen = () => {
         },
       ]
     );
+  };
+
+  const pickEditImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      base64: true,
+      quality: 0.5,
+    });
+  
+    if (!result.canceled && result.assets.length > 0) {
+      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setEditImages((prevImages) => [...prevImages, base64Image]);
+    }
   };
 
   const pickExperienceImage = async () => {
@@ -410,7 +423,7 @@ const PrestationScreen = () => {
     });
   
     if (result.canceled) {
-      console.log('L\'utilisateur a annulé la sélection d\'image.');
+      //console.log('L\'utilisateur a annulé la sélection d\'image.');
       Alert.alert('Erreur', 'Aucune photo sélectionnée');
       return;
     }
@@ -449,7 +462,7 @@ const PrestationScreen = () => {
 
         if (uploadResponse.ok) {
           const responseData = await uploadResponse.json();
-          console.log('Upload success:', responseData);
+          //console.log('Upload success:', responseData);
           Alert.alert('Succès', 'Photo téléchargée avec succès');
           if (responseData.dbRecord) {
             setPrestationPhotos((prevPhotos : any) => [...prevPhotos, responseData.dbRecord]);
@@ -488,7 +501,7 @@ const PrestationScreen = () => {
     }
 
     const data = await response.json();
-    //console.log(data);
+    
 
   };
 
@@ -504,12 +517,9 @@ const PrestationScreen = () => {
     setRemuneration(formatted);
   };
 
-  
-  
-
   const getAllCertification = async () => {
     try {
-      console.log('debut get experiences')
+      
       
       const response = await fetch(`${config.backendUrl}/api/mission/get-all-certification`, {
         method: 'POST',
@@ -524,7 +534,7 @@ const PrestationScreen = () => {
       }
 
       const data = await response.json();
-      console.log('certification :', data.certifications);
+      //console.log('certification :', data.certifications);
 
       // Stocker les prestations dans l'état
       setCertifications(data.certifications);
@@ -537,7 +547,7 @@ const PrestationScreen = () => {
   
   const getPrestationPhotos = async () => {
     try {
-      console.log('debut get experiences')
+      //console.log('debut get experiences')
       
       const response = await fetch(`${config.backendUrl}/api/mission/get-all-experience`, {
         method: 'POST',
@@ -552,7 +562,7 @@ const PrestationScreen = () => {
       }
 
       const data = await response.json();
-      console.log('experiences :', data.experiences);
+      //console.log('experiences :', data.experiences);
 
       // Stocker les prestations dans l'état
       setExperiences(data.experiences);
@@ -566,15 +576,11 @@ const PrestationScreen = () => {
     setIsEditing(!isEditing);
   };
 
-  const checkPrestation = async () => {
-    console.log('prestation : ',prestation)
-  };
-
   const handleSaveDescription = async () => {
     setIsEditing(false);
     // Vous pouvez ajouter ici le code pour sauvegarder la nouvelle description, si nécessaire
     try {
-      console.log('debut save description')
+      
       
       const response = await fetch(`${config.backendUrl}/api/mission/save-prestation-description`, {
         method: 'POST',
@@ -1066,145 +1072,227 @@ const PrestationScreen = () => {
         </View>
       )}
 
-      {selectedTab === 'experiences' && (
-        <View>
-          
-          {experiences.map((experience : any) => (
-            <View style={styles.experienceCard}>
-            <View style={styles.experienceHeader}>
-              <Text style={styles.experienceTitle}>{experience?.title} <FontAwesome name="smile-o" size={20} /></Text>
-              <Text style={styles.experienceDate}>{experience.date}</Text>
-            </View>
-            <Text style={styles.experienceDescription}>{experience.description}</Text>
-            <View style={styles.experienceImages}>
-              {experience.images?.map((imageUri: string, index: number) => (
-                <Image key={index} source={{ uri: imageUri }} style={styles.experienceImage} />
-              ))}
-            </View>
-            {/* Menu des 3 points vertical */}
-            <View style={styles.experienceMenuContainer}>
-              <Menu
-                visible={menuVisibleId === experience.id}
-                onDismiss={closeMenu}
-                anchor={
-                  <IconButton
-                    icon="dots-vertical"
-                    size={24}
-                    onPress={() => openMenu(experience.id)}
-                    style={styles.menuIconButton}
-                  />
-                }
-                contentStyle={styles.menuContent} // pour coins arrondis
-              >
-                <Menu.Item
-                  onPress={() => {
-                    handleEditToggle();
-                    setSelectedItem(experience);
-                    setEditType('experience');
-                    closeMenu();
-                  }}
-                  title="Modifier"
-                />
-                <Menu.Item
-                  onPress={() => {
-                    setSelectedItem(experience);
-                    setEditType('experience');
-                    handleDelete();
-                    closeMenu();
-                  }}
-                  title="Supprimer"
-                  titleStyle={{ color: 'red' }}
-                />
-              </Menu>
-            </View>
-          </View>
+{selectedTab === 'experiences' && (
+  <View>
+    {/* Liste des expériences */}
+    {experiences.map((experience: any) => (
+      <View key={experience.id} style={styles.experienceCard}>
+        <View style={styles.experienceHeader}>
+          <Text style={styles.experienceTitle}>
+            {experience?.title} <FontAwesome name="smile-o" size={20} />
+          </Text>
+          <Text style={styles.experienceDate}>{experience.date}</Text>
+        </View>
+        <Text style={styles.experienceDescription}>{experience.description}</Text>
+        <View style={styles.experienceImages}>
+          {experience.images?.map((imageUri: string, index: number) => (
+            <Image key={index} source={{ uri: imageUri }} style={styles.experienceImage} />
+          ))}
+        </View>
+
+        {/* Menu des 3 points */}
+        <View style={styles.experienceMenuContainer}>
+          <Menu
+            visible={menuVisibleId === experience.id}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
+                size={24}
+                onPress={() => openMenu(experience.id)}
+                style={styles.menuIconButton}
+              />
+            }
+            contentStyle={styles.menuContent}
+          >
+            <Menu.Item
+              onPress={() => {
+                openOptions(experience, 'experience');
+                closeMenu();
+                openEditForm();
+              }}
+              title="Modifier"
+            />
+            <Menu.Item
+              onPress={() => {
+                setSelectedItem(experience);
+                setEditType('experience');
+                handleDelete();
+                closeMenu();
+              }}
+              title="Supprimer"
+              titleStyle={{ color: 'red' }}
+            />
+          </Menu>
+        </View>
+      </View>
+    ))}
+
+    {/* Formulaire d’édition ou de création */}
+    {selectedItem && editType === 'experience' ? (
+      <View style={styles.certificationForm}>
+        <Text style={styles.inputLabel}>Titre</Text>
+        <TextInput
+          style={styles.input}
+          value={editTitle}
+          onChangeText={setEditTitle}
+        />
+
+        <Text style={styles.inputLabel}>Date</Text>
+        <TouchableOpacity onPress={() => setShowEditCalendar(true)}>
+          <Text style={[styles.input, { color: editDate ? 'black' : '#999' }]}>
+            {editDate || 'Sélectionnez une date'}
+          </Text>
+        </TouchableOpacity>
+
+        {showEditCalendar && (
+          <Calendar
+            onDayPress={(day) => {
+              setEditDate(day.dateString);
+              setShowEditCalendar(false);
+            }}
+            markedDates={{
+              [editDate]: { selected: true, selectedColor: 'blue' },
+            }}
+            style={styles.calendar}
+          />
+        )}
+
+        <Text style={styles.inputLabel}>Description</Text>
+        <TextInput
+          style={styles.descriptionInput2}
+          value={editDescription}
+          onChangeText={setEditDescription}
+          multiline
+        />
+
+        <Text style={styles.inputLabel}>Photos (max 3)</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          {editImages.map((img, index) => (
+            <Image
+              key={index}
+              source={{ uri: img }}
+              style={{ width: 80, height: 80, borderRadius: 6 }}
+            />
+          ))}
+          {editImages.length < 3 && (
+            <TouchableOpacity
+              style={[styles.addPhotoButton, { width: 80, height: 80 }]}
+              onPress={pickEditImage}
+            >
+              <FontAwesome name="plus" size={24} color="gray" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <TouchableOpacity style={styles.submitButton} onPress={updateExperience}>
+          <Text style={styles.submitButtonText}>Modifier</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => {
+            setSelectedItem(null);
+            setEditType(null);
+            setEditTitle('');
+            setEditDescription('');
+            setEditDate('');
+            setEditImages([]);
+          }}
+        >
+          <Text style={styles.cancelButtonText}>Annuler</Text>
+        </TouchableOpacity>
+      </View>
+    ) : !showExperienceForm ? (
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setShowExperienceForm(true)}
+      >
+        <Text style={styles.addButtonText}>Ajouter une expérience</Text>
+      </TouchableOpacity>
+    ) : (
+      <View style={styles.certificationForm}>
+        <Text style={styles.inputLabel}>Titre</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Titre de l'expérience"
+          value={title}
+          onChangeText={setTitle}
+        />
+
+        <Text style={styles.inputLabel}>Date</Text>
+        <TouchableOpacity onPress={() => setShowExperienceCalendar(true)}>
+          <Text style={[styles.input, { color: experienceDate ? 'black' : '#999' }]}>
+            {experienceDate || 'Sélectionnez une date'}
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.inputLabel}>Description</Text>
+        <TextInput
+          style={[styles.descriptionInput2]}
+          placeholder="Description de l'expérience"
+          multiline
+          value={experienceDescription}
+          onChangeText={setExperienceDescription}
+        />
+
+        <Text style={styles.inputLabel}>Photos de l'expérience (max 3)</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          {experienceImages.map((img, index) => (
+            <Image
+              key={index}
+              source={{ uri: img }}
+              style={{ width: 80, height: 80, borderRadius: 6 }}
+            />
           ))}
 
-          {!showExperienceForm ? (
+          {experienceImages.length < 3 && (
             <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowExperienceForm(true)}
+              style={[styles.addPhotoButton, { width: 80, height: 80 }]}
+              onPress={pickExperienceImage}
             >
-              <Text style={styles.addButtonText}>Ajouter une expérience</Text>
+              <FontAwesome name="plus" size={24} color="gray" />
             </TouchableOpacity>
-          ) : (
-          // Le formulaire est juste en dessous
-        <View style={styles.certificationForm}>
-          <Text style={styles.inputLabel}>Titre</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Titre de l'expérience"
-            value={title}
-            onChangeText={setTitle}
-          />
-
-          <Text style={styles.inputLabel}>Date</Text>
-          <TouchableOpacity onPress={() => setShowExperienceCalendar(true)}>
-            <Text style={[styles.input, { color: experienceDate ? 'black' : '#999' }]}>
-              {experienceDate || 'Sélectionnez une date'}
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={styles.inputLabel}>Description</Text>
-          <TextInput
-            style={[styles.descriptionInput2]}
-            placeholder="Description de l'expérience"
-            multiline
-            value={experienceDescription}
-            onChangeText={setExperienceDescription}
-          />
-          <Text style={styles.inputLabel}>Photos de l'expérience (max 3)</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {experienceImages.map((img, index) => (
-              <Image key={index} source={{ uri: img }} style={{ width: 80, height: 80, borderRadius: 6 }} />
-            ))}
-
-            {experienceImages.length < 3 && (
-              <TouchableOpacity
-                style={[styles.addPhotoButton, { width: 80, height: 80 }]}
-                onPress={pickExperienceImage}
-              >
-                <FontAwesome name="plus" size={24} color="gray" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <TouchableOpacity style={styles.submitButton} onPress={createExperience}>
-            <Text style={styles.submitButtonText}>Valider</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => setShowExperienceForm(false)}
-          >
-            <Text style={styles.cancelButtonText}>Annuler</Text>
-          </TouchableOpacity>
+          )}
         </View>
-        )}
-        </View>
-      )}
 
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={showExperienceCalendar}
-  onRequestClose={() => setShowExperienceCalendar(false)}
->
-  <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <TouchableOpacity onPress={() => setShowExperienceCalendar(false)} style={styles.closeIcon}>
-        <Icon name="close" size={24} color="#000" />
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.submitButton} onPress={createExperience}>
+          <Text style={styles.submitButtonText}>Valider</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.modalTitle}>Choisissez une date</Text>
-      <Calendar
-        onDayPress={handleExperienceDateSelect}
-        markedDates={getExperienceMarkedDates()}
-        style={styles.calendar}
-      />
-    </View>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => setShowExperienceForm(false)}
+        >
+          <Text style={styles.cancelButtonText}>Annuler</Text>
+        </TouchableOpacity>
+      </View>
+    )}
   </View>
-</Modal>
+)}
+
+
+  <Modal
+    animationType="slide"
+    transparent={true}
+    visible={showExperienceCalendar}
+    onRequestClose={() => setShowExperienceCalendar(false)}
+  >
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <TouchableOpacity onPress={() => setShowExperienceCalendar(false)} style={styles.closeIcon}>
+          <Icon name="close" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <Text style={styles.modalTitle}>Choisissez une date</Text>
+        <Calendar
+          onDayPress={handleExperienceDateSelect}
+          markedDates={getExperienceMarkedDates()}
+          style={styles.calendar}
+        />
+      </View>
+    </View>
+  </Modal>
 
       {/* Placeholder for the "Certifications" tab */}
       {selectedTab === 'certifications' && (

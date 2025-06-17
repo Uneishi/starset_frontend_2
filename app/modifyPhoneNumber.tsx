@@ -1,65 +1,71 @@
-
 import { useUser } from '@/context/userContext';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 
-const ModifyDescriptionScreen = () => {
+const ModifyPhoneScreen = () => {
   const navigation = useNavigation();
-  const { user, setUser } = useUser(); // Utilisation du contexte pour récupérer et mettre à jour les infos utilisateur
+  const { user, setUser } = useUser();
 
-  const [description, setDescription] = useState(user?.description || '');
-  const [charCount, setCharCount] = useState(description.length);
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [isValid, setIsValid] = useState(true);
 
-  const handleDescriptionChange = (text : any) => {
-    if (text.length <= 100) {
-      setDescription(text);
-      setCharCount(text.length);
-    }
+  // Validation simple : que des chiffres, longueur entre 8 et 15 (à adapter selon besoin)
+  const validatePhone = (text: string) => {
+    const cleaned = text.replace(/[^0-9]/g, ''); // enlever tout sauf chiffres
+    setPhone(cleaned);
+    setIsValid(cleaned.length >= 8 && cleaned.length <= 15);
   };
 
-  const updateDescription = async () => {
+  const updatePhone = async () => {
+    if (!isValid) return;
     try {
-      // Mettre à jour l'utilisateur localement
-      const updatedUser = { ...user, description };
+      const updatedUser = { ...user, phone };
       setUser(updatedUser);
-      
-      // Envoyer la mise à jour au serveur
+
       const response = await fetch(`${config.backendUrl}/api/auth/update-account`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account: updatedUser }),
       });
-      if (!response.ok) throw new Error('Erreur de réseau');
-      
+
+      if (!response.ok) throw new Error('Erreur réseau');
+
       const data = await response.json();
       console.log('Mise à jour réussie:', data);
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de la description:', error);
+      console.error("Erreur lors de la mise à jour du numéro de téléphone:", error);
     }
   };
 
   const confirmUpdate = async () => {
-    await updateDescription();
-    navigation.goBack();
+    if (isValid) {
+      await updatePhone();
+      navigation.goBack();
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Modifier votre description</Text>
-      <Text style={styles.infoText}>Soyez concis, cette description s'affichera sur votre profil.</Text>
-      
-      <Text style={styles.label}>Description ({charCount}/100)</Text>
+      <Text style={styles.title}>Modifier votre numéro de téléphone</Text>
+
+      <Text style={styles.label}>Numéro de téléphone</Text>
       <TextInput
-        style={styles.input}
-        value={description}
-        onChangeText={handleDescriptionChange}
-        multiline
-        maxLength={100}
+        style={[styles.input, !isValid && styles.inputError]}
+        value={phone}
+        onChangeText={validatePhone}
+        keyboardType="phone-pad"
+        maxLength={15}
+        placeholder="Ex: 0612345678"
       />
-      
-      <TouchableOpacity style={styles.confirmButton} onPress={confirmUpdate}>
+      {!isValid && <Text style={styles.errorText}>Veuillez entrer un numéro valide (8 à 15 chiffres)</Text>}
+
+      <TouchableOpacity
+        style={[styles.confirmButton, !isValid && styles.disabledButton]}
+        onPress={confirmUpdate}
+        disabled={!isValid}
+      >
         <Text style={styles.buttonText}>Confirmer</Text>
       </TouchableOpacity>
     </View>
@@ -76,15 +82,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
     textAlign: 'center',
     color: 'black',
-  },
-  infoText: {
-    fontSize: 14,
-    color: 'gray',
-    textAlign: 'center',
-    marginBottom: 10,
   },
   label: {
     fontSize: 16,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   input: {
-    height: 100,
+    height: 50,
     borderColor: 'gray',
     borderWidth: 1,
     borderRadius: 5,
@@ -101,7 +101,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: 'white',
     marginBottom: 10,
-    textAlignVertical: 'top',
+  },
+  inputError: {
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 10,
   },
   confirmButton: {
     marginTop: 20,
@@ -109,6 +116,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
+  },
+  disabledButton: {
+    backgroundColor: 'gray',
   },
   buttonText: {
     fontSize: 16,
@@ -118,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ModifyDescriptionScreen;
+export default ModifyPhoneScreen;

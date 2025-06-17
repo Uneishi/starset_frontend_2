@@ -1,13 +1,11 @@
-import { StyleSheet } from 'react-native';
-import { View, Text, TextInput, TouchableOpacity, GestureResponderEvent, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { saveMode } from '../chooseAccount';
-import config from '../../config.json';
-import { useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '@/context/userContext';
 import { MaterialIcons } from '@expo/vector-icons';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import config from '../../config.json';
+import { saveMode } from '../chooseAccount';
 
 const AccountWorkerScreen = () => {
 
@@ -82,7 +80,7 @@ const AccountWorkerScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.profileHeader} onPress={goToProfilePicture}>
-                  <View >
+                  <View>
                   <Image
                     source={{ 
                       uri: account?.profile_picture_url 
