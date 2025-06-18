@@ -19,6 +19,8 @@ const JobsScreen = () => {
   const { allWorkerPrestation, setAllWorkerPrestation } = useAllWorkerPrestation();
   const [selectedPrestationToDelete, setSelectedPrestationToDelete] = useState<any>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
 
   const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
     'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -218,6 +220,11 @@ const JobsScreen = () => {
 
   const isSelected = (jobTitle : any) => selectedJob === jobTitle;
 
+
+  const filteredPrestations = allWorkerPrestation?.filter((prestation: any) =>
+    prestation.metier.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.iconContainer}>
@@ -233,32 +240,35 @@ const JobsScreen = () => {
         style={styles.searchInput}
         placeholder="Rechercher"
         placeholderTextColor="#808080"
+        value={searchTerm}
+        onChangeText={setSearchTerm}
       />
       
       <TouchableOpacity style={styles.missionBanner} onPress={openWorkerRequestModal}>
         <Text style={styles.missionText}>Demande de missions : 1</Text>
       </TouchableOpacity>
 
-      {Array.isArray(allWorkerPrestation) && allWorkerPrestation.map((prestation: any, index: number) => (
+      {filteredPrestations.map((prestation: any, index: number) => (
         <TouchableOpacity 
           key={index} 
           style={styles.jobCard}
           onPress={() => goToPrestation(prestation)}
         >
-          <View style={styles.jobHeader}>
+        <View style={styles.jobHeader}>
+          <View style={styles.jobTitleContainer}>
             <Text style={styles.jobTitle}>{prestation.metier}</Text>
-            
-            {/* Trois points verticaux pour options */}
-            <TouchableOpacity
-              style={styles.deleteButtonTouchable}
-              onPress={() => {
-                setSelectedPrestationToDelete(prestation);
-                setShowDeleteConfirmation(true);
-              }}
-            >
-              <FontAwesome name="ellipsis-v" size={20} color="#666" />
-            </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={styles.deleteButtonTouchable}
+            onPress={() => {
+              setSelectedPrestationToDelete(prestation);
+              setShowDeleteConfirmation(true);
+            }}
+          >
+            <FontAwesome name="ellipsis-v" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
 
           <Text style={styles.jobStats}>({prestation.completedprestation}) Missions effectuées</Text>
           <Text style={styles.jobStats}>(0) Multimédia</Text>
@@ -519,7 +529,7 @@ const styles = StyleSheet.create({
   jobHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 10,
   },
   jobTitle: {
@@ -802,6 +812,15 @@ const styles = StyleSheet.create({
     width : "100%",
     
   },
+
+  
+  
+  jobTitleContainer: {
+    flex: 1,
+    paddingRight: 10, // pour ne pas chevaucher l'icône
+  },
+  
+  
   
 });
 

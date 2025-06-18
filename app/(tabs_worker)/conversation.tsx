@@ -62,6 +62,7 @@ const ConversationScreen = () => {
   const [conversations, setConversations] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
   const pendingConversationsCount = conversations.filter((conv: any) => conv.accepted === false).length;
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getWorkerId = async () => {
     try {
@@ -172,6 +173,12 @@ const acceptConversation = async (conversation_id: string) => {
     getAllConversation();
   }, []);
 
+  const filteredConversations = conversations.filter(
+    (conv: any) =>
+      conv.accepted === true &&
+      conv.firstname.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.messagerieContainer}>
@@ -181,11 +188,13 @@ const acceptConversation = async (conversation_id: string) => {
         />
       </View>
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Rechercher"
-          placeholderTextColor="#666"
-        />
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Rechercher"
+        placeholderTextColor="#666"
+        value={searchTerm}
+        onChangeText={setSearchTerm}
+      />
         <TouchableOpacity style={styles.searchButton} onPress={() => setModalVisible(true)}>
   <View style={styles.searchButton}>
     <FontAwesome name="user" size={25} color="#000" style={styles.searchIcon} />
@@ -206,7 +215,7 @@ const acceptConversation = async (conversation_id: string) => {
         </>
       ) : (
         <FlatList
-          data={conversations.filter((conv: any) => conv.accepted === true)}
+          data={filteredConversations}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
         />

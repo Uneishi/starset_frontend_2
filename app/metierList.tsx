@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -20,6 +21,7 @@ const MetierListScreen = () => {
 
   const [metiers, setMetiers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   let [fontsLoaded] = useFonts({
         BebasNeue: BebasNeue_400Regular,
     });
@@ -52,6 +54,10 @@ const MetierListScreen = () => {
     } as never);
   };
 
+  const filteredMetiers = metiers.filter((metier: any) =>
+    metier.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       {/* Custom Header */}
@@ -64,12 +70,20 @@ const MetierListScreen = () => {
 
       {/* Content */}
       <ScrollView contentContainerStyle={styles.content}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Rechercher un métier..."
+        placeholderTextColor="#999"
+        value={searchTerm}
+        onChangeText={setSearchTerm}
+      />
         {loading ? (
           <ActivityIndicator size="large" color="#333" />
         ) : metiers.length === 0 ? (
           <Text style={styles.emptyText}>Aucun métier trouvé pour cette catégorie.</Text>
         ) : (
-          metiers.map((metier: any, index: number) => (
+          
+          filteredMetiers.map((metier: any, index: number) => (
             <TouchableOpacity key={index} style={styles.jobCard} onPress={() => gotoJobView(metier)}>
               <Image
                 source={{
@@ -145,5 +159,15 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontSize: 16,
     color: '#666',
+  },
+
+  searchInput: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 20,
   },
 });

@@ -57,6 +57,7 @@ const ConversationScreen = () => {
   const navigation = useNavigation();
   const [conversations, setConversations] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getAccountId = async () => {
     try {
@@ -133,6 +134,12 @@ const ConversationScreen = () => {
     }
   };
 
+  const filteredConversations = conversations.filter(
+    (conv: any) =>
+      conv.accepted === true &&
+      conv.firstname.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   useEffect(() => {
     getAllConversation();
 
@@ -175,7 +182,7 @@ const ConversationScreen = () => {
         Array.from({ length: 6 }).map((_, index) => <SkeletonMessage key={index} />)
       ) : (
         <FlatList
-          data={conversations}
+          data={filteredConversations}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
         />

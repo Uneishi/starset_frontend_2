@@ -14,6 +14,7 @@ import { IconButton, Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../config.json';
 
+
 const PrestationViewScreen = () => {
   const [selectedTab, setSelectedTab] = useState('photos'); // Onglet par défaut: 'photos'
   const navigation = useNavigation()
@@ -71,15 +72,7 @@ const PrestationViewScreen = () => {
       JosefinSans_100Thin,
     });
 
-    const experienceData = {
-    title: 'Baby Sitting de Emma et Louis',
-    date: 'Le 21/09/2022',
-    description: 'C’est joie que j’ai pu garder les Emma et Louis ! Louis ayant des carences en gluten, j’ai eu l’obligation de cuisiner des repas dans "Gluten Free". Ce fut une expérience enrichissante car désormais, je sais m’adapter aux besoins de différents enfants, et à n’importe quelle situation.',
-    images: [
-      { uri: 'https://images.pexels.com/photos/1104012/pexels-photo-1104012.jpeg' },
-      { uri: 'https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg' }
-    ],
-  };
+    
 
     const reviews = [
       {
@@ -99,19 +92,6 @@ const PrestationViewScreen = () => {
       },
     ];
 
-  const photos = [
-    { uri: 'https://www.asiakingtravel.fr/cuploads/files/voyage-malaisie-itineraire-budget-circuit-7-jours-1.jpg' },
-    { uri: 'https://images.partir.com/AkZB3l-cw9XLIP7t9SBGA20aW2Q=/750x/filters:sharpen(0.3,0.3,true)/lieux-interet/malaisie/malaisie-perhentian.jpg' },
-    { uri: 'https://www.monde-authentique.com/wp-content/gallery/Malaisie/Paysage-de-Tasik-Dayang-Bunting-sur-l-ile-de-Langkawi.jpg' },
-    { uri: 'https://www.parcours-voyages.fr/photoblogfancy/1000/600/65b22dca427c2-temple-4580960-1280.jpg' },
-    { uri: 'https://media.oovatu.com/43-540/malaisie_82366.jpg' },
-    { uri: 'https://abouttravel.ch/wp-content/uploads/2022/03/F22-110-06_Malaysia.jpg' },
-    { uri: 'https://abouttravel.ch/wp-content/uploads/2022/03/F22-110-06_Malaysia.jpg' },
-    { uri: 'https://abouttravel.ch/wp-content/uploads/2022/03/F22-110-06_Malaysia.jpg' },
-    { uri: 'https://abouttravel.ch/wp-content/uploads/2022/03/F22-110-06_Malaysia.jpg' },
-    { uri: 'https://abouttravel.ch/wp-content/uploads/2022/03/F22-110-06_Malaysia.jpg' },
-    { uri: 'https://abouttravel.ch/wp-content/uploads/2022/03/F22-110-06_Malaysia.jpg' },
-  ];
 
   const handleHourChange = (text : any, setHour : any) => {
     const value = text.replace(/[^0-9]/g, ''); // Remove non-numeric characters
@@ -149,13 +129,49 @@ const PrestationViewScreen = () => {
       "Êtes-vous sûr de vouloir signaler cette personne ?",
       [
         { text: "Annuler", style: "cancel" },
-        { text: "Oui", onPress: () => console.log("Personne signalée") }
+        { text: "Oui", onPress: () => sendReport() }
       ],
       { cancelable: false }
     );
     setMenuVisible(false);
+    sendReport()
   };
+
+  const sendReport = async () => {
+    try {
+      const reporter_id = await getAccountId(); // L'utilisateur qui signale
+      const reported_id = prestation.worker_id;
+      const reported_name = account?.firstname + ' ' + account?.lastname;
+      const prestation_title = prestation?.title || prestation?.metier;
+      const prestation_description = prestation?.description || '';
   
+      const response = await fetch(`${config.backendUrl}/api/auth/submit-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reporter_id,
+          reported_id,
+          reported_name,
+          prestation_id,
+          prestation_title,
+          prestation_description,
+          type: 'worker',
+          reason: 'Comportement inapproprié', // Tu peux remplacer ou laisser l'utilisateur choisir
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (data.success) {
+        Alert.alert('Merci', 'Le signalement a bien été envoyé.');
+      } else {
+        Alert.alert('Erreur', 'Le signalement n’a pas pu être envoyé.');
+      }
+    } catch (error) {
+      console.error('Erreur lors de l’envoi du signalement:', error);
+      Alert.alert('Erreur', 'Une erreur est survenue.');
+    }
+  };
 
   const toggleDatePicker = () => {
     setDatePickerVisible(!isDatePickerVisible); // Toggle the visibility of the date picker
@@ -637,6 +653,18 @@ const unlikeImage = async (imageId: string) => {
   return (
     <View>
       <Animated.View style={[styles.profileContainer]}>
+        {account && (
+            <View style={styles.peopleIconContainer}>
+              <Image
+                source={
+                  account.is_company
+                    ? require('../assets/images/company.png')
+                    : require('../assets/images/people.png')
+                }
+                style={styles.peopleIcon}
+              />
+            </View>
+          )}      
         <Animated.Image
           source={{ uri: profilePictureUrl }}
           style={[styles.profilePicture, { width: profileImageSize, height: profileImageSize }]}
@@ -652,18 +680,6 @@ const unlikeImage = async (imageId: string) => {
             scrollEventThrottle={16}
           >
 
-        {account && (
-            <View style={styles.peopleIconContainer}>
-              <Image
-                source={
-                  account.is_company
-                    ? require('../assets/images/company.png')
-                    : require('../assets/images/people.png')
-                }
-                style={styles.peopleIcon}
-              />
-            </View>
-          )}      
       <View style={styles.header}>
         <Text style={styles.profileName}>{account?.firstname}</Text>
       </View>
@@ -1894,8 +1910,6 @@ certificationDateRight: {
   color: '#555',
 },
 
-
-
 certificationImagesRow: {
   flexDirection: 'row',
   justifyContent: 'flex-start',
@@ -1972,8 +1986,6 @@ certificationInstitution: {
     height: 40,
     resizeMode: 'contain',
   },
-  
-
   
 });
 

@@ -1,31 +1,61 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUser } from '@/context/userContext';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-export const saveMode = async (mode: string) => {
-  try {
-    await AsyncStorage.setItem('mode', mode);
-  } catch (e) {
-    console.error('Erreur lors de la sauvegarde du mode', e);
-  }
-};
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import config from '../config.json';
 
 const ModifyWorkerProfileScreen = () => {
   const navigation = useNavigation();
-  const [selectedMode, setSelectedMode] = useState<'particulier' | 'company'>('particulier');
+  const { user, setUser } = useUser();
+  const [selectedMode, setSelectedMode] = useState<'particulier' | 'company'>(
+    user?.is_company ? 'company' : 'particulier'
+  );
 
   useEffect(() => {
-    // Sauvegarder la sélection au changement
-    saveMode(selectedMode);
-  }, [selectedMode]);
+    if (user) {
+      setSelectedMode(user.is_company ? 'company' : 'particulier');
+    }
+  }, [user]);
 
   const handleConfirm = () => {
-    if (selectedMode === 'particulier') {
-      navigation.navigate('ParticulierTabs' as never);
-    } else {
-      navigation.navigate('CompanyTabs' as never);
+    const isCompany = selectedMode === 'company';
+
+    // Si aucun changement, pas besoin d'alerte ni d'appel API
+    if (user?.is_company === isCompany) {
+      navigation.goBack();
+      return;
     }
+
+    Alert.alert(
+      'Confirmer le changement',
+      `Vous êtes sur le point de modifier votre statut vers "${isCompany ? 'Entreprise' : 'Particulier'}". Voulez-vous continuer ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Confirmer',
+          onPress: async () => {
+            try {
+              const updatedUser = { ...user, is_company: isCompany };
+              setUser(updatedUser);
+
+              const response = await fetch(`${config.backendUrl}/api/auth/update-account`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ account: updatedUser }),
+              });
+
+              if (!response.ok) throw new Error('Erreur serveur');
+
+              Alert.alert('Succès', 'Votre type de profil a été mis à jour.');
+              navigation.navigate(isCompany ? 'CompanyTabs' as never : 'ParticulierTabs' as never);
+            } catch (error) {
+              console.error('Erreur de mise à jour:', error);
+              Alert.alert('Erreur', 'Impossible de mettre à jour le profil.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -42,30 +72,48 @@ const ModifyWorkerProfileScreen = () => {
       </Text>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            selectedMode === 'particulier' ? styles.buttonSelected : styles.buttonUnselected,
-          ]}
-          onPress={() => setSelectedMode('particulier')}
-        >
-          <Text style={selectedMode === 'particulier' ? styles.buttonTextSelected : styles.buttonTextUnselected}>
-            Particulier
-          </Text>
-        </TouchableOpacity>
+  <View style={styles.buttonWrapper}>
+    <TouchableOpacity
+      style={[
+        styles.buttonIconOnly,
+        selectedMode === 'particulier' ? styles.buttonSelected : styles.buttonUnselected,
+      ]}
+      onPress={() => setSelectedMode('particulier')}
+    >
+      <Image source={require('../assets/images/people.png')} style={styles.iconFull} />
+    </TouchableOpacity>
+    <Text
+      style={
+        selectedMode === 'particulier'
+          ? styles.buttonTextSelected
+          : styles.buttonTextUnselected
+      }
+    >
+      Particulier
+    </Text>
+  </View>
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            selectedMode === 'company' ? styles.buttonSelected : styles.buttonUnselected,
-          ]}
-          onPress={() => setSelectedMode('company')}
-        >
-          <Text style={selectedMode === 'company' ? styles.buttonTextSelected : styles.buttonTextUnselected}>
-            Company
-          </Text>
-        </TouchableOpacity>
-      </View>
+  <View style={styles.buttonWrapper}>
+    <TouchableOpacity
+      style={[
+        styles.buttonIconOnly,
+        selectedMode === 'company' ? styles.buttonSelected : styles.buttonUnselected,
+      ]}
+      onPress={() => setSelectedMode('company')}
+    >
+      <Image source={require('../assets/images/company.png')} style={styles.iconFull} />
+    </TouchableOpacity>
+    <Text
+      style={
+        selectedMode === 'company'
+          ? styles.buttonTextSelected
+          : styles.buttonTextUnselected
+      }
+    >
+      Company
+    </Text>
+  </View>
+</View>
 
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm} activeOpacity={0.8}>
         <Text style={styles.confirmButtonText}>Confirmer</Text>
@@ -110,7 +158,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    height: 80,
+    height: 100,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -118,12 +166,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   buttonSelected: {
-    backgroundColor: '#2e8b57',
-    borderColor: '#2e8b57',
+    borderColor: '#3B82F6', // BLEU DE SÉLECTION
+    borderWidth: 3,
   },
+  
   buttonUnselected: {
-    backgroundColor: '#fff',
-    borderColor: '#2e8b57',
+    
   },
   buttonTextSelected: {
     color: '#fff',
@@ -146,6 +194,31 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  icon: {
+    width: 50,
+    height: 50,
+    marginBottom: 10,
+    resizeMode: 'contain',
+  },
+
+  buttonWrapper: {
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  
+  buttonIconOnly: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    borderWidth: 2,
+    overflow: 'hidden',
+  },
+  
+  iconFull: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
 });
 

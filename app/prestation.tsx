@@ -1,3 +1,5 @@
+import CertificationFormModal from '@/components/CertificationModal';
+import ExperienceModal from '@/components/ExperienceModal';
 import { useAllWorkerPrestation, useCurrentWorkerPrestation } from '@/context/userContext';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +18,22 @@ import {
   getAllExperience,
   getPrestation
 } from '../api/prestationApi';
+
+const emptyCertification = {
+  title: '',
+  institution: '',
+  date: '',
+  description: '',
+  images: [],
+};
+
+const emptyExperience = {
+  title: '',
+  date: '',
+  description: '',
+  images: [],
+};
+
 
 const PrestationScreen = () => {
   const [description, setDescription] = useState('');
@@ -64,6 +82,8 @@ const PrestationScreen = () => {
   const [editInstitution, setEditInstitution] = useState(''); // uniquement pour certification
   const [editImages, setEditImages] = useState<string[]>([]);
   const [showEditCalendar, setShowEditCalendar] = useState(false);
+  const [isExperienceModalVisible, setExperienceModalVisible] = useState(false);
+
 
   // Ouvre le menu pour une certification spécifique
   const openMenu = (id: string) => setMenuVisibleId(id);
@@ -144,6 +164,20 @@ const PrestationScreen = () => {
     setExperienceDate(formatted);
     setShowExperienceCalendar(false);
   };
+
+  // Pour ajouter une certification
+  const handleAddCertificationClick = () => {
+    setEditType('certification');
+    setSelectedItem({ ...emptyCertification });
+    setCertificationFormVisible(true);
+  };
+
+  // Pour ajouter une expérience
+  const handleAddExperienceClick = () => {
+    setEditType('experience');
+    setSelectedItem({ ...emptyExperience });
+    setExperienceModalVisible(true);
+  };
   
   const getExperienceMarkedDates = () => {
     if (!experienceDate) return {};
@@ -211,56 +245,64 @@ const PrestationScreen = () => {
   };
 
   const updateCertification = async () => {
-  try {
-    const base64Images = [];
-    for (const uri of editImages) {
-      if (uri.startsWith('data:image')) {
-        base64Images.push(uri);
-      } else {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        const base64 = await new Promise((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-        base64Images.push(base64);
+    try {
+      const base64Images = [];
+  
+      for (const uri of selectedItem.images || []) {
+        if (uri.startsWith('data:image')) {
+          base64Images.push(uri); // déjà base64
+        } else {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          const reader = new FileReader();
+          const base64 = await new Promise((resolve, reject) => {
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          base64Images.push(base64);
+        }
       }
+  
+      const response = await fetch(`${config.backendUrl}/api/mission/update-certification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedItem.id,
+          title: selectedItem.title,
+          institution: selectedItem.institution,
+          date: selectedItem.date,
+          description: selectedItem.description,
+          images: base64Images,
+          prestation_id,
+        }),
+      });
+  
+      if (!response.ok) throw new Error('Erreur réseau');
+  
+      const data = await response.json();
+  
+      setCertifications((prev: any[]) =>
+        prev.map(cert => cert.id === selectedItem.id ? data.certification : cert)
+      );
+      
+      // Réinitialiser
+      setCertificationFormVisible(false);
+      setSelectedItem(null);
+      Alert.alert('Succès', 'Certification mise à jour');
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour la certification');
+      console.error(error);
     }
-
-    const response = await fetch(`${config.backendUrl}/api/mission/update-certification`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: selectedItem.id,
-        title: editTitle,
-        institution: editInstitution,
-        date: editDate,
-        description: editDescription,
-        images: base64Images,
-        prestation_id,
-      }),
-    });
-
-    if (!response.ok) throw new Error('Erreur réseau');
-
-    const data = await response.json();
-    setCertifications((prev: any[]) => prev.map(c => c.id === selectedItem.id ? data.certification : c));
-    setCertificationFormVisible(false);
-    setSelectedItem(null);
-    Alert.alert('Succès', 'Certification mise à jour');
-  } catch (error) {
-    Alert.alert('Erreur', 'Impossible de mettre à jour la certification');
-  }
-};
+  };
+  
 
 
   const updateExperience = async () => {
   try {
     // Convertir les images si besoin comme pour création
     const base64Images = [];
-    for (const uri of editImages) {
+    for (const uri of selectedItem.images || []) {
       if (uri.startsWith('data:image')) {
         base64Images.push(uri); // déjà base64
       } else {
@@ -281,9 +323,9 @@ const PrestationScreen = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: selectedItem.id,
-        title: editTitle,
-        date: editDate,
-        experienceDescription: editDescription,
+        title: selectedItem.title,
+        date: selectedItem.date,
+        experienceDescription: selectedItem.description,
         images: base64Images,
         prestation_id,
       }),
@@ -362,7 +404,12 @@ const PrestationScreen = () => {
   
     if (!result.canceled && result.assets.length > 0) {
       const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-      setEditImages((prevImages) => [...prevImages, base64Image]);
+  
+      // Mise à jour de selectedItem (images)
+      setSelectedItem((prevItem: { images: any; }) => ({
+        ...prevItem,
+        images: [...(prevItem.images || []), base64Image],
+      }));
     }
   };
 
@@ -606,29 +653,35 @@ const PrestationScreen = () => {
 
   const createExperience = async () => {
     try {
+      if (!selectedItem) return;
+  
       const base64Images = [];
   
-      for (const uri of experienceImages) {
-        const response = await fetch(uri);
-        const blob = await response.blob();
+      for (const uri of selectedItem.images || []) {
+        if (uri.startsWith('data:image')) {
+          base64Images.push(uri); // déjà en base64
+        } else {
+          const response = await fetch(uri);
+          const blob = await response.blob();
   
-        const reader = new FileReader();
-        const base64 = await new Promise((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+          const reader = new FileReader();
+          const base64 = await new Promise((resolve, reject) => {
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
   
-        base64Images.push(base64);
+          base64Images.push(base64);
+        }
       }
   
       const response = await fetch(`${config.backendUrl}/api/mission/create-experience`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
-          date: experienceDate,
-          description : experienceDescription,
+          title: selectedItem.title,
+          date: selectedItem.date,
+          description: selectedItem.description,
           images: base64Images,
           prestation_id,
         }),
@@ -637,15 +690,11 @@ const PrestationScreen = () => {
       if (!response.ok) throw new Error('Erreur réseau');
   
       const data = await response.json();
-      console.log("ICI ...")
-      console.log(data)
-      console.log(data.experience)
       setExperiences(prev => [...prev, data.experience]);
+  
+      // Reset
       setShowExperienceForm(false);
-      setTitle('');
-      setExperienceDate('');
-      setExperienceDescription('');
-      setExperienceImages([]); // reset images
+      setSelectedItem(null);
   
       Alert.alert('Succès', 'Expérience ajoutée avec succès');
     } catch (error) {
@@ -669,61 +718,60 @@ const PrestationScreen = () => {
   }
 
   const handleAddCertification = async () => {
-  try {
-    if (certificationImages.length === 0) {
-      Alert.alert('Erreur', 'Veuillez ajouter au moins une image de certification.');
-      return;
-    }
-
-    const base64Images = [];
-
-    for (const uri of certificationImages) {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      const reader = new FileReader();
-      const base64 = await new Promise((resolve, reject) => {
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
+    try {
+      if (!selectedItem || (selectedItem.images || []).length === 0) {
+        Alert.alert('Erreur', 'Veuillez ajouter au moins une image de certification.');
+        return;
+      }
+  
+      const base64Images = [];
+  
+      for (const uri of selectedItem.images || []) {
+        if (uri.startsWith('data:image')) {
+          base64Images.push(uri);
+        } else {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+  
+          const reader = new FileReader();
+          const base64 = await new Promise((resolve, reject) => {
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+  
+          base64Images.push(base64);
+        }
+      }
+  
+      const response = await fetch(`${config.backendUrl}/api/mission/create-certification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedItem.title,
+          institution: selectedItem.institution,
+          date: selectedItem.date,
+          description: selectedItem.description,
+          images: base64Images,
+          prestation_id,
+        }),
       });
-
-      base64Images.push(base64); // Inclut le préfixe "data:image/jpeg;base64,..."
+  
+      if (!response.ok) throw new Error("Erreur lors de l'ajout de la certification");
+  
+      const data = await response.json();
+      setCertifications((prev: any[]) => [...prev, data.certification]);
+  
+      // Reset
+      setCertificationFormVisible(false);
+      setSelectedItem(null);
+  
+      Alert.alert('Succès', 'Certification ajoutée avec succès');
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la certification:', error);
+      Alert.alert('Erreur', 'Impossible d\'ajouter la certification');
     }
-
-    const newCertification = {
-      title: certificationTitle,
-      institution: certificationInstitution,
-      date: certificationDate,
-      description: certificationDescription,
-      images: base64Images, // tableau d’images base64
-    };
-
-    const response = await fetch(`${config.backendUrl}/api/mission/create-certification`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...newCertification, prestation_id }),
-    });
-
-    if (!response.ok) throw new Error("Erreur lors de l'ajout de la certification");
-
-    const data = await response.json();
-    setCertifications((prev : any) => [...prev, data.certification]);
-
-    // Reset
-    setCertificationFormVisible(false);
-    setCertificationTitle('');
-    setCertificationInstitution('');
-    setCertificationDate('');
-    setCertificationDescription('');
-    setCertificationImages([]);
-
-    Alert.alert('Succès', 'Certification ajoutée avec succès');
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout de la certification:', error);
-    Alert.alert('Erreur', 'Impossible d\'ajouter la certification');
-  }
-};
+  };
 
 
   const confirmTogglePrestationPublished = () => {
@@ -957,66 +1005,6 @@ const PrestationScreen = () => {
         </View>
       </Modal>
 
-      {/* Popup Modal */}
-      <Modal visible={isPopupVisible} animationType="slide" transparent={true}>
-      <View style={styles.tarifPopupOverlay}>
-        <View style={styles.tarifPopupContainer}>
-          {/* Section 1: Prestation 1 */}
-          <View style={styles.tarifPopupSectionContainer}>
-            <Text style={styles.tarifPopupSectionTitle}>PRESTATION 1</Text>
-            <TextInput style={styles.tarifPopupInput} placeholder="Titre" editable={false} />
-            <TextInput
-              style={[styles.input, styles.descriptionInput]}
-              placeholder="Description"
-              editable={false}
-            />
-            <View style={styles.tarifPopupContainer}>
-              <TextInput
-                style={[styles.input, styles.tarifPopupInput]}
-                placeholder="Ajouter le tarif"
-                editable={false}
-              />
-              <TouchableOpacity style={styles.tarifPopupButton}>
-                <Icon name="euro" size={20} color="black" />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.tarifPopupSaveButton}>
-              <Text style={styles.tarifPopupSaveButtonText}>ENREGISTRER</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Section 2: Complément */}
-          <View style={styles.tarifPopupSectionContainer}>
-            <Text style={styles.tarifPopupSectionTitle}>COMPLÉMENT</Text>
-            <TextInput style={styles.tarifPopupInput} placeholder="Titre" editable={false} />
-            <View style={styles.tarifPopupContainer}>
-              <TextInput
-                style={[styles.input, styles.tarifPopupInput]}
-                placeholder="Ajouter le tarif"
-                editable={false}
-              />
-              <TouchableOpacity style={styles.tarifPopupButton}>
-                <Icon name="euro" size={20} color="black" />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.tarifPopupSaveButton}>
-              <Text style={styles.tarifPopupSaveButtonText}>ENREGISTRER</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Ajouter une prestation */}
-          <TouchableOpacity style={styles.tarifPopupAddButton}>
-            <Text style={styles.tarifPopupAddButtonText}>Ajouter une prestation</Text>
-          </TouchableOpacity>
-
-          {/* Close Button */}
-          <TouchableOpacity style={styles.tarifPopupCloseButton} onPress={() =>setIsPopupVisible(false)}>
-            <Text style={styles.tarifPopupCloseButtonText}>Fermer</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-
       {/* Section pour les horaires */}
       
       <View style={styles.availabilitySection}>
@@ -1107,15 +1095,15 @@ const PrestationScreen = () => {
           >
             <Menu.Item
               onPress={() => {
-                openOptions(experience, 'experience');
+                openOptions(experience, 'experience'); // remplit les states
                 closeMenu();
-                openEditForm();
+                setExperienceModalVisible(true); // ensuite on ouvre le modal
               }}
               title="Modifier"
             />
             <Menu.Item
               onPress={() => {
-                setSelectedItem(experience);
+                setExperienceModalVisible(true);
                 setEditType('experience');
                 handleDelete();
                 closeMenu();
@@ -1129,147 +1117,43 @@ const PrestationScreen = () => {
     ))}
 
     {/* Formulaire d’édition ou de création */}
-    {selectedItem && editType === 'experience' ? (
-      <View style={styles.certificationForm}>
-        <Text style={styles.inputLabel}>Titre</Text>
-        <TextInput
-          style={styles.input}
-          value={editTitle}
-          onChangeText={setEditTitle}
-        />
+    <TouchableOpacity
+      style={styles.addButton}
+      onPress={() => setExperienceModalVisible(true)}
+    >
+      <Text style={styles.addButtonText}>
+        Ajouter une experience
+      </Text>
+    </TouchableOpacity>
 
-        <Text style={styles.inputLabel}>Date</Text>
-        <TouchableOpacity onPress={() => setShowEditCalendar(true)}>
-          <Text style={[styles.input, { color: editDate ? 'black' : '#999' }]}>
-            {editDate || 'Sélectionnez une date'}
-          </Text>
-        </TouchableOpacity>
-
-        {showEditCalendar && (
-          <Calendar
-            onDayPress={(day) => {
-              setEditDate(day.dateString);
-              setShowEditCalendar(false);
-            }}
-            markedDates={{
-              [editDate]: { selected: true, selectedColor: 'blue' },
-            }}
-            style={styles.calendar}
-          />
-        )}
-
-        <Text style={styles.inputLabel}>Description</Text>
-        <TextInput
-          style={styles.descriptionInput2}
-          value={editDescription}
-          onChangeText={setEditDescription}
-          multiline
-        />
-
-        <Text style={styles.inputLabel}>Photos (max 3)</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          {editImages.map((img, index) => (
-            <Image
-              key={index}
-              source={{ uri: img }}
-              style={{ width: 80, height: 80, borderRadius: 6 }}
-            />
-          ))}
-          {editImages.length < 3 && (
-            <TouchableOpacity
-              style={[styles.addPhotoButton, { width: 80, height: 80 }]}
-              onPress={pickEditImage}
-            >
-              <FontAwesome name="plus" size={24} color="gray" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <TouchableOpacity style={styles.submitButton} onPress={updateExperience}>
-          <Text style={styles.submitButtonText}>Modifier</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => {
-            setSelectedItem(null);
-            setEditType(null);
-            setEditTitle('');
-            setEditDescription('');
-            setEditDate('');
-            setEditImages([]);
-          }}
-        >
-          <Text style={styles.cancelButtonText}>Annuler</Text>
-        </TouchableOpacity>
-      </View>
-    ) : !showExperienceForm ? (
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowExperienceForm(true)}
-      >
-        <Text style={styles.addButtonText}>Ajouter une expérience</Text>
-      </TouchableOpacity>
-    ) : (
-      <View style={styles.certificationForm}>
-        <Text style={styles.inputLabel}>Titre</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Titre de l'expérience"
-          value={title}
-          onChangeText={setTitle}
-        />
-
-        <Text style={styles.inputLabel}>Date</Text>
-        <TouchableOpacity onPress={() => setShowExperienceCalendar(true)}>
-          <Text style={[styles.input, { color: experienceDate ? 'black' : '#999' }]}>
-            {experienceDate || 'Sélectionnez une date'}
-          </Text>
-        </TouchableOpacity>
-
-        <Text style={styles.inputLabel}>Description</Text>
-        <TextInput
-          style={[styles.descriptionInput2]}
-          placeholder="Description de l'expérience"
-          multiline
-          value={experienceDescription}
-          onChangeText={setExperienceDescription}
-        />
-
-        <Text style={styles.inputLabel}>Photos de l'expérience (max 3)</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          {experienceImages.map((img, index) => (
-            <Image
-              key={index}
-              source={{ uri: img }}
-              style={{ width: 80, height: 80, borderRadius: 6 }}
-            />
-          ))}
-
-          {experienceImages.length < 3 && (
-            <TouchableOpacity
-              style={[styles.addPhotoButton, { width: 80, height: 80 }]}
-              onPress={pickExperienceImage}
-            >
-              <FontAwesome name="plus" size={24} color="gray" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <TouchableOpacity style={styles.submitButton} onPress={createExperience}>
-          <Text style={styles.submitButtonText}>Valider</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => setShowExperienceForm(false)}
-        >
-          <Text style={styles.cancelButtonText}>Annuler</Text>
-        </TouchableOpacity>
-      </View>
-    )}
-  </View>
-)}
+    <ExperienceModal
+      visible={isExperienceModalVisible}
+      onClose={() => {
+        setExperienceModalVisible(false);
+        if (editType === 'experience') {
+          setEditType(null);
+          setSelectedItem(null);
+          setEditTitle('');
+          setEditDescription('');
+          setEditDate('');
+          setEditImages([]);
+        } else {
+          setTitle('');
+          setExperienceDescription('');
+          setExperienceDate('');
+          setExperienceImages([]);
+        }
+      }}
+      isEditMode={editType === 'experience'}
+      item = {selectedItem}
+      showCalendar={showExperienceCalendar}
+      onChange={(updatedItem) => setSelectedItem(updatedItem)}
+      onAddImage={editType === 'experience' ? pickEditImage : pickExperienceImage}
+      onSubmit={editType === 'experience' ? updateExperience : createExperience}
+      onToggleCalendar={() => setShowExperienceCalendar(!showExperienceCalendar)}
+    />
+    </View>
+  )}
 
 
   <Modal
@@ -1354,74 +1238,33 @@ const PrestationScreen = () => {
       <Text style={{ textAlign: 'center' }}>Aucune certification disponible</Text>
     )}
     
-        {!isCertificationFormVisible ? (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setCertificationFormVisible(true)}
-          >
-            <Text style={styles.addButtonText}>Ajouter une certification</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.certificationForm}>
-  <Text style={styles.inputLabel}>Titre</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Titre de la certification"
-    value={certificationTitle}
-    onChangeText={setCertificationTitle}
-  />
-
-  <Text style={styles.inputLabel}>Établissement de formation</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Établissement de formation"
-    value={certificationInstitution}
-    onChangeText={setCertificationInstitution}
-  />
-
-  <Text style={styles.inputLabel}>Date</Text>
-  <TouchableOpacity onPress={() => setShowCalendar(true)}>
-    <Text style={[styles.input, {color: certificationDate ? 'black' : '#999'}]}>
-      {certificationDate || 'Sélectionnez une date'}
-    </Text>
-  </TouchableOpacity>
-
-  <Text style={styles.inputLabel}>Description</Text>
-  <TextInput
-    style={[styles.descriptionInput2]}
-    placeholder="Description"
-    multiline
-    value={certificationDescription}
-    onChangeText={setCertificationDescription}
-  />
-
-  <Text style={styles.inputLabel}>Photos de certification (max 3)</Text>
-  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-    {certificationImages.map((img, index) => (
-      <Image key={index} source={{ uri: img }} style={{ width: 80, height: 80, borderRadius: 6 }} />
-    ))}
-
-    {certificationImages.length < 3 && (
-      <TouchableOpacity
-        style={[styles.addPhotoButton, { width: 80, height: 80 }]}
-        onPress={pickCertificationImage}
-      >
-        <FontAwesome name="plus" size={24} color="gray" />
-      </TouchableOpacity>
-    )}
-  </View>
-
-  <TouchableOpacity style={styles.submitButton} onPress={handleAddCertification}>
-    <Text style={styles.submitButtonText}>Valider</Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setCertificationFormVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Annuler</Text>
-            </TouchableOpacity>
-</View>
-        )}
+    <CertificationFormModal
+      visible={isCertificationFormVisible}
+      onClose={() => {
+        setCertificationFormVisible(false);
+        setEditType(null);
+        setSelectedItem(null);
+      }}
+      isEditMode={editType === 'certification'}
+      item={selectedItem || {
+        title: '',
+        institution: '',
+        date: '',
+        description: '',
+        images: certificationImages,
+      }}
+      showCalendar={showCalendar}
+      onChange={(updatedItem) => {
+        setSelectedItem(updatedItem);
+      }}
+      onAddImage={editType === 'certification' ? pickEditImage : pickCertificationImage}
+      onSubmit={editType === 'certification' ? updateCertification : handleAddCertification}
+      onToggleCalendar={() => setShowCalendar(!showCalendar)}
+      onDateSelect={(date: string) => {
+        setSelectedItem((prev: any) => ({ ...prev, date }));
+        setShowCalendar(false);
+      }}
+    />
       </View>
       )}
       <View style={styles.publishContainer}>

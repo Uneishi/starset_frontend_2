@@ -16,6 +16,7 @@ const ModifyAccountScreen = () => {
   const [description, setDescription] = useState('');
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
   const [pseudo, setPseudo] = useState('');
+  const [isCompany, setIsCompany] = useState<boolean | null>(null);
   const [descriptionPopup, setDescriptionPopup] = useState('');
   const navigation = useNavigation();
   const { user } = useUser(); // Utilisation du contexte pour récupérer les infos utilisateur
@@ -59,7 +60,20 @@ const ModifyAccountScreen = () => {
       <InfoRow label="E-mail" value={user?.email} onPress={() => {navigation.navigate('modifyEmail' as never)}} />
       <InfoRow label="Adresse" value={user?.address || 'Ajouter une adresse'} onPress={() => {navigation.navigate('modifyLocation' as never)}} />
       <InfoRow label="Description" value={user?.description || 'Ajouter une description'} onPress={() => {navigation.navigate('modifyDescription' as never)}} />
+      <View style={{ alignSelf: 'flex-start', marginBottom: 10, marginTop : 10 }}>
+        <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Info Worker</Text>
+      </View>
+      <InfoRow
+        label="Type de profil"
+        value={isCompany ? 'Entreprise' : 'Particulier'}
+        onPress={() => { navigation.navigate('modifyWorkerProfile' as never); }}
+        icon={isCompany
+          ? require('../assets/images/company.png')
+          : require('../assets/images/people.png')
+        }
+      />
 
+      
       <Modal visible={isDescriptionModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -83,11 +97,14 @@ const ModifyAccountScreen = () => {
   );
 };
 
-const InfoRow = ({ label, value, onPress } : any) => (
+const InfoRow = ({ label, value, onPress, icon }: { label: string, value: string, onPress: () => void, icon?: any }) => (
   <TouchableOpacity style={styles.infoRow} onPress={onPress}>
-    <View>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={styles.rowLeft}>
+      {icon && <Image source={icon} style={styles.infoIcon} />}
+      <View>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value}</Text>
+      </View>
     </View>
     <MaterialIcons name="keyboard-arrow-right" size={24} color="black" />
   </TouchableOpacity>
@@ -108,6 +125,18 @@ const styles = StyleSheet.create({
   modalInput: { width: '90%', height: 150, fontSize: 18, color: '#000', padding: 10, backgroundColor: '#FFF', borderRadius: 10 },
   saveModalButton: { marginTop: 20, backgroundColor: '#00cc66', padding: 10, borderRadius: 10 },
   saveModalButtonText: { color: '#FFF', fontWeight: 'bold' },
+
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  infoIcon: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    resizeMode: 'contain',
+  },
 });
 
 export default ModifyAccountScreen;

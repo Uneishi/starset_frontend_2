@@ -2,7 +2,7 @@ import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -135,13 +135,7 @@ const AddJobScreen = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>ADD A JOB</Text>
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Rechercher"
-        placeholderTextColor="#808080"
-        value={searchTerm}
-        onChangeText={setSearchTerm}
-      />
+      
 
       {selectedField === null ? (
         <>
