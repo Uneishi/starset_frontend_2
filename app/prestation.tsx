@@ -1184,55 +1184,84 @@ const PrestationScreen = () => {
     {certifications.length > 0 ? (
       certifications.map((certification: any, index: number) => (
         <View key={index} style={styles.certificationCardUpdated}>
-          <View style={styles.certificationHeader}>
-            {/* Colonne images */}
-            <View
-              style={[
-                styles.certificationImagesColumn,
-                { width: certification.images && certification.images.length > 0 ? 80 : 0, marginRight: certification.images && certification.images.length > 0 ? 10 : 0,  }
-              ]}
-            >
-  {certification.images && certification.images.length === 3 ? (
-    <>
-      <Image
-        source={{ uri: certification.images[0] }}
-        style={styles.certificationBigImage}
-      />
-      <View style={styles.certificationSmallImagesRow}>
-        <Image
-          source={{ uri: certification.images[1] }}
-          style={styles.certificationSmallImage}
-        />
-        <Image
-          source={{ uri: certification.images[2] }}
-          style={styles.certificationSmallImage}
-        />
+  <View style={styles.certificationHeader}>
+    {/* Colonne images */}
+    <View
+      style={[
+        styles.certificationImagesColumn,
+        {
+          width: certification.images && certification.images.length > 0 ? 80 : 0,
+          marginRight: certification.images && certification.images.length > 0 ? 10 : 0,
+        },
+      ]}
+    >
+      {certification.images && certification.images.length === 3 ? (
+        <>
+          <Image source={{ uri: certification.images[0] }} style={styles.certificationBigImage} />
+          <View style={styles.certificationSmallImagesRow}>
+            <Image source={{ uri: certification.images[1] }} style={styles.certificationSmallImage} />
+            <Image source={{ uri: certification.images[2] }} style={styles.certificationSmallImage} />
+          </View>
+        </>
+      ) : (
+        certification.images?.map((uri: string, i: number) => (
+          <Image key={i} source={{ uri }} style={styles.certificationMiniImage} />
+        ))
+      )}
+    </View>
+
+    {/* Contenu texte + menu */}
+    <View style={{ flex: 1 }}>
+      <View style={styles.certificationTextWithMenu}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.certificationTitle}>{certification.title}</Text>
+          <Text style={styles.certificationDate}>{certification.date}</Text>
+          <Text style={styles.certificationInstitution}>
+            <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+          </Text>
+          <Text style={styles.certificationDescription}>{certification.description}</Text>
+        </View>
+
+        {/* Menu paramètres */}
+        <View style={styles.certificationMenuContainer}>
+          <Menu
+            visible={menuVisibleId === certification.id}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
+                size={24}
+                onPress={() => openMenu(certification.id)}
+              />
+            }
+            contentStyle={styles.menuContent}
+          >
+            <Menu.Item
+              onPress={() => {
+                openOptions(certification, 'certification');
+                setCertificationFormVisible(true);
+                closeMenu();
+              }}
+              title="Modifier"
+            />
+            <Menu.Item
+              onPress={() => {
+                setEditType('certification');
+                setSelectedItem(certification);
+                handleDelete();
+                closeMenu();
+              }}
+              title="Supprimer"
+              titleStyle={{ color: 'red' }}
+            />
+          </Menu>
+        </View>
       </View>
-    </>
-  ) : (
-    certification.images && certification.images.length > 0 &&
-    certification.images.map((uri: string, i: number) => (
-      <Image
-        key={i}
-        source={{ uri }}
-        style={styles.certificationMiniImage}
-      />
-    ))
-  )}
+    </View>
+  </View>
+  <View style={styles.separator} />
 </View>
 
-{/* Texte à droite */}
-<View style={[styles.certificationTextContent, { flex: 1 }]}>
-  <Text style={styles.certificationTitle}>{certification.title}</Text>
-  <Text style={styles.certificationDate}>{certification.date}</Text>
-  <Text style={styles.certificationInstitution}>
-    <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
-  </Text>
-  <Text style={styles.certificationDescription}>{certification.description}</Text>
-</View>
-          </View>
-          <View style={styles.separator} />
-        </View>
       ))
     ) : (
       <Text style={{ textAlign: 'center' }}>Aucune certification disponible</Text>
@@ -2008,6 +2037,17 @@ certificationSmallImage: {
 certificationTextContent: {
   flex: 1,
   justifyContent: 'flex-start',
+},
+
+certificationTextWithMenu: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: 10,
+},
+
+certificationMenuContainer: {
+  alignSelf: 'flex-start',
 },
 
 });

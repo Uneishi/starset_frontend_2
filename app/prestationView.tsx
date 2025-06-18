@@ -14,7 +14,6 @@ import { IconButton, Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'avoir installé cette bibliothèque
 import config from '../config.json';
 
-
 const PrestationViewScreen = () => {
   const [selectedTab, setSelectedTab] = useState('photos'); // Onglet par défaut: 'photos'
   const navigation = useNavigation()
@@ -1246,6 +1245,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
     margin : 5,
+    marginHorizontal : 10,
     backgroundColor: '#00cc66',
   },
   activeTabButton: {
