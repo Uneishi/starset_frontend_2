@@ -304,8 +304,9 @@ const PrestationScreen = () => {
     const base64Images = [];
     for (const uri of selectedItem.images || []) {
       if (uri.startsWith('data:image')) {
-        base64Images.push(uri); // déjà base64
-      } else {
+        base64Images.push(uri); // déjà encodée
+      } else if (uri.startsWith('file://')) {
+        // Image locale à convertir
         const response = await fetch(uri);
         const blob = await response.blob();
         const reader = new FileReader();
@@ -314,9 +315,16 @@ const PrestationScreen = () => {
           reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
-        base64Images.push(base64);
+        base64Images.push(base64 as string);
+      } else {
+        // Image distante (hébergée) : on garde l'URL
+        base64Images.push(uri);
       }
     }
+
+    console.log("donnees pour la mise a jour de l'experience")
+    console.log(selectedItem)
+    //console.log(base64Images)
 
     const response = await fetch(`${config.backendUrl}/api/mission/update-experience`, {
       method: 'POST',
@@ -336,7 +344,7 @@ const PrestationScreen = () => {
     const data = await response.json();
     
     setExperiences(prev => prev.map(e => e.id === selectedItem.id ? data.experience : e));
-    setShowExperienceForm(false);
+    setExperienceModalVisible(false);
     setSelectedItem(null);
     Alert.alert('Succès', 'Expérience mise à jour');
   } catch (error) {
@@ -1147,7 +1155,7 @@ const PrestationScreen = () => {
       isEditMode={editType === 'experience'}
       item = {selectedItem}
       showCalendar={showExperienceCalendar}
-      onChange={(updatedItem) => setSelectedItem(updatedItem)}
+      onChange={(updatedItem) => {setSelectedItem(updatedItem), console.log(updatedItem)}}
       onAddImage={editType === 'experience' ? pickEditImage : pickExperienceImage}
       onSubmit={editType === 'experience' ? updateExperience : createExperience}
       onToggleCalendar={() => setShowExperienceCalendar(!showExperienceCalendar)}
@@ -1217,7 +1225,7 @@ const PrestationScreen = () => {
           <Text style={styles.certificationTitle}>{certification.title}</Text>
           <Text style={styles.certificationDate}>{certification.date}</Text>
           <Text style={styles.certificationInstitution}>
-            <Text style={{ fontStyle: 'italic' }}>{certification.institution}</Text>
+            <Text style={{ fontStyle: 'italic' }}>{certification.establishment}</Text>
           </Text>
           <Text style={styles.certificationDescription}>{certification.description}</Text>
         </View>

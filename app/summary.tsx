@@ -1,4 +1,4 @@
-import { useCart } from '@/context/userContext';
+import { useCart, useUser } from '@/context/userContext';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -10,6 +10,7 @@ const SummaryScreen = () => {
   const [instruction, setInstruction] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [addressParts, setAddressParts] = useState({ street: 'N/A', city: 'N/A', country: 'N/A' });
+  const {user , setUser} = useUser()
 
   if (cart.length === 0) {
     return (
@@ -18,6 +19,20 @@ const SummaryScreen = () => {
       </View>
     );
   }
+
+  const extractAddressParts = (address : any) => {
+    
+
+    const parts = address.split(',');
+    
+    if (parts.length < 3) return { street: 'N/A', city: 'N/A', postalCode: 'N/A' };
+    
+    const street = parts[0]?.trim() || 'N/A';
+    const city = parts[1]?.trim() || 'N/A';
+    const country = parts[2]?.trim() || 'N/A';
+    console.log(street)
+    return { street, city, country };
+  };
 
   // Récupérer la prestation courante
   const currentItem = cart[currentIndex];
@@ -41,8 +56,8 @@ const SummaryScreen = () => {
   // Ici on garde 'N/A' car tu n'as pas envoyé d'adresse dans cart
   useEffect(() => {
     // Si tu as une adresse dans ton contexte utilisateur, remplace ici
-    // setAddressParts(extractAddressParts(user.address));
-    setAddressParts({ street: 'N/A', city: 'N/A', country: 'N/A' });
+    const { street, city, country } = extractAddressParts(user?.address);
+    setAddressParts({ street, city, country });
   }, []);
 
   // Total global du panier
