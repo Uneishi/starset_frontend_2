@@ -169,17 +169,17 @@ const styles = StyleSheet.create({
     borderColor: '#3B82F6', // BLEU DE SÉLECTION
     borderWidth: 3,
   },
-  
+
   buttonUnselected: {
     
   },
   buttonTextSelected: {
-    color: '#fff',
+    
     fontWeight: 'bold',
     fontSize: 18,
   },
   buttonTextUnselected: {
-    color: '#2e8b57',
+    //color: '#2e8b57',
     fontWeight: 'bold',
     fontSize: 18,
   },

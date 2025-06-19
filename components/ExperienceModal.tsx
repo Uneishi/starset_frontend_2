@@ -2,7 +2,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
-import { Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 type Props = {
@@ -36,10 +36,29 @@ const ExperienceModal = ({
     }
   }, [visible, item]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: any) => {
     const updated = { ...itemDraft, [field]: value };
     setItemDraft(updated);
     onChange(updated);
+  };
+
+  const handleDeleteImage = (index: number) => {
+    Alert.alert(
+      "Supprimer l'image",
+      "Êtes-vous sûr de vouloir supprimer cette image ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            const updatedImages = [...(itemDraft.images || [])];
+            updatedImages.splice(index, 1);
+            handleChange('images', updatedImages);
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -100,7 +119,12 @@ const ExperienceModal = ({
           <Text style={styles.inputLabel}>Images (max 3)</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {(itemDraft.images || []).map((img: string, index: number) => (
-              <Image key={index} source={{ uri: img }} style={styles.imagePreview} />
+            <View key={index} style={styles.imageWrapper}>
+                <Image source={{ uri: img }} style={styles.imagePreview} />
+                <TouchableOpacity style={styles.deleteIcon} onPress={() => handleDeleteImage(index)}>
+                <Icon name="close" size={16} color="#fff" />
+                </TouchableOpacity>
+            </View>
             ))}
             {(itemDraft.images?.length || 0) < 3 && (
               <TouchableOpacity style={styles.imageAddButton} onPress={onAddImage}>
@@ -141,4 +165,19 @@ const styles = StyleSheet.create({
   submitButtonText: { color: '#fff', fontWeight: 'bold' },
   cancelButton: { backgroundColor: '#999', borderRadius: 8, padding: 12, alignItems: 'center', marginTop: 10 },
   cancelButtonText: { color: '#fff', fontWeight: 'bold' },
+
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  
+  deleteIcon: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 10,
+    padding: 2,
+    zIndex: 1,
+  },
 });

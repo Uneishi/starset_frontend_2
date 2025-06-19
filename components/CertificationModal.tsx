@@ -1,9 +1,11 @@
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import moment from 'moment';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
 import {
+    Alert,
     Image,
     Modal,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -11,7 +13,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Calendar } from 'react-native-calendars';
 
 interface CertificationFormModalProps {
   visible: boolean;
@@ -38,20 +39,29 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
   onToggleCalendar,
   onDateSelect,
 }) => {
-  const markedDates = item?.date
-    ? {
-        [moment(item.date, 'DD/MM/YYYY').format('YYYY-MM-DD')]: {
-          selected: true,
-          selectedColor: '#00cc66',
+  const handleDeleteImage = (index: number) => {
+    Alert.alert(
+      "Supprimer l'image",
+      "Êtes-vous sûr de vouloir supprimer cette image ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            const updatedImages = [...(item.images || [])];
+            updatedImages.splice(index, 1);
+            onChange({ ...item, images: updatedImages });
+          },
         },
-      }
-    : {};
+      ]
+    );
+  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
         <ScrollView contentContainerStyle={styles.container}>
-          {/* Close Icon */}
           <TouchableOpacity onPress={onClose} style={styles.closeIcon}>
             <MaterialIcons name="close" size={24} />
           </TouchableOpacity>
@@ -78,10 +88,29 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
 
           <Text style={styles.label}>Date</Text>
           <TouchableOpacity onPress={onToggleCalendar}>
-            <Text style={styles.input}>
+            <Text style={[styles.input, { color: item?.date ? '#000' : '#999' }]}>
               {item?.date || 'Sélectionnez une date'}
             </Text>
           </TouchableOpacity>
+
+          {showCalendar && (
+            <DateTimePicker
+              value={
+                item?.date && !isNaN(new Date(item.date).getTime())
+                  ? new Date(item.date)
+                  : new Date()
+              }
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                if (selectedDate) {
+                  const dateString = selectedDate.toISOString().split('T')[0].replace(/-/g, '/');
+                  onDateSelect(dateString); // Ou moment(selectedDate).format('DD/MM/YYYY') selon ton format
+                }
+                onToggleCalendar();
+              }}
+            />
+          )}
 
           <Text style={styles.label}>Description</Text>
           <TextInput
@@ -94,8 +123,13 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
 
           <Text style={styles.label}>Photos (max 3)</Text>
           <View style={styles.imageRow}>
-            {item?.images?.map((img: string, idx: number) => (
-              <Image key={idx} source={{ uri: img }} style={styles.image} />
+            {(item?.images || []).map((img: string, idx: number) => (
+              <View key={idx} style={styles.imageWrapper}>
+                <Image source={{ uri: img }} style={styles.image} />
+                <TouchableOpacity style={styles.deleteIcon} onPress={() => handleDeleteImage(idx)}>
+                  <MaterialIcons name="close" size={16} color="#fff" />
+                </TouchableOpacity>
+              </View>
             ))}
             {item?.images?.length < 3 && (
               <TouchableOpacity style={styles.imagePicker} onPress={onAddImage}>
@@ -109,16 +143,6 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
               {isEditMode ? 'Mettre à jour' : 'Valider'}
             </Text>
           </TouchableOpacity>
-
-          {showCalendar && (
-            <Calendar
-              onDayPress={(day) =>
-                onDateSelect(moment(day.dateString).format('DD/MM/YYYY'))
-              }
-              markedDates={markedDates}
-              style={styles.calendar}
-            />
-          )}
         </ScrollView>
       </View>
     </Modal>
@@ -168,10 +192,23 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 10,
+  },
   image: {
     width: 80,
     height: 80,
     borderRadius: 8,
+  },
+  deleteIcon: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 10,
+    padding: 2,
+    zIndex: 1,
   },
   imagePicker: {
     width: 80,

@@ -569,32 +569,38 @@ const unlikeImage = async (imageId: string) => {
   }, [arrivalHour, arrivalMinute]);
 
   const handleAddToCart = () => {
-    if (!startDate || !endDate || arrivalHour.length !== 2 || arrivalMinute.length !== 2 || departureHour.length !== 2 || departureMinute.length !== 2) {
+     // Si aucune date de début n'est sélectionnée, afficher une alerte
+    if (!startDate) {
+      Alert.alert("Erreur", "Merci de sélectionner une date de début.");
+      return;
+    }
+
+    // Si aucune date de fin, on utilise la date de début
+    const end = endDate ? new Date(endDate) : new Date(startDate);
+    const endDateUsed = endDate || startDate; // pour afficher ou enregistrer dans le panier
+
+    // Vérification des heures
+    if (arrivalHour.length !== 2 || arrivalMinute.length !== 2 || departureHour.length !== 2 || departureMinute.length !== 2) {
       Alert.alert("Erreur", "Merci de remplir toutes les informations de date et horaire.");
       return;
     }
-  
+
     const arrivalTime = new Date();
     arrivalTime.setHours(parseInt(arrivalHour, 10), parseInt(arrivalMinute, 10), 0);
-  
+
     const departureTime = new Date();
     departureTime.setHours(parseInt(departureHour, 10), parseInt(departureMinute, 10), 0);
-  
+
     const start = new Date(startDate);
-    const end = new Date(endDate);
-  
-    // Calcul du nombre de jours (incluant le dernier)
+
     const daysWorked = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  
     const hoursWorked = (departureTime.getTime() - arrivalTime.getTime()) / (1000 * 60 * 60);
-  
     const totalRemuneration = prestation.remuneration * hoursWorked * daysWorked;
-  
-    // Crée un objet avec les infos à stocker dans le panier
+
     const cartItem = {
       prestation,
       startDate,
-      endDate,
+      endDate: endDateUsed,
       arrivalTime,
       departureTime,
       totalRemuneration,
@@ -602,12 +608,11 @@ const unlikeImage = async (imageId: string) => {
       hoursWorked,
       profilePictureUrl,
     };
-  
+
     addToCart(cartItem);
-  
+
     Alert.alert("Succès", "La prestation a été ajoutée au panier.");
-  
-    // Optionnel : reset des champs date et horaires si tu veux
+
     setStartDate('');
     setEndDate('');
     setArrivalHour('');
@@ -615,6 +620,7 @@ const unlikeImage = async (imageId: string) => {
     setDepartureHour('');
     setDepartureMinute('');
     setCalendarVisible(false);
+    setModalType('date')
   };
 
   /*const goToSummary = () => {

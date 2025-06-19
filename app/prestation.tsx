@@ -250,8 +250,9 @@ const PrestationScreen = () => {
   
       for (const uri of selectedItem.images || []) {
         if (uri.startsWith('data:image')) {
-          base64Images.push(uri); // déjà base64
-        } else {
+          base64Images.push(uri); // déjà encodée
+        } else if (uri.startsWith('file://')) {
+          // Image locale à convertir
           const response = await fetch(uri);
           const blob = await response.blob();
           const reader = new FileReader();
@@ -260,7 +261,10 @@ const PrestationScreen = () => {
             reader.onerror = reject;
             reader.readAsDataURL(blob);
           });
-          base64Images.push(base64);
+          base64Images.push(base64 as string);
+        } else {
+          // Image distante déjà hébergée, on la garde
+          base64Images.push(uri);
         }
       }
   
@@ -285,14 +289,13 @@ const PrestationScreen = () => {
       setCertifications((prev: any[]) =>
         prev.map(cert => cert.id === selectedItem.id ? data.certification : cert)
       );
-      
-      // Réinitialiser
+  
       setCertificationFormVisible(false);
       setSelectedItem(null);
       Alert.alert('Succès', 'Certification mise à jour');
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour la certification');
       console.error(error);
+      Alert.alert('Erreur', 'Impossible de mettre à jour la certification');
     }
   };
   

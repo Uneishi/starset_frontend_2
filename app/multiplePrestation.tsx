@@ -1,25 +1,58 @@
 import { useCurrentWorkerPrestation } from '@/context/userContext';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import config from '../config.json';
 
-const PrestationsScreen = ({ route }: any) => {
-  const [customPrestations, setCustomPrestations] = useState([]);
+const convertImagesToBase64 = async (uris: string[]) => {
+  const base64Images: string[] = [];
+  for (const uri of uris) {
+    if (uri.startsWith('data:image')) {
+      base64Images.push(uri);
+    } else if (uri.startsWith('file://')) {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      base64Images.push(base64);
+    } else {
+      base64Images.push(uri);
+    }
+  }
+  return base64Images;
+};
+
+const PrestationsScreen = () => {
+  const [customPrestations, setCustomPrestations] = useState<any>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingPrestation, setEditingPrestation] = useState<any>(null);
   const [newPrestation, setNewPrestation] = useState({ title: '', price: '', description: '' });
-  const { currentWorkerPrestation: prestation, setCurrentWorkerPrestation } = useCurrentWorkerPrestation();
+  const { currentWorkerPrestation: prestation } = useCurrentWorkerPrestation();
   const [prestationImages, setPrestationImages] = useState<string[]>([]);
+
   const getCustomPrestations = async () => {
     try {
       const response = await fetch(`${config.backendUrl}/api/prestation/get-all-custom-prestation-by-prestation-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prestation_id : prestation?.id }),
+        body: JSON.stringify({ prestation_id: prestation?.id }),
       });
-      if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
       setCustomPrestations(data.custom_prestations);
     } catch (error) {
@@ -27,124 +60,127 @@ const PrestationsScreen = ({ route }: any) => {
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    const updated = [...prestationImages];
-    updated.splice(index, 1);
-    setPrestationImages(updated);
-  };
+  useEffect(() => {
+    if (prestation?.id) getCustomPrestations();
+  }, [prestation?.id]);
 
   const handleAddImage = async () => {
     if (prestationImages.length >= 3) {
       Alert.alert('Limite atteinte', 'Vous ne pouvez ajouter que 3 images.');
       return;
     }
-  
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
     if (!permissionResult.granted) {
       Alert.alert('Permission refusée', 'Vous devez autoriser l\'accès à vos photos.');
       return;
     }
-  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-  
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       setPrestationImages((prev) => [...prev, uri]);
     }
   };
-  
 
-  const createCustomPrestation = async () => {
-    try {
-      const response = await fetch(`${config.backendUrl}/api/prestation/create-prestation-custom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prestation_id : prestation?.id,
-          title: newPrestation.title,
-          description: newPrestation.description,
-          price: newPrestation.price,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Erreur réseau');
-
-      const data = await response.json();
-      setCustomPrestations((prev ) : any => [...prev, data.custom_prestation]);
-      setNewPrestation({ title: '', price: '', description: '' });
-      setModalVisible(false);
-    } catch (error) {
-      console.error('Erreur création prestation custom:', error);
-      Alert.alert('Erreur', 'Impossible de créer la prestation personnalisée.');
-    }
+  const handleDeleteImage = (index: number) => {
+    Alert.alert('Supprimer l\'image', 'Êtes-vous sûr ?', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer', style: 'destructive', onPress: () => {
+          const updated = [...prestationImages];
+          updated.splice(index, 1);
+          setPrestationImages(updated);
+        },
+      },
+    ]);
   };
 
-  const updateCustomPrestation = async () => {
+  const createOrUpdateCustomPrestation = async () => {
     try {
-      const response = await fetch(`${config.backendUrl}/api/prestation/modify-prestation-custom`, {
+      const base64Images = await convertImagesToBase64(prestationImages);
+      const endpoint = editingPrestation
+        ? `${config.backendUrl}/api/prestation/modify-prestation-custom`
+        : `${config.backendUrl}/api/prestation/create-prestation-custom`;
+      const payload = editingPrestation
+        ? { custom_prestation: { ...newPrestation, id: editingPrestation.id, images: base64Images } }
+        : { prestation_id: prestation?.id, ...newPrestation, images: base64Images };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ custom_prestation: { ...newPrestation, id: editingPrestation?.id } }),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Erreur réseau');
-
       const data = await response.json();
-      setCustomPrestations((prev: any) => prev.map((item: any) => item.id === data.custom_prestation.id ? data.custom_prestation : item));
+      if (editingPrestation) {
+        setCustomPrestations((prev: any) =>
+          prev.map((item: any) => (item.id === data.custom_prestation.id ? data.custom_prestation : item))
+        );
+      } else {
+        setCustomPrestations((prev: any) => [...prev, data.custom_prestation]);
+      }
+
       setNewPrestation({ title: '', price: '', description: '' });
+      setPrestationImages([]);
       setEditingPrestation(null);
       setModalVisible(false);
     } catch (error) {
-      console.error('Erreur modification prestation custom:', error);
-      Alert.alert('Erreur', 'Impossible de modifier la prestation personnalisée.');
+      Alert.alert('Erreur', 'Une erreur est survenue');
     }
   };
 
-  useEffect(() => {
-    if (prestation?.id) getCustomPrestations();
-  }, [prestation?.id]);
+  const openEditModal = (item: any) => {
+    setEditingPrestation(item);
+    setNewPrestation({ title: item.title, price: String(item.price), description: item.description });
+    setPrestationImages(item.images || []);
+    setModalVisible(true);
+  };
 
   const renderPrestation = ({ item }: any) => (
-    <View style={styles.prestationCard}>
-      <TouchableOpacity style={styles.optionsIcon} onPress={() => askEditPrestation(item)}>
-        <Ionicons name="ellipsis-vertical" size={20} color="#000" />
-      </TouchableOpacity>
-      <Text style={styles.prestationTitle}>{item.title}</Text>
-      <View style={styles.prestationPriceContainer}>
-        <Text style={styles.prestationPrice}>{item.price}€</Text>
+    <TouchableOpacity onPress={() => openEditModal(item)} style={styles.prestationCard}>
+      <View
+        style={[
+          styles.certificationImagesColumn,
+          {
+            width: item.images && item.images.length > 0 ? 80 : 0,
+            marginRight: item.images && item.images.length > 0 ? 10 : 0,
+          },
+        ]}
+      >
+        {item.images && item.images.length === 3 ? (
+          <>
+            <Image source={{ uri: item.images[0] }} style={styles.certificationBigImage} />
+            <View style={styles.certificationSmallImagesRow}>
+              <Image source={{ uri: item.images[1] }} style={styles.certificationSmallImage} />
+              <Image source={{ uri: item.images[2] }} style={styles.certificationSmallImage} />
+            </View>
+          </>
+        ) : (
+          item.images?.map((uri: string, i: number) => (
+            <Image key={i} source={{ uri }} style={styles.certificationMiniImage} />
+          ))
+        )}
       </View>
-    </View>
+  
+      <View style={styles.prestationDetails}>
+        <Text style={styles.prestationTitle}>{item.title}</Text>
+        <Text style={styles.prestationPrice}>{item.price} €</Text>
+        {item.description ? (
+          <Text style={{ color: '#666', marginTop: 4 }}>{item.description}</Text>
+        ) : null}
+      </View>
+    </TouchableOpacity>
   );
-
-  const askEditPrestation = (item: any) => {
-    Alert.alert(
-      'Modifier la prestation',
-      'Voulez-vous modifier cette prestation ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Modifier', onPress: () => {
-          setEditingPrestation(item);
-          setNewPrestation({ title: item.title, price: String(item.price), description: item.description });
-          setModalVisible(true);
-        }}
-      ]
-    );
-  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>TARIF PAR PRESTATION</Text>
       <FlatList
         data={customPrestations}
         renderItem={renderPrestation}
-        keyExtractor={(item : any) => item?.id}
-        contentContainerStyle={styles.listContainer}
+        keyExtractor={(item: any) => item.id.toString()}
       />
-
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>Ajouter une prestation</Text>
       </TouchableOpacity>
@@ -152,55 +188,50 @@ const PrestationsScreen = ({ route }: any) => {
       <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>AJOUTER UNE PRESTATION</Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeIcon}>
+              <Icon name="close" size={24} color="#000" />
+            </TouchableOpacity>
 
-            <Text style={styles.label}>Titre</Text>
             <TextInput
+              placeholder="Titre"
               style={styles.input}
-              placeholder="Titre de la prestation"
               value={newPrestation.title}
               onChangeText={(text) => setNewPrestation({ ...newPrestation, title: text })}
             />
-
-            <Text style={styles.label}>Description</Text>
             <TextInput
+              placeholder="Description"
               style={styles.input}
-              placeholder="Description (facultatif)"
               value={newPrestation.description}
               onChangeText={(text) => setNewPrestation({ ...newPrestation, description: text })}
             />
-
-            <Text style={styles.label}>Ajouter le tarif</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Tarif en €"
+              placeholder="Prix"
               keyboardType="numeric"
+              style={styles.input}
               value={newPrestation.price}
               onChangeText={(text) => setNewPrestation({ ...newPrestation, price: text })}
             />
 
-            <Text style={styles.label}>Photos (max. 3)</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 }}>
+            <Text style={{ marginBottom: 8 }}>Images (max 3)</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {prestationImages.map((uri, index) => (
-                <TouchableOpacity key={index} onLongPress={() => handleRemoveImage(index)}>
-                  <Image source={{ uri }} style={{ width: 80, height: 80, marginRight: 10, borderRadius: 8 }} />
-                </TouchableOpacity>
+                <View key={index} style={styles.imageWrapper}>
+                  <Image source={{ uri }} style={styles.imagePreview} />
+                  <TouchableOpacity style={styles.deleteIcon} onPress={() => handleDeleteImage(index)}>
+                    <Icon name="close" size={16} color="#fff" />
+                  </TouchableOpacity>
+                </View>
               ))}
               {prestationImages.length < 3 && (
-                <TouchableOpacity onPress={handleAddImage} style={{ width: 80, height: 80, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', borderRadius: 8 }}>
-                  <Ionicons name="add" size={30} color="#888" />
+                <TouchableOpacity style={styles.imageAddButton} onPress={handleAddImage}>
+                  <FontAwesome name="plus" size={24} color="gray" />
                 </TouchableOpacity>
               )}
             </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.saveButton} onPress={createCustomPrestation}>
-                <Text style={styles.saveButtonText}>Enregistrer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelButtonText}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.submitButton} onPress={createOrUpdateCustomPrestation}>
+              <Text style={styles.submitButtonText}>{editingPrestation ? 'Modifier' : 'Créer'}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -208,109 +239,63 @@ const PrestationsScreen = ({ route }: any) => {
   );
 };
 
+export default PrestationsScreen;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingTop: 20 },
-  header: { fontSize: 20, fontWeight: 'bold', color: '#008000', textAlign: 'center', marginBottom: 20 },
-  listContainer: { flexGrow: 1 },
-  prestationCard: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  prestationTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
-  },
-  prestationPriceContainer: {
-    backgroundColor: '#FFD700',
-    marginTop: 5,
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  addButton: { backgroundColor: '#008000', padding: 15, borderRadius: 10, marginTop: 20, alignItems: 'center' },
+  addButtonText: { color: '#fff', fontWeight: 'bold' },
+  prestationCard: { padding: 15, backgroundColor: '#f5f5f5', marginBottom: 10, borderRadius: 8 },
+  prestationTitle: { fontWeight: 'bold', fontSize: 16 },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContent: { backgroundColor: '#fff', borderRadius: 10, padding: 20, width: '90%' },
+  closeIcon: { position: 'absolute', right: 10, top: 10 },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, marginBottom: 10 },
+  submitButton: { backgroundColor: '#008000', borderRadius: 8, padding: 12, alignItems: 'center', marginTop: 20 },
+  submitButtonText: { color: '#fff', fontWeight: 'bold' },
+  imageWrapper: { position: 'relative' },
+  imagePreview: { width: 80, height: 80, borderRadius: 6 },
+  imageAddButton: { width: 80, height: 80, borderRadius: 6, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' },
+  deleteIcon: { position: 'absolute', top: -6, right: -6, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 10, padding: 2 },
+
+  certificationBigImage: {
     width: '100%',
-    borderRadius: 3,
-  },
-  prestationPrice: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    margin: 5,
-    textAlign: 'center',
-  },
-  addButton: {
-    backgroundColor: '#008000',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 20,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    fontSize: 16,
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#FFF',
-    width: '90%',
-    borderRadius: 10,
-    padding: 20,
-  },
-  modalHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    aspectRatio: 16 / 9,
     marginBottom: 5,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CCC',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
-  },
-  modalButtons: {
+  
+  certificationSmallImagesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  saveButton: {
-    backgroundColor: '#008000',
-    padding: 10,
-    borderRadius: 5,
-    flex: 1,
+  
+  certificationSmallImage: {
+    width: '48%',
+    aspectRatio: 16 / 9,
+    
+  },
+
+  certificationMiniImage: {
+    width: 80,
+    height: 60,
+    marginRight: 8,
+  },
+
+  certificationImagesColumn: {
+    flexShrink: 0,
+    //width: 120, // Largeur fixe à gauche pour images
     marginRight: 10,
   },
-  saveButtonText: {
-    color: '#FFF',
-    textAlign: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#FF0000',
-    padding: 10,
-    borderRadius: 5,
+
+  prestationDetails: {
     flex: 1,
-  },
-  cancelButtonText: {
-    color: '#FFF',
-    textAlign: 'center',
+    paddingLeft: 10,
   },
 
-  optionsIcon: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
+  prestationPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 8,
   },
 });
-
-export default PrestationsScreen;
