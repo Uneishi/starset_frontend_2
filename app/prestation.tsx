@@ -704,7 +704,7 @@ const PrestationScreen = () => {
       setExperiences(prev => [...prev, data.experience]);
   
       // Reset
-      setShowExperienceForm(false);
+      setExperienceModalVisible(false)
       setSelectedItem(null);
   
       Alert.alert('Succès', 'Expérience ajoutée avec succès');
@@ -1277,6 +1277,15 @@ const PrestationScreen = () => {
     ) : (
       <Text style={{ textAlign: 'center' }}>Aucune certification disponible</Text>
     )}
+
+<TouchableOpacity
+      style={styles.addButton}
+      onPress={() => setCertificationFormVisible(true)}
+    >
+      <Text style={styles.addButtonText}>
+        Ajouter une certification
+      </Text>
+    </TouchableOpacity>
     
     <CertificationFormModal
       visible={isCertificationFormVisible}

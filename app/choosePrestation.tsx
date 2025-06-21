@@ -157,6 +157,17 @@ const ChoosePrestationScreen = () => {
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            {/* Bouton retour pour l'étape 'arrival' */}
+            {modalType === 'arrival' && (
+              <TouchableOpacity
+                onPress={() => setModalType('date')}
+                style={styles.backIcon}
+              >
+                <Icon name="arrow-back" size={24} color="#000" />
+              </TouchableOpacity>
+            )}
+
+
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.closeIcon}
@@ -323,6 +334,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+
+  backIcon: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    padding: 5,
+    zIndex: 10,
   },
 });
 

@@ -245,7 +245,9 @@ const JobsScreen = () => {
       />
       
       <TouchableOpacity style={styles.missionBanner} onPress={openWorkerRequestModal}>
-        <Text style={styles.missionText}>Demande de missions : 1</Text>
+        <Text style={styles.missionText}>
+          Demande de missions : {workerPlannedPrestations.filter(p => p.status === 'waiting').length}
+        </Text>
       </TouchableOpacity>
 
       {filteredPrestations.map((prestation: any, index: number) => (

@@ -164,6 +164,8 @@ const ConversationScreen = () => {
     };
   }, []);
 
+  
+
   return (
     <View style={styles.container}>
       <View style={styles.messagerieContainer}>
@@ -176,6 +178,8 @@ const ConversationScreen = () => {
         style={styles.searchBar}
         placeholder="Rechercher"
         placeholderTextColor="#666"
+        value={searchTerm}
+        onChangeText={setSearchTerm}
       />
 
       {isLoading ? (

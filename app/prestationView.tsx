@@ -997,6 +997,20 @@ const unlikeImage = async (imageId: string) => {
               <Icon name="close" size={24} color="#000" />
             </TouchableOpacity>
 
+            {/* Flèche retour pour étapes > 1 */}
+            {(modalType === 'arrival' || modalType === 'departure') && (
+              <TouchableOpacity
+                onPress={() => {
+                  if (modalType === 'arrival') setModalType('date');
+                  else if (modalType === 'departure') setModalType('arrival');
+                }}
+                style={styles.backIcon}
+              >
+                <Icon name="arrow-back" size={24} color="#000" />
+              </TouchableOpacity>
+            )}
+
+
             {/* Afficher le contenu en fonction du type */}
             {modalType === 'date' && (
               <>

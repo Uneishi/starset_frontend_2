@@ -16,7 +16,7 @@ const ModifyAccountScreen = () => {
   const [description, setDescription] = useState('');
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
   const [pseudo, setPseudo] = useState('');
-  const [isCompany, setIsCompany] = useState<boolean | null>(null);
+  
   const [descriptionPopup, setDescriptionPopup] = useState('');
   const navigation = useNavigation();
   const { user } = useUser(); // Utilisation du contexte pour récupérer les infos utilisateur
@@ -65,14 +65,13 @@ const ModifyAccountScreen = () => {
       </View>
       <InfoRow
         label="Type de profil"
-        value={isCompany ? 'Entreprise' : 'Particulier'}
+        value={user?.is_Company ? 'Entreprise' : 'Particulier'}
         onPress={() => { navigation.navigate('modifyWorkerProfile' as never); }}
-        icon={isCompany
+        icon={user?.is_Company
           ? require('../assets/images/company.png')
           : require('../assets/images/people.png')
         }
       />
-
       
       <Modal visible={isDescriptionModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>

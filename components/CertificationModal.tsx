@@ -2,16 +2,16 @@ import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
 import {
-    Alert,
-    Image,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface CertificationFormModalProps {
@@ -152,10 +152,24 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // fond semi-transparent
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  modalBox: {
     backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    width: '90%',
+    maxHeight: '90%',
   },
   container: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
     padding: 20,
+    width: '90%',
+    maxHeight: '90%',
   },
   closeIcon: {
     alignSelf: 'flex-end',
