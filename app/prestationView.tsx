@@ -1,4 +1,4 @@
-import { useCart } from '@/context/userContext';
+import { useCart, useUser } from '@/context/userContext';
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
@@ -56,6 +56,7 @@ const PrestationViewScreen = () => {
   const [unavailableDates, setUnavailableDates] = useState<string[]>([]);
   const [menuVisible, setMenuVisible] = useState(false);
   const { addToCart } = useCart();
+  const { user, setUser} = useUser()
 
     const profileImageSize = scrollY.interpolate({
       inputRange: [0, 70],
@@ -607,6 +608,8 @@ const unlikeImage = async (imageId: string) => {
       daysWorked,
       hoursWorked,
       profilePictureUrl,
+      type_of_remuneration : 'hour',
+      location : user?.location
     };
 
     addToCart(cartItem);

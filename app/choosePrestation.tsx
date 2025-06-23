@@ -1,4 +1,4 @@
-import { useCart } from '@/context/userContext';
+import { useCart, useUser } from '@/context/userContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
@@ -35,6 +35,7 @@ const ChoosePrestationScreen = () => {
 
   // Modal step: 'date' or 'arrival'
   const [modalType, setModalType] = useState<'date' | 'arrival'>('date');
+  const { user, setUser} = useUser()
 
   useEffect(() => {
     getCustomPrestations();
@@ -111,6 +112,10 @@ const ChoosePrestationScreen = () => {
       daysWorked: 1,
       hoursWorked: null,
       profilePictureUrl: selectedPrestation.picture_url || '',
+      type_of_remuneration : 'prestation',
+      location : user?.location,
+      customPrestationId: selectedPrestation.id,
+      customPrestationTitle: selectedPrestation.title,
     };
 
     addToCart(cartItem);

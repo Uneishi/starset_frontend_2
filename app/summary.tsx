@@ -11,6 +11,7 @@ const SummaryScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [addressParts, setAddressParts] = useState({ street: 'N/A', city: 'N/A', country: 'N/A' });
   const {user , setUser} = useUser()
+  const [finalCart, setFinalCart] = useState([]);
 
   if (cart.length === 0) {
     return (
@@ -74,6 +75,8 @@ const SummaryScreen = () => {
       } as never);
     }
   };
+
+  
 
   return (
     <View style={styles.container}>

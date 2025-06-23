@@ -353,7 +353,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
     //backgroundColor : 'blue'
-    
   },
   
   searchBar: {
@@ -362,10 +361,8 @@ const styles = StyleSheet.create({
     color: '#000',
     backgroundColor: '#F0F0F0',
     borderRadius: 10,
-    
     paddingHorizontal : 10,
     marginRight : 10  
-    
   },
   
   searchButton: {
@@ -373,11 +370,9 @@ const styles = StyleSheet.create({
     backgroundColor : '#F0F0F0',
     alignItems : 'center',
     justifyContent : 'center',
-    
     borderRadius : 10,
     width : 35,
     height : 35
-
   },
   
   searchIcon: {

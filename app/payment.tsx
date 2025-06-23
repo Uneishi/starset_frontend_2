@@ -42,6 +42,10 @@ const PaymentScreen = () => {
           arrivalTime,
           departureTime,
           totalRemuneration: itemRemuneration,
+          type_of_remuneration,
+          customPrestationId,
+          instruction,
+          profilePictureUrl
         } = item;
 
         const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
@@ -53,11 +57,13 @@ const PaymentScreen = () => {
             prestation_id: prestation.id,
             start_date: startDate,
             end_date: endDate,
-            type_of_remuneration: 'hours',
+            type_of_remuneration: type_of_remuneration,
             remuneration: itemRemuneration,
             start_time: arrivalTime,
             end_time: departureTime,
-            instruction, // Optionnel, tu peux l'ajouter si applicable globalement
+            instruction, // Optionnel, tu peux l'ajouter si applicable globalement,
+            custom_prestation_id :  customPrestationId,
+            profile_picture_url : profilePictureUrl
           }),
         });
 
