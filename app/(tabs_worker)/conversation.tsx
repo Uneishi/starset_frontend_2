@@ -196,15 +196,15 @@ const acceptConversation = async (conversation_id: string) => {
         onChangeText={setSearchTerm}
       />
         <TouchableOpacity style={styles.searchButton} onPress={() => setModalVisible(true)}>
-  <View style={styles.searchButton}>
-    <FontAwesome name="user" size={25} color="#000" style={styles.searchIcon} />
-    {pendingConversationsCount > 0 && (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{pendingConversationsCount}</Text>
-      </View>
-    )}
-  </View>
-</TouchableOpacity>
+          <View style={styles.searchButton}>
+            <FontAwesome name="user" size={25} color="#000" style={styles.searchIcon} />
+            {pendingConversationsCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{pendingConversationsCount}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
