@@ -153,7 +153,7 @@ const AccountScreen = () => {
         {
           text: 'Oui',
           onPress: () => {
-            navigation.navigate('rate' as never);
+            
             navigation.navigate({
               name: 'note',
               params: {planned_prestation },

@@ -8,11 +8,11 @@ import config from '../config.json';
 const NoteScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { prestation } = route.params as any;
+  const { planned_prestation } = route.params as any;
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [prestationData, setPrestation] = useState<any>(null);
+  const [prestation, setPrestation] = useState<any>(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
   const [metiers, setMetiers] = useState([]);
   const [account, setAccount] = useState<any>(null);
@@ -26,7 +26,7 @@ const NoteScreen = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prestation_id: prestation.prestation_id }),
+        body: JSON.stringify({ prestation_id: planned_prestation.prestation_id }),
       });
 
       if (!response.ok) {
@@ -35,10 +35,12 @@ const NoteScreen = () => {
 
       const data = await response.json();
       setPrestation(data.prestation);
-      
-      setMetiers(data.metiers);
       setAccount(data.account);
-      setPrestationImages(data.images);
+      console.log("data.prestation")
+      console.log(data.prestation)
+      
+      
+      
     } catch (error) {
       console.error('Erreur lors de la récupération de la prestation :', error);
     }
@@ -46,15 +48,24 @@ const NoteScreen = () => {
 
   const handleSubmit = async () => {
     try {
+      console.log(prestation.worker_id)
+      console.log(prestation.id)
+      console.log(user?.id)
+      console.log(comment)
+      console.log(rating)
+
+
       const response = await fetch(`${config.backendUrl}/api/planned-prestation/add-rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user?.id,
           worker_id: prestation.worker_id,
-          prestation_id: prestation.prestation_id,
+          prestation_id: prestation.id,
           rating,
           comment,
+          firstname : account.firstname,
+          lastname : account.lastname
         }),
       });
 
@@ -82,7 +93,7 @@ const NoteScreen = () => {
         source={{ uri: prestation?.profile_picture_url || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' }}
         style={styles.avatar}
       />
-      <Text style={styles.title}>{prestation?.metier || prestation.metier}</Text>
+      <Text style={styles.title}>{prestation?.metier || prestation?.metier}</Text>
       <Text style={styles.subtitle}>{account ? `${account.firstname} ${account.lastname}` : ''}</Text>
 
       <Text style={styles.sectionTitle}>APPRÉCIATION</Text>
