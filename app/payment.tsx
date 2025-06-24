@@ -48,6 +48,9 @@ const PaymentScreen = () => {
           profilePictureUrl
         } = item;
 
+        console.log("prestation")
+        console.log(prestation)
+
         const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

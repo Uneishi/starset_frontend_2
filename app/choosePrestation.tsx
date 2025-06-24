@@ -1,4 +1,4 @@
-import { useCart, useUser } from '@/context/userContext';
+import { useCart, useCurrentWorkerPrestation, useUser } from '@/context/userContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
@@ -23,6 +23,7 @@ const ChoosePrestationScreen = () => {
   const [customPrestations, setCustomPrestations] = useState([]);
 
   const { addToCart } = useCart();
+  const { currentWorkerPrestation, setCurrentWorkerPrestation} = useCurrentWorkerPrestation()
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -103,7 +104,7 @@ const ChoosePrestationScreen = () => {
     arrivalTime.setHours(parseInt(arrivalHour, 10), parseInt(arrivalMinute, 10), 0);
 
     const cartItem = {
-      prestation: selectedPrestation,
+      prestation: currentWorkerPrestation,
       startDate: selectedDate,
       endDate: null,
       arrivalTime,

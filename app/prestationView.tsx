@@ -1,4 +1,4 @@
-import { useCart, useUser } from '@/context/userContext';
+import { useCart, useCurrentWorkerPrestation, useUser } from '@/context/userContext';
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { JosefinSans_100Thin, JosefinSans_700Bold } from '@expo-google-fonts/josefin-sans';
 import { Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
@@ -57,6 +57,7 @@ const PrestationViewScreen = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const { addToCart } = useCart();
   const { user, setUser} = useUser()
+  const { currentWorkerPrestation, setCurrentWorkerPrestation} = useCurrentWorkerPrestation()
 
     const profileImageSize = scrollY.interpolate({
       inputRange: [0, 70],
@@ -271,6 +272,7 @@ const PrestationViewScreen = () => {
       const data = await response.json();
       // Stocker les prestations dans l'état
       setPrestation(data.prestation);
+      setCurrentWorkerPrestation(data.prestation)
       setProfilePictureUrl(data.account.profile_picture_url)
       setMetiers(data.metiers)
       setAccount(data.account)
