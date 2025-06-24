@@ -141,6 +141,29 @@ const AccountScreen = () => {
     }
   };
 
+  const handlePrestationFinished = (planned_prestation: any) => {
+    Alert.alert(
+      'Confirmation',
+      'La prestation est-elle vraiment terminée ?',
+      [
+        {
+          text: 'Non',
+          style: 'cancel',
+        },
+        {
+          text: 'Oui',
+          onPress: () => {
+            navigation.navigate('rate' as never);
+            navigation.navigate({
+              name: 'note',
+              params: {planned_prestation },
+            } as never);
+          },
+        },
+      ]
+    );
+  };
+
   const confirmLogout = async () => {
     // Logique pour déconnecter l'utilisateur
     // Ici, vous pouvez effacer les informations d'authentification, par exemple.
@@ -342,13 +365,6 @@ const AccountScreen = () => {
   </View>
 </TouchableOpacity>
 
-<TouchableOpacity style={styles.menuItem} onPress={goToLanguage}>
-  <View style={styles.iconWithText}>
-    <FontAwesome name="language" size={20} color="#000" style={styles.menuIcon} />
-    <Text style={styles.menuItemText}>Langues</Text>
-  </View>
-</TouchableOpacity>
-
 <TouchableOpacity style={styles.menuItem} onPress={goToAvailability}>
   <View style={styles.iconWithText}>
     <FontAwesome name="calendar-check-o" size={20} color="#000" style={styles.menuIcon} />
@@ -360,13 +376,6 @@ const AccountScreen = () => {
   <View style={styles.iconWithText}>
     <FontAwesome name="file-text" size={20} color="#000" style={styles.menuIcon} />
     <Text style={styles.menuItemText}>Document</Text>
-  </View>
-</TouchableOpacity>
-
-<TouchableOpacity style={styles.menuItem} onPress={openHistoryModal}>
-  <View style={styles.iconWithText}>
-    <FontAwesome name="clock-o" size={20} color="#000" style={styles.menuIcon} />
-    <Text style={styles.menuItemText}>En cours</Text>
   </View>
 </TouchableOpacity>
 
@@ -390,8 +399,6 @@ const AccountScreen = () => {
     <Text style={styles.deconnectText}>Se déconnecter</Text>
   </View>
 </TouchableOpacity>
-
-      
 
       {/* Modal de confirmation de déconnexion */}
       </ScrollView>
@@ -458,9 +465,17 @@ const AccountScreen = () => {
                             </>
                           )}
                           {prestation.status === "inProgress" && (
-                            <View style={[styles.statusBadge, { backgroundColor: '#00cc66' }]}>
-                              <Text style={styles.statusText}>In Progress</Text>
-                            </View>
+                            <>
+                              <View style={[styles.statusBadge, { backgroundColor: '#00cc66' }]}>
+                                <Text style={styles.statusText}>In Progress</Text>
+                              </View>
+                              <TouchableOpacity
+                                style={styles.doneButton}
+                                onPress={() => handlePrestationFinished(prestation._id)}
+                              >
+                                <Text style={styles.doneButtonText}>La prestation est finie</Text>
+                              </TouchableOpacity>
+                            </>
                           )}
                           {prestation.status === "rejected" && (
                             <View style={[styles.statusBadge, { backgroundColor: 'red' }]}>
@@ -552,9 +567,17 @@ const AccountScreen = () => {
                   </>
                 )}
                 {prestation.status === "inProgress" && (
-                  <View style={[styles.statusBadge, { backgroundColor: '#00cc66' }]}>
-                    <Text style={styles.statusText}>In Progress</Text>
-                  </View>
+                  <>
+                    <View style={[styles.statusBadge, { backgroundColor: '#00cc66' }]}>
+                      <Text style={styles.statusText}>In Progress</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={() => handlePrestationFinished(prestation)}
+                    >
+                      <Text style={styles.doneButtonText}>La prestation est finie</Text>
+                    </TouchableOpacity>
+                  </>
                 )}
                 {prestation.status === "rejected" && (
                   <View style={[styles.statusBadge, { backgroundColor: 'red' }]}>
@@ -999,6 +1022,21 @@ const styles = StyleSheet.create({
 walletIconLeft: {
   marginRight: 10,
 },
+
+doneButton: {
+  marginTop: 8,
+  backgroundColor: '#4CAF50',
+  paddingVertical: 5,
+  paddingHorizontal: 10,
+  borderRadius: 6,
+  alignSelf: 'flex-start',
+},
+doneButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+  fontSize: 12,
+},
+
   
 });
 

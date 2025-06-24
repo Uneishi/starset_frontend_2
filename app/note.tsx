@@ -1,28 +1,89 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useUser } from '@/context/userContext';
 import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import config from '../config.json';
 
 const NoteScreen = () => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { prestation } = route.params as any;
+
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [prestationData, setPrestation] = useState<any>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState('');
+  const [metiers, setMetiers] = useState([]);
+  const [account, setAccount] = useState<any>(null);
+  const [prestationImages, setPrestationImages] = useState([]);
+  const {user , setUser} = useUser()
 
-  const handleRating = (star : any) => {
-    setRating(star);
+  const getPrestation = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/get-prestation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prestation_id: prestation.prestation_id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      setPrestation(data.prestation);
+      
+      setMetiers(data.metiers);
+      setAccount(data.account);
+      setPrestationImages(data.images);
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la prestation :', error);
+    }
   };
 
-  const handleSubmit = () => {
-    console.log('Rating:', rating);
-    console.log('Comment:', comment);
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/planned-prestation/add-rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user?.id,
+          worker_id: prestation.worker_id,
+          prestation_id: prestation.prestation_id,
+          rating,
+          comment,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Échec de l’envoi de la note');
+
+      Alert.alert('Succès', 'Votre note a bien été enregistrée.', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (error) {
+      console.error('Erreur lors de l’envoi de la note :', error);
+      Alert.alert('Erreur', 'Impossible d’enregistrer la note.');
+    }
   };
+
+  useEffect(() => {
+    getPrestation();
+  }, []);
 
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: 'https://randomuser.me/api/portraits/women/43.jpg' }}
+        source={{ uri: prestation?.profile_picture_url || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' }}
         style={styles.avatar}
       />
-      <Text style={styles.title}>BABYSITTING</Text>
-      <Text style={styles.subtitle}>MARIE M</Text>
+      <Text style={styles.title}>{prestation?.metier || prestation.metier}</Text>
+      <Text style={styles.subtitle}>{account ? `${account.firstname} ${account.lastname}` : ''}</Text>
 
       <Text style={styles.sectionTitle}>APPRÉCIATION</Text>
       <View style={styles.tagsContainer}>
@@ -34,11 +95,11 @@ const NoteScreen = () => {
       <Text style={styles.sectionTitle}>NOTEZ LA PRESTATION</Text>
       <View style={styles.starsContainer}>
         {[1, 2, 3, 4, 5].map((star) => (
-          <TouchableOpacity key={star} onPress={() => handleRating(star)}>
+          <TouchableOpacity key={star} onPress={() => setRating(star)}>
             <FontAwesome
               name={star <= rating ? 'star' : 'star-o'}
               size={32}
-              color="black"
+              color={star <= rating ? '#FFD700' : 'gray'} // Jaune ou gris
             />
           </TouchableOpacity>
         ))}

@@ -222,59 +222,57 @@ const acceptConversation = async (conversation_id: string) => {
       )}
 
 
-<Modal
-  transparent={true}
-  animationType="slide"
-  visible={modalVisible}
-  onRequestClose={() => setModalVisible(false)}
->
-  <View style={styles.modalBackground}>
-    <View style={styles.modalContainer}>
-      <Text style={styles.modalTitle}>Demandes de conversation</Text>
+      <Modal
+        transparent={true}
+        animationType="slide"
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Demandes de conversation</Text>
 
-      {/* Afficher seulement les conversations non acceptées */}
-      <FlatList
-        data={conversations.filter((conv : any) => conv.accepted === false)}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.modalMessageItem}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image
-                source={{ uri: item.profile_picture_url }}
-                style={styles.profileImage}
-              />
-              <View style={{ marginLeft: 10, flex: 1 }}>
-                <Text style={styles.name}>{item.firstname}</Text>
-                <Text style={styles.message}>{item.message_text}</Text>
-              </View>
-            </View>
+            {/* Afficher seulement les conversations non acceptées */}
+            <FlatList
+              data={conversations.filter((conv : any) => conv.accepted === false)}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.modalMessageItem}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image
+                      source={{ uri: item.profile_picture_url }}
+                      style={styles.profileImage}
+                    />
+                    <View style={{ marginLeft: 10, flex: 1 }}>
+                      <Text style={styles.name}>{item.firstname}</Text>
+                      <Text style={styles.message}>{item.message_text}</Text>
+                    </View>
+                  </View>
 
-            <View style={styles.modalButtonsRow}>
-              <TouchableOpacity
-                style={styles.acceptButton}
-                onPress={() => acceptConversation(item.id)}
-              >
-                <Text style={styles.buttonText}>Accepter</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.rejectButton}
-                onPress={() => console.log('Refuser non implémenté')}
-              >
-                <Text style={styles.buttonText}>Refuser</Text>
-              </TouchableOpacity>
-            </View>
+                  <View style={styles.modalButtonsRow}>
+                    <TouchableOpacity
+                      style={styles.acceptButton}
+                      onPress={() => acceptConversation(item.id)}
+                    >
+                      <Text style={styles.buttonText}>Accepter</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.rejectButton}
+                      onPress={() => console.log('Refuser non implémenté')}
+                    >
+                      <Text style={styles.buttonText}>Refuser</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            />
+
+            <TouchableOpacity style={styles.modalClose} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalCloseText}>Fermer</Text>
+            </TouchableOpacity>
           </View>
-        )}
-      />
-
-      <TouchableOpacity style={styles.modalClose} onPress={() => setModalVisible(false)}>
-        <Text style={styles.modalCloseText}>Fermer</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
-
-
+        </View>
+      </Modal>
     </View>
   );
 };
