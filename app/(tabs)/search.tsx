@@ -85,9 +85,7 @@ const SearchScreen = () => {
         body: JSON.stringify({}),
       });
       const data = await response.json() 
-      console.log(1)
-      console.log(data)
-      console.log(data.prestations)
+      
       setPrestations(data.prestations);
     } catch (error) {
       console.error('Erreur lors de la récupération des prestations :', error);
@@ -140,49 +138,50 @@ const SearchScreen = () => {
     }
   };
 
-  const renderProfileItem = ({ item }: any) => (
-    <TouchableOpacity
-      style={styles.profileContainerList}
-      onPress={() => goToPrestationViewWithId(item.metiers[0]?.id)}
-    >
-      {item.profile_picture_url ? (
-      <Image source={{ uri: item.profile_picture_url }} style={styles.profileImage} />
-    ) : (
-      <Image source={{ uri: "https://static.vecteezy.com/ti/vecteur-libre/p1/7033146-icone-de-profil-login-head-icon-vectoriel.jpg"}} style={styles.profileImage} />
-    )}
-      <View style={styles.profileInfo}>
-        <View style={styles.nameAndRating}>
-          
-          <View>
-            <Text style={styles.profileName}>{item.firstname}</Text>
-            <Text style={styles.pseudo}>@{item.pseudo}</Text>
+  const renderProfileItem = ({ item }: any) => {
+    const fullStars = Math.floor(item.average_rating); // Nombre d’étoiles pleines
+    const emptyStars = 5 - fullStars; // Étoiles vides restantes
+  
+    return (
+      <TouchableOpacity
+        style={styles.profileContainerList}
+        onPress={() => goToPrestationViewWithId(item.metiers[0]?.id)}
+      >
+        {item.profile_picture_url ? (
+          <Image source={{ uri: item.profile_picture_url }} style={styles.profileImage} />
+        ) : (
+          <Image
+            source={{
+              uri: "https://static.vecteezy.com/ti/vecteur-libre/p1/7033146-icone-de-profil-login-head-icon-vectoriel.jpg",
+            }}
+            style={styles.profileImage}
+          />
+        )}
+  
+        <View style={styles.profileInfo}>
+          <View style={styles.nameAndRating}>
+            <View>
+              <Text style={styles.profileName}>{item.firstname}</Text>
+              <Text style={styles.pseudo}>@{item.pseudo}</Text>
+            </View>
+  
+            <View style={styles.ratingContainer}>
+              {[...Array(fullStars)].map((_, index) => (
+                <Ionicons key={`full-${index}`} name="star" size={16} color="gold" />
+              ))}
+              {[...Array(emptyStars)].map((_, index) => (
+                <Ionicons key={`empty-${index}`} name="star-outline" size={16} color="gray" />
+              ))}
+            </View>
           </View>
-          <View style={styles.ratingContainer}>
-          {[...Array(5)].map((_, index) => (
-            <Ionicons key={index} name="star" size={16} color="gold" />
-          ))}
+  
+          <View style={styles.profileDescriptionContainer}>
+            <Text style={styles.profileDescription}>{item.description}</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.profileDescriptionContainer}>
-        <Text style={styles.profileDescription}>
-          {item.description}
-        </Text>
-      </View>
-        
-        <View style={styles.profileCategories}>
-          {item.metiers.slice(0, 3).map((metier: any, index: any) => (
-            <View key={index} style={styles.categoryBadge}>
-              <Text style={styles.categoryText2}>{metier.name}</Text>
-            </View>
-          ))}
-          <View  style={styles.categoryBadge}>
-              <Text style={styles.categoryText2}>+</Text>
-            </View>
-        </View>
-        
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
   
   const renderMetierItem = ({ item }: any) => (
     <TouchableOpacity style={styles.metierContainer} onPress={() => goToSearchInHomeScreen(item.name)}>

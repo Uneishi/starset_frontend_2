@@ -144,6 +144,7 @@ const ChoosePrestationScreen = () => {
   );
 
   return (
+    
     <View style={styles.container}>
       <Text style={styles.header}>MES PRESTATIONS</Text>
       <FlatList
@@ -172,8 +173,7 @@ const ChoosePrestationScreen = () => {
                 <Icon name="arrow-back" size={24} color="#000" />
               </TouchableOpacity>
             )}
-
-
+            
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.closeIcon}

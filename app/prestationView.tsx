@@ -24,6 +24,7 @@ const PrestationViewScreen = () => {
   const [metiers, setMetiers] = useState<any>([]);
   const [prestation, setPrestation] = useState<any>({});
   const [prestationImages, setPrestationImages] = useState<any>([]);
+  const [comments , setComments] = useState<any>([])
   const [experiences, setExperiences] = useState([])
   const [certifications, setCertifications] = useState([])
   const [isDatePickerVisible, setDatePickerVisible] = useState(false); // State for the date picker modal
@@ -277,6 +278,7 @@ const PrestationViewScreen = () => {
       setMetiers(data.metiers)
       setAccount(data.account)
       setPrestationImages(data.images)
+      setComments(data.comments)
       
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
@@ -881,18 +883,18 @@ const unlikeImage = async (imageId: string) => {
 
       {/* Avis */}
       <View style={styles.reviewsContainer}>
-        <Text style={styles.avisHeader}>Avis ({reviews.length})</Text>
+        <Text style={styles.avisHeader}>Avis ({comments.length})</Text>
 
         <FlatList
-          data={reviews}
-          keyExtractor={(item : any) => item.id}
+          data={comments}
+          keyExtractor={(item : any) => item.comment}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.reviewsList}
           renderItem={({ item } : any) => (
             <View style={styles.reviewCard}>
-              <Text style={styles.reviewName}>{item.name}</Text>
-              <Text style={styles.reviewText}>{item.text}</Text>
+              <Text style={styles.reviewName}>{item.firstname} {item.lastname}</Text>
+              <Text style={styles.reviewText}>{item.comment}</Text>
             </View>
           )}
         />
