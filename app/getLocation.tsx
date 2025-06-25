@@ -1,52 +1,115 @@
-
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import config from '../config.json'; // Assurez-vous que votre clé API est stockée ici
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import config from '../config.json';
 
 const LocationPickerScreen = () => {
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState<any>(null);
+  const [suggestions, setSuggestions] = useState([]);
+
   const route = useRoute() as any;
-  const { email, password , preferredFields} = route.params || {};
+  const { email, password, preferredFields } = route.params || {};
   const navigation = useNavigation();
 
+  const searchAddress = async (text: string) => {
+    setAddress(text);
+    if (text.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+        text
+      )}&key=${config.googleApiKey}&language=fr&components=country:fr`;
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (json.status === 'OK') {
+        setSuggestions(json.predictions);
+      } else {
+        console.warn('Erreur API Google Places:', json.status);
+      }
+    } catch (err) {
+      console.error('Erreur fetch autocomplete:', err);
+    }
+  };
+
+  const getCoordinatesFromPlaceId = async (placeId: string) => {
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${config.googleApiKey}&language=fr`;
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (json.status === 'OK') {
+        const location = json.result.geometry.location;
+        setCoordinates(location);
+        console.log('📍 Coordonnées récupérées :', location);
+      } else {
+        console.warn('Erreur API Place Details:', json.status);
+      }
+    } catch (err) {
+      console.error('Erreur fetch détails:', err);
+    }
+  };
+
+  const handleSelect = async (item: any) => {
+    setAddress(item.description);
+    setSuggestions([]);
+    await getCoordinatesFromPlaceId(item.place_id);
+  };
+
   const getLocation = () => {
-    console.log(coordinates)
+    console.log(coordinates);
     navigation.navigate({
-        name: 'accountInfo',
-        params: {email : email, password : password, preferredFields : preferredFields, address : address, coordinates : coordinates },
-      } as never);
+      name: 'accountInfo',
+      params: {
+        email,
+        password,
+        preferredFields,
+        address,
+        coordinates,
+      },
+    } as never);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>entrer votre adresse postale (optionnel)</Text>
-      <Text style={styles.subTitle}>si vous n'ajoutez pas votre adresse vous ne pourrez commander que les services en distanciel</Text>
-      
-      <GooglePlacesAutocomplete
+      <Text style={styles.subTitle}>
+        si vous n'ajoutez pas votre adresse vous ne pourrez commander que les
+        services en distanciel
+      </Text>
+
+      <TextInput
+        style={styles.input}
+        value={address}
+        onChangeText={searchAddress}
         placeholder="Entrez votre adresse..."
-        fetchDetails={true}
-        onPress={(data : any, details : any = null) => {
-          setAddress(data.description);
-          setCoordinates(details?.geometry.location);
-        }}
-        query={{
-          key: config.googleApiKey,
-          language: 'fr',
-          components: 'country:fr',
-        }}
-        styles={{
-          textInput: styles.input,
-        }}
       />
-      
-      
-      <TouchableOpacity
-        style={styles.confirmButton}
-        onPress={getLocation}
-      >
+
+      <FlatList
+        data={suggestions}
+        keyExtractor={(item : any) => item.place_id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => handleSelect(item)}
+            style={styles.item}
+          >
+            <Text>{item.description}</Text>
+          </TouchableOpacity>
+        )}
+      />
+
+      <TouchableOpacity style={styles.confirmButton} onPress={getLocation}>
         <Text style={styles.buttonText}>Confirmer</Text>
       </TouchableOpacity>
     </View>
@@ -69,7 +132,6 @@ const styles = StyleSheet.create({
   },
   subTitle: {
     fontSize: 14,
-    
     marginBottom: 20,
     textAlign: 'center',
     color: 'black',
@@ -83,22 +145,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: 'white',
   },
-  resultContainer: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 5,
+  item: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
   },
-  resultText: {
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  result: {
-    fontSize: 16,
-    color: 'black',
-    marginTop: 5,
-  },
-
   confirmButton: {
     marginTop: 20,
     backgroundColor: '#70FF70',
@@ -110,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'black',
-    textAlign : 'center'
+    textAlign: 'center',
   },
 });
 

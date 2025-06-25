@@ -3,5 +3,6 @@
     "backendUrlLocalhost" : "http://localhost:3000",
     "backendUrlServer" : "http://109.176.199.54:3000",
     "secureBackendUrlServer" : "https://api.starsetfrance.com",
-    "googleApiKey" : "AIzaSyC_07oJe9HJiwO4X5uvqvyGBB8B5IggSZM"
+    "googleApiKey" : "AIzaSyC_07oJe9HJiwO4X5uvqvyGBB8B5IggSZM" ,
+    "googleApiKeyWrong" : "AIzaSyC_07oJe9HJiwO4X5uvqvyGBB8B5IggSZM"
 }
