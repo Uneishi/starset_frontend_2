@@ -13,7 +13,7 @@ const VerificationScreen = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const { user } = useUser();
   const route = useRoute() as any;
-  const { email, password} = route.params || {};
+  const [email, setEmail] = useState('');
 
   const navigation = useNavigation();
 
@@ -22,10 +22,14 @@ const VerificationScreen = () => {
     setCharCount(text.length);
   };
 
+  const handleEmailChange = (text: React.SetStateAction<string>) => {
+    setEmail(text);
+  };
+
   const sendCode = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${config.backendUrl}/api/auth/send-email-verification-code`, {
+      const response = await fetch(`${config.backendUrl}/api/auth/send-email-verification-code-if-exists`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -35,10 +39,17 @@ const VerificationScreen = () => {
       });
       if (!response.ok) throw new Error('Erreur réseau lors de l’envoi du code.');
       const data = await response.json();
-      console.log('Code envoyé par mail :', data);
-      setIsCodeSent(true);
-      setErrorMessage('');
-      setSuccessMessage('Un e-mail de vérification a été envoyé. Pensez à vérifier votre boîte spam !');
+      if(data.success == true)
+      {
+        console.log('Code envoyé par mail :', data);
+        setIsCodeSent(true);
+        setErrorMessage('');
+        setSuccessMessage('Un e-mail de vérification a été envoyé. Pensez à vérifier votre boîte spam !');
+      }
+      else
+      {
+        setErrorMessage('e-mail non valide');
+      }
     } catch (error) {
       setErrorMessage('Erreur lors de l’envoi de l’e-mail. Veuillez réessayer.');
       console.error(error);
@@ -68,8 +79,8 @@ const VerificationScreen = () => {
         setSuccessMessage(data.message || 'Adresse e-mail vérifiée avec succès !');
         setErrorMessage('');
         navigation.navigate({
-          name: 'selectFields',
-          params: { email: email, password: password },
+          name: 'index',
+          params: { email: email },
         } as never);
       }
     } catch (error) {
@@ -92,10 +103,13 @@ const VerificationScreen = () => {
             Pour sécuriser votre compte, nous avons besoin de vérifier votre adresse e-mail.
           </Text>
 
-          <Text style={styles.label}>
-            {isCodeSent ? 'Vous pouvez renvoyer un e-mail si besoin :' : `Envoyer un e-mail de vérification à ${email}`}
-          </Text>
-
+            <TextInput
+                  style={styles.input}
+                  onChangeText={handleEmailChange}
+                  placeholder="chapter@exemple.com"
+                  placeholderTextColor="#808080"
+                />
+          {<Text style={styles.errorText}>{errorMessage}</Text>}
           {!isCodeSent ? (
             <TouchableOpacity
               style={styles.sendButton}

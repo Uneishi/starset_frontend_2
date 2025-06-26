@@ -10,7 +10,7 @@ import config from '../config.json';
 const AccountInfoScreen = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [birthDate, setBirthDate] = useState<any>(null);
+  const [birthDate, setBirthDate] = useState<any>(new Date());
   
   const [phoneNumber, setPhoneNumber] = useState('');
   const phoneInputRef = useRef<PhoneInput>(null);
@@ -134,7 +134,7 @@ const AccountInfoScreen = () => {
           style={styles.birth}
           placeholder="Date de naissance"
           placeholderTextColor="#808080"
-          value={birthDate.toLocaleDateString()}
+          value={birthDate.toLocaleDateString("fr-FR")}
           editable={false}
         />
       </TouchableOpacity>
