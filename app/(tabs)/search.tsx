@@ -141,6 +141,7 @@ const SearchScreen = () => {
   const renderProfileItem = ({ item }: any) => {
     const fullStars = Math.floor(item.average_rating); // Nombre d’étoiles pleines
     const emptyStars = 5 - fullStars; // Étoiles vides restantes
+    const showStars = item.average_rating !== null && item.average_rating !== undefined && item.average_rating > 0;
   
     return (
       <TouchableOpacity
@@ -165,14 +166,16 @@ const SearchScreen = () => {
               <Text style={styles.pseudo}>@{item.pseudo}</Text>
             </View>
   
-            <View style={styles.ratingContainer}>
-              {[...Array(fullStars)].map((_, index) => (
-                <Ionicons key={`full-${index}`} name="star" size={16} color="gold" />
-              ))}
-              {[...Array(emptyStars)].map((_, index) => (
-                <Ionicons key={`empty-${index}`} name="star-outline" size={16} color="gray" />
-              ))}
-            </View>
+            {showStars && (
+              <View style={styles.ratingContainer}>
+                {[...Array(fullStars)].map((_, index) => (
+                  <Ionicons key={`full-${index}`} name="star" size={16} color="gold" />
+                ))}
+                {[...Array(emptyStars)].map((_, index) => (
+                  <Ionicons key={`empty-${index}`} name="star-outline" size={16} color="gray" />
+                ))}
+              </View>
+            )}
           </View>
   
           <View style={styles.profileDescriptionContainer}>

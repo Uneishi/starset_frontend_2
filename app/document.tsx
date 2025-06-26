@@ -1,9 +1,44 @@
 import { useUser } from '@/context/userContext';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useEffect, useState } from 'react';
-import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
+
+const SkeletonDoc = () => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(shimmerAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const translateX = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-100, 300],
+  });
+
+  return (
+    <View style={[styles.docButton, styles.skeletonDoc, { backgroundColor: '#DDD', overflow: 'hidden' }]}>
+      <Animated.View
+        style={[
+          {
+            height: 20,
+            width: '100%',
+            backgroundColor: 'rgba(255,255,255,0.4)',
+            position: 'absolute',
+            transform: [{ translateX }],
+          },
+        ]}
+      />
+    </View>
+  );
+};
 
 const DocumentsScreen = () => {
   const { user } = useUser();
@@ -21,23 +56,28 @@ const DocumentsScreen = () => {
   const [mandatoryWorkerDocs, setMandatoryWorkerDocs] = useState<any[]>([]);
   const [recommendedWorkerDocs, setRecommendedWorkerDocs] = useState<any[]>([]);
   const [allDocTypes, setAllDocTypes] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchWorkerDocs = async () => {
     try {
+      setIsLoading(true); // démarrer le chargement
       const res = await fetch(`${config.backendUrl}/api/mission/get-worker-document`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ worker_id }),
       });
-
+  
       const data = await res.json();
-
+  
       setMandatoryWorkerDocs(data.mandatory_documents || []);
       setRecommendedWorkerDocs(data.recommended_documents || []);
     } catch (err) {
       console.error('Erreur lors du chargement des documents :', err);
+    } finally {
+      setIsLoading(false); // fin du chargement
     }
   };
+  
 
   const fetchAllDocTypes = async () => {
     const allDocRes = await fetch(`${config.backendUrl}/api/mission/get-all-unique-document`, {
@@ -153,16 +193,22 @@ const DocumentsScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.sectionTitle}>DOCUMENTS OBLIGATOIRES</Text>
-      {mandatoryWorkerDocs.length === 0 && (
+      {isLoading ? (
+        Array.from({ length: 3 }).map((_, i) => <SkeletonDoc key={`mand-${i}`} />)
+      ) : mandatoryWorkerDocs.length === 0 ? (
         <Text>Aucun document obligatoire envoyé.</Text>
+      ) : (
+        mandatoryWorkerDocs.map(doc => renderDocument(doc, true))
       )}
-      {mandatoryWorkerDocs.map(doc => renderDocument(doc, true))}
 
       <Text style={[styles.sectionTitle, { marginTop: 30 }]}>DOCUMENTS RECOMMANDÉS</Text>
-      {recommendedWorkerDocs.length === 0 && (
+      {isLoading ? (
+        Array.from({ length: 2 }).map((_, i) => <SkeletonDoc key={`rec-${i}`} />)
+      ) : recommendedWorkerDocs.length === 0 ? (
         <Text>Aucun document recommandé envoyé.</Text>
+      ) : (
+        recommendedWorkerDocs.map(doc => renderDocument(doc, false))
       )}
-      {recommendedWorkerDocs.map(doc => renderDocument(doc, false))}
 
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>AJOUTER UN DOCUMENT</Text>
@@ -308,6 +354,13 @@ const styles = StyleSheet.create({
   recommendedMissingButton: {
     backgroundColor: '#EF3E3E', // rouge pour doc recommandé manquant
   },
+
+  skeletonDoc: {
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: '#DDD',
+  marginBottom: 10,
+},
 });
 
 export default DocumentsScreen;
