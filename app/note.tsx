@@ -28,6 +28,7 @@ const NoteScreen = () => {
   const [prestation, setPrestation] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
   const { user } = useUser();
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const getPrestation = async () => {
     try {
@@ -45,6 +46,26 @@ const NoteScreen = () => {
     } catch (error) {
       console.error('Erreur lors de la récupération de la prestation :', error);
     }
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const renderTagItem = (tag: string) => {
+    const isSelected = selectedTags.includes(tag);
+  
+    return (
+      <TouchableOpacity
+        key={tag}
+        onPress={() => toggleTag(tag)}
+        style={[styles.tag, isSelected && styles.tagSelected]}
+      >
+        <Text style={{ color: 'black' }}>{tag}</Text>
+      </TouchableOpacity>
+    );
   };
 
   const handleSubmit = async () => {
@@ -79,7 +100,7 @@ const NoteScreen = () => {
   }, []);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{ flex: 1 }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -101,9 +122,7 @@ const NoteScreen = () => {
 
           <Text style={styles.sectionTitle}>APPRÉCIATION</Text>
           <View style={styles.tagsContainer}>
-            <Text style={styles.tag}>GÉNÉREUSE</Text>
-            <Text style={styles.tag}>DYNAMIQUE</Text>
-            <Text style={styles.tag}>PONCTUELLE</Text>
+            {['GÉNÉREUSE', 'DYNAMIQUE', 'PONCTUELLE'].map(renderTagItem)}
           </View>
 
           <Text style={styles.sectionTitle}>NOTEZ LA PRESTATION</Text>
@@ -181,6 +200,12 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     fontSize: 12,
   },
+
+  tagSelected: {
+    borderColor: '#00cc44',
+    borderWidth: 2,
+  },
+
   starsContainer: {
     flexDirection: 'row',
     marginBottom: 20,
