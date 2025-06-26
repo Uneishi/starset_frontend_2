@@ -1,6 +1,7 @@
+import { useUser } from '@/context/userContext';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +23,7 @@ const AccountScreen = () => {
   const [statusFilter, setStatusFilter] = useState<any>('waiting');
   const [selectedStatusTitle, setSelectedStatusTitle] = useState('');
   const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const { user, setUser } = useUser()
 
   const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
     'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -167,12 +169,19 @@ const AccountScreen = () => {
   const confirmLogout = async () => {
     // Logique pour déconnecter l'utilisateur
     // Ici, vous pouvez effacer les informations d'authentification, par exemple.
-    await AsyncStorage.removeItem('account_id');
-    await AsyncStorage.removeItem('worker_id');
-    await AsyncStorage.removeItem('firstname');
-    await AsyncStorage.removeItem('lastname');
-    navigation.navigate('connexion' as never);
+    await AsyncStorage.clear();
+    setUser({}); // ou {} selon ta logique
+    
     setIsModalVisible(false);
+
+   
+
+navigation.dispatch(
+  CommonActions.reset({
+    index: 0,
+    routes: [{ name: 'connexion' }],
+  })
+);
   };
 
   const openHistoryModal = async () => {
@@ -1041,3 +1050,5 @@ doneButtonText: {
 });
 
 export default AccountScreen;
+
+

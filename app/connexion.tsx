@@ -1,12 +1,11 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, GestureResponderEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState } from 'react';
-import { router } from 'expo-router';
-import config from '../config.json';
 import { useUser } from '@/context/userContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import config from '../config.json';
 
 const ConnexionScreen = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +14,8 @@ const ConnexionScreen = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
   const { setUser } = useUser()
+
+  console.log(123)
   
 
   const handleEmailChange = (text: React.SetStateAction<string>) => {
@@ -109,6 +110,26 @@ const ConnexionScreen = () => {
 
   const isFormValid = email.length > 0 && password.length > 0;
 
+  useEffect(() => {
+    console.log("email:", email, "password:", password);
+    console.log("form is valid:", isFormValid);
+  }, [email, password]);
+
+  useEffect(() => {
+  const unsubscribe = navigation.addListener('focus', () => {
+    setEmail('');
+    setPassword('');
+    setErrorMessage('');
+    console.log('Navigation focus: reset state');
+  });
+
+  return () => {
+    console.log('Cleaning up navigation listener');
+    unsubscribe();
+  };
+}, [navigation]);
+
+
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}></View>
@@ -125,6 +146,7 @@ const ConnexionScreen = () => {
         onChangeText={handleEmailChange}
         placeholder="chapter@exemple.com"
         placeholderTextColor="#808080"
+        value = {email}
       />
       
       <View style={styles.passwordContainer}>
@@ -134,6 +156,7 @@ const ConnexionScreen = () => {
           placeholder="Mot de passe"
           placeholderTextColor="#808080"
           secureTextEntry={true}
+          value = { password }
         />
         <TouchableOpacity onPress={goToForgotPassword} style={styles.forgotPassword}>
           <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
