@@ -30,7 +30,6 @@ const VerificationScreen = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          
           email : email,
         }),
       });
@@ -76,8 +75,8 @@ const VerificationScreen = () => {
         setSuccessMessage(data.message || 'Adresse e-mail vérifiée avec succès !');
         setErrorMessage('');
         navigation.navigate({
-          name: 'account',
-          params: { email: email },
+           name: '(tabs)',
+          params: { screen: 'home' },
         } as never);
       }
     } catch (error) {
