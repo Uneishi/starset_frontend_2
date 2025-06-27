@@ -1,7 +1,7 @@
 import { useUser } from '@/context/userContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
@@ -15,12 +15,21 @@ const AccountWorkerScreen = () => {
 
   const changeToUser = async () => {
     saveMode('user')
-    
-    navigation.navigate({
+
+    navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{
       name: '(tabs)',
       params: { screen: 'account' },
-    } as never);
+    }],
+  })
+  );
+    
+    
   }
+
+  
 
   const goToProfilePicture = async () => {
     navigation.navigate('modifyAccount' as never);
