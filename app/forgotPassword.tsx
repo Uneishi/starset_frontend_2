@@ -1,5 +1,4 @@
-import { useUser } from '@/context/userContext';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import config from '../config.json';
@@ -11,8 +10,6 @@ const VerificationScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const { user } = useUser();
-  const route = useRoute() as any;
   const [email, setEmail] = useState('');
 
   const navigation = useNavigation();
@@ -79,7 +76,7 @@ const VerificationScreen = () => {
         setSuccessMessage(data.message || 'Adresse e-mail vérifiée avec succès !');
         setErrorMessage('');
         navigation.navigate({
-          name: 'index',
+          name: 'account',
           params: { email: email },
         } as never);
       }
