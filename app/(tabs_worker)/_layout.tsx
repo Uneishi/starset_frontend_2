@@ -1,23 +1,14 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import JobsScreen from './jobs';
-import ConversationScreen from './conversation';
-import AccountWorkerScreen from './account_worker';
-import CroissanceScreen from './croissance';
-import { Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import AddJobScreen from './addJob';
-import { Image } from 'react-native';
-import { useState } from 'react';
-import { Modal, View, Text, StyleSheet } from 'react-native';
-import { Pressable } from 'react-native';
-import { Tabs } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import { Tabs } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 
 const Tab = createBottomTabNavigator();
@@ -33,12 +24,22 @@ export default function TabNavigator() {
     const navigation = useNavigation();
     const colorScheme = useColorScheme();
     
-    const goToUserTabs = async () => {
-      navigation.navigate('(tabs)' as never);
+    const goToUserTabs = () => {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: '(tabs)' }],
+        })
+      );
     };
-  
-    const goToWorkerTabs = async () => {
-      navigation.navigate('(tabs_worker)' as never);
+
+    const goToWorkerTabs = () => {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: '(tabs_worker)' }],
+        })
+      );
     };
 
 

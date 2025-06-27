@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useAllWorkerPrestation, useUser } from '@/context/userContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import config from '../config.json';
 import { Image } from 'expo-image';
-import { useUser } from '@/context/userContext';
-import { useAllWorkerPrestation } from '@/context/userContext';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import config from '../config.json';
 
 const StarsetScreen = () => {
   const [progress, setProgress] = useState(0);
@@ -48,65 +47,83 @@ const StarsetScreen = () => {
   };
 
   const getProfile = async () => {
-    try {
-      const accountId = await getAccountId();
-      if (!accountId) {
-        navigation.navigate('connexion' as never);
-        return;
-      }
-  
-      const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId }),
-      });
-  
-      if (!response.ok) throw new Error('Erreur de réseau');
-  
-      const data = await response.json();
-      console.log('Utilisateur chargé:', data.account);
-  
-      setUser(data.account); // Met à jour le contexte utilisateur
-      // 🚨 Redirection ici selon verified
-      if (!data.account.verified) {
-        navigation.navigate('(tabs)' as never);
-      } else {
-        navigation.navigate('(tabs)' as never);
-      }
-  
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
+  try {
+    const accountId = await getAccountId();
+
+    if (!accountId) {
+      await AsyncStorage.clear(); // 🔐 Nettoie les données corrompues
+      navigation.navigate('connexion' as never);
+      return;
     }
-  };
+
+    const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accountId }),
+    });
+
+    if (!response.ok) throw new Error('Erreur réseau');
+
+    const data = await response.json();
+
+    if (!data.account || !data.account.id) {
+      // Cas où le compte n'existe plus côté backend
+      console.warn('Compte invalide ou supprimé');
+      await AsyncStorage.clear();
+      navigation.navigate('connexion' as never);
+      return;
+    }
+
+    console.log('Utilisateur chargé :', data.account);
+    setUser(data.account); // ✅ Met à jour le contexte
+
+    if (!data.account.verified) {
+      // Redirection vers la vérification email
+      navigation.navigate('connexion' as never);
+    } else {
+      // Redirection normale vers la home
+      navigation.navigate('(tabs)' as never);
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement du profil :', error);
+    await AsyncStorage.clear(); // Sécurité en cas d'erreur fatale
+    navigation.navigate('connexion' as never);
+  }
+};
+
 
   useEffect(() => {
+  let interval: any;
+  let gifTimeout: any;
+  let hasLoaded = false;
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev < 100) {
-          return prev + 25; // Increment de 12.5% à chaque seconde
-        } else {
-          clearInterval(interval);
-          getProfile()
-          getAllWorkerPrestation()
-          return prev;
+  interval = setInterval(() => {
+    setProgress((prev) => {
+      if (prev < 100) {
+        return prev + 25;
+      } else {
+        clearInterval(interval);
+
+        if (!hasLoaded) {
+          hasLoaded = true; // ✅ stop les appels multiples
+          getProfile();
+          getAllWorkerPrestation();
         }
-      });
-    }, 1000);
 
-    return () => clearInterval(interval);
+        return prev;
+      }
+    });
+  }, 1000);
 
+  gifTimeout = setTimeout(() => {
+    setShowGif(false);
+  }, 3000);
 
-    // Remplace le GIF par une image statique après 3 secondes
-    const gifTimeout = setTimeout(() => {
-      setShowGif(false);
-    }, 3000); // 3000 ms = 3 secondes (ajuste selon la durée de ton GIF)
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(gifTimeout);
-    };
-  }, [navigation]);
+  return () => {
+    clearInterval(interval);
+    clearTimeout(gifTimeout);
+  };
+}, [navigation]);
 
   return (
     <View style={styles.container}>

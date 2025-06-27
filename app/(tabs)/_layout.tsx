@@ -1,20 +1,14 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
-import { Image } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Modal, View, Text, StyleSheet } from 'react-native';
-import { Pressable } from 'react-native';
+import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import {  BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
+import { Tabs } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -24,12 +18,22 @@ export default function TabLayout() {
       BebasNeue: BebasNeue_400Regular,
   });
   
-  const goToUserTabs = async () => {
-    navigation.navigate('(tabs)' as never);
+  const goToUserTabs = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: '(tabs)' }],
+      })
+    );
   };
 
-  const goToWorkerTabs = async () => {
-    navigation.navigate('(tabs_worker)' as never);
+  const goToWorkerTabs = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: '(tabs_worker)' }],
+      })
+    );
   };
 
   function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string; }) {
