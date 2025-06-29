@@ -10,7 +10,8 @@ import config from '../config.json';
 const AccountInfoScreen = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [birthDate, setBirthDate] = useState<any>(new Date());
+  
+  const [birthDate, setBirthDate] = useState(new Date(2025, 0, 1));
   
   const [phoneNumber, setPhoneNumber] = useState('');
   const phoneInputRef = useRef<PhoneInput>(null);
@@ -134,14 +135,14 @@ const AccountInfoScreen = () => {
           style={styles.birth}
           placeholder="Date de naissance"
           placeholderTextColor="#808080"
-          value={birthDate.toLocaleDateString("fr-FR")}
+          value={birthDate ? birthDate.toLocaleDateString() : ''}
           editable={false}
         />
       </TouchableOpacity>
 
       {showDatePicker && (
         <DateTimePicker
-          value={birthDate}
+          value={birthDate || new Date(2025, 0, 1)} // valeur par défaut
           mode="date"
           display="spinner"
           onChange={onChangeDate}
