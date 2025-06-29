@@ -1,3 +1,5 @@
+import { useUser } from '@/context/userContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
@@ -11,6 +13,7 @@ const VerificationScreen = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [email, setEmail] = useState('');
+  const { setUser } = useUser()
 
   const navigation = useNavigation();
 
@@ -30,6 +33,7 @@ const VerificationScreen = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          
           email : email,
         }),
       });
@@ -54,6 +58,40 @@ const VerificationScreen = () => {
     }
   };
 
+const getProfile = async (accountId :any) => {
+    try {
+      
+      if (!accountId) return;
+
+      const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+
+      if (!response.ok) throw new Error('Erreur de réseau');
+
+      const data = await response.json();
+      console.log('Utilisateur chargé:', data.account);
+      saveData(data.account);
+      setUser(data.account); // Met à jour le contexte utilisateur
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+    }
+};
+const saveData = async (account: any) => {
+    try {
+      console.log(account)
+      await AsyncStorage.setItem('account_id', account['id']);
+      await AsyncStorage.setItem('worker_id', account['worker']);
+      await AsyncStorage.setItem('firstname', account['firstname']);
+      await AsyncStorage.setItem('lastname', account['lastname']);
+    } catch (e) {
+      // gérer les erreurs de stockage ici
+      console.error('Erreur lors de la sauvegarde du type de compte', e);
+    }
+};
+
   const verifyCode = async () => {
     if (verificationCode.length !== 6) {
       setErrorMessage('Le code de vérification doit contenir 6 chiffres.');
@@ -61,7 +99,7 @@ const VerificationScreen = () => {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(`${config.backendUrl}/api/auth/verify-code`, {
+      const response = await fetch(`${config.backendUrl}/api/auth/verify-code-and-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: verificationCode, contact_value : email }),
@@ -74,6 +112,7 @@ const VerificationScreen = () => {
       } else {
         setSuccessMessage(data.message || 'Adresse e-mail vérifiée avec succès !');
         setErrorMessage('');
+        getProfile(data.id)
         navigation.navigate({
            name: '(tabs)',
           params: { screen: 'home' },

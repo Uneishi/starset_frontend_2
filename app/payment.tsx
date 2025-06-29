@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 
 const PaymentScreen = () => {
@@ -113,6 +113,19 @@ const PaymentScreen = () => {
       })}
 
       <View style={styles.separator} />
+
+      <TextInput
+        placeholder="Numero"
+        placeholderTextColor="#808080"
+      />
+            
+      <TextInput
+        placeholder="CVC"
+        placeholderTextColor="#808080"
+        secureTextEntry={true}
+      />      
+
+    <View style={styles.separator} />
 
       <Text style={styles.totalText}>Total global : {parseFloat(totalRemuneration).toFixed(2)} €</Text>
 
