@@ -1,4 +1,0 @@
-export default {
-    PUBLISHABLE_KEY: "pk_live_51QhAaYAVD111mkgnul8AiwBrsQduEAU5cf3ir7aNlDwfLkExrfcqGvjnET25435C2WkHrRzdYFal1rzRbYtmUCm500WHPu2lzv",
-    PUBLISHABLE_KEY_TEST: "pk_test_51QhAaYAVD111mkgn6K7YTlVYj4VZUKi6vb3j4xHIGcgxUgGEcPoJ34pxGca9XJIbeTwDmraHaAfo7LtBnh19Sggy00D7gjtYhJ",
-};

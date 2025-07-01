@@ -4,7 +4,6 @@ import { StripeProvider, usePaymentSheet } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
-import Stripe from '../constants/Stripe';
 
 const PaymentScreen = () => {
   const route = useRoute() as any;
@@ -50,11 +49,14 @@ const PaymentScreen = () => {
     };
 
     const fetchPaymentSheetParams = async () =>{
-      const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
+      const response = await fetch(`${config.backendUrl}/api/stripe/create-payment-sheet`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          user_id: getAccountId(),
+          items: [{amount: totalRemuneration}]})
       });
 
       const {paymentIntent, ephemeralKey, customer} = await response.json();
@@ -72,7 +74,7 @@ const PaymentScreen = () => {
       return;
     }
 
-    const paymentSheet = await presentPaymentSheet();
+    
 
     setIsLoading(true);
 
@@ -122,12 +124,15 @@ const PaymentScreen = () => {
           throw new Error(`Erreur lors de la création de la prestation ${prestation.metier}`);
         }
       }
-      
+
       setIsLoading(false);
+      const {error} = await presentPaymentSheet();
+      setReady(false);
       Alert.alert('Succès', 'Le paiement et les prestations ont bien été enregistrés.');
       navigation.navigate('validation' as never);
     } catch (error) {
       setIsLoading(false);
+      setReady(false);
       console.error('Erreur paiement :', error);
       Alert.alert('Erreur', 'Impossible de valider le paiement. Vérifiez votre connexion.');
     }
@@ -138,7 +143,7 @@ const PaymentScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.headerText}>Paiement</Text>
       <StripeProvider
-        publishableKey={Stripe.PUBLISHABLE_KEY_TEST}
+        publishableKey={config.publishableKeyTest}
       >
       {cart.map((item: any, index: number) => {
         const {
@@ -164,9 +169,6 @@ const PaymentScreen = () => {
       <View style={styles.separator} />
 
       <Text style={styles.totalText}>Total global : {parseFloat(totalRemuneration).toFixed(2)} €</Text>
-
-      <View style={styles.separator} />
-
       
       <TouchableOpacity
         style={[styles.button, isLoading && { backgroundColor: '#666' }]}
