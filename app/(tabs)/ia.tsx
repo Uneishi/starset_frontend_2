@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import ProfileCard from '../../components/ProfileCard';
 import config from '../../config.json';
 
 const AiScreen = () => {
@@ -88,9 +89,20 @@ const AiScreen = () => {
       });
 
       const response_json = await response.json();
-      const data = response_json.data;
+      const { response: responseText, workers } = response_json;
 
-      setMessages((prevMessages) => prevMessages.concat(data.message));
+      // Ajoute d'abord le message textuel
+      setMessages(prevMessages => [
+        ...prevMessages,
+        {
+          message_text: responseText,
+          sended_by_user: false,
+          workers : workers
+        },
+      ]);
+
+      // Ensuite ajoute une "carte" spéciale contenant les workers
+      
     } catch (error) {
       console.error('Erreur lors de l’envoi du message IA:', error);
     }
@@ -122,24 +134,34 @@ const AiScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           {messages.map((message, index) => (
+          <View
+            key={index}
+            style={[
+              styles.messageBubble,
+              message.sended_by_user ? styles.myMessage : styles.otherMessage,
+            ]}
+          >
             <View
-              key={index}
-              style={[
-                styles.messageBubble,
-                message.sended_by_user ? styles.myMessage : styles.otherMessage,
-              ]}
+              style={
+                message.sended_by_user
+                  ? styles.myTextWrapper
+                  : styles.otherTextWrapper
+              }
             >
-              <View
-                style={
-                  message.sended_by_user
-                    ? styles.myTextWrapper
-                    : styles.otherTextWrapper
-                }
-              >
-                <Text style={styles.messageText}>{message.message_text}</Text>
-              </View>
+              <Text style={styles.messageText}>{message.message_text}</Text>
             </View>
-          ))}
+
+            {/* Affichage conditionnel des workers */}
+            {message.workers?.length > 0 && (
+              <View style={{ marginTop: 10, gap: 10 }}>
+                {message.workers.map((worker: any, i: number) => (
+                  <ProfileCard key={i} item={worker} />
+                ))}
+              </View>
+            )}
+          </View>
+        ))}
+
           {loading && (
             <View style={[styles.messageBubble, styles.otherMessage]}>
               <Animated.View
@@ -213,7 +235,7 @@ const styles = StyleSheet.create({
     maxWidth: '70%',
   },
   otherTextWrapper: {
-    backgroundColor: '#000',
+    backgroundColor: 'blue',
     padding: 10,
     borderRadius: 20,
     maxWidth: '70%',
@@ -266,7 +288,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: 10,
   },
-  
 });
 
 export default AiScreen;
