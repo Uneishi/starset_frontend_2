@@ -88,14 +88,18 @@ const AiScreen = () => {
         body: JSON.stringify({ user_id, message_text: newMessage }),
       });
 
-      const response_json = await response.json();
-      const { response: responseText, workers } = response_json;
+      const response_json: any  = await response.json();
+      const data = response_json.data
+      console.log(data)
+      const messageText = data.response
+      const workers = data.workers
 
+      console.log 
       // Ajoute d'abord le message textuel
       setMessages(prevMessages => [
         ...prevMessages,
         {
-          message_text: responseText,
+          message_text: messageText,
           sended_by_user: false,
           workers : workers
         },
@@ -129,8 +133,8 @@ const AiScreen = () => {
 
         {/* Messages */}
         <ScrollView
-          style={{ flex: 1, width: '100%' }}
-          contentContainerStyle={[styles.messageContainer, { paddingBottom: 20 }]}
+          
+          style={[styles.messageContainer]}
           keyboardShouldPersistTaps="handled"
         >
           {messages.map((message, index) => (
@@ -218,15 +222,15 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     flex: 1,
-    alignItems: 'flex-start',
-    width: '100%',
     paddingHorizontal: 20,
-    marginTop: 30,
+    marginBottom: 10,
   },
   messageBubble: {
     borderRadius: 20,
     padding: 10,
     marginVertical: 2,
+    width : '100%',
+   
   },
   myTextWrapper: {
     backgroundColor: '#FFEB3B',
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
     maxWidth: '70%',
   },
   otherTextWrapper: {
-    backgroundColor: 'blue',
+    backgroundColor: 'white',
     padding: 10,
     borderRadius: 20,
     maxWidth: '70%',
