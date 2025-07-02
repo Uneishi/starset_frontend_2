@@ -1,20 +1,29 @@
-// components/ProfileCard.tsx
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ProfileCardProps {
   item: any;
-  onPress: () => void;
 }
 
-const ProfileCard = ({ item, onPress }: ProfileCardProps) => {
+const ProfileCard = ({ item }: ProfileCardProps) => {
+  const navigation = useNavigation();
+
+  const goToPrestationViewWithId = (id: any) => {
+    console.log('Navigating to prestationView with id:', id);
+    navigation.navigate({
+      name: 'prestationView',
+      params: { id },
+    } as never);
+  };
+
   const fullStars = Math.floor(item.average_rating);
   const emptyStars = 5 - fullStars;
   const showStars = item.average_rating !== null && item.average_rating !== undefined && item.average_rating > 0;
 
   return (
-    <TouchableOpacity style={styles.profileContainerList} onPress={onPress}>
+    <TouchableOpacity style={styles.profileContainerList} onPress={() => goToPrestationViewWithId(item.worker_id)}>
       <Image
         source={{
           uri:
