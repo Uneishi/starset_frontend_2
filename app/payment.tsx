@@ -56,11 +56,10 @@ const PaymentScreen = () => {
         },
         body: JSON.stringify({
           user_id: getAccountId(),
-          items: [{amount: totalRemuneration}]})
+          items: [{amount: totalRemuneration*100}]})
       });
 
       const {paymentIntent, ephemeralKey, customer} = await response.json();
-
       return {
         paymentIntent,
         ephemeralKey,
@@ -74,10 +73,11 @@ const PaymentScreen = () => {
       return;
     }
 
-    
-
     setIsLoading(true);
-
+   const {error} = await presentPaymentSheet();
+   if (error){
+    Alert.alert(`Error code: ${error.code}`, error.message);
+   }
     try {
       const user_id = await getAccountId();
 
@@ -95,9 +95,6 @@ const PaymentScreen = () => {
           instruction,
           profilePictureUrl
         } = item;
-
-        console.log("prestation")
-        console.log(prestation)
 
         const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
           method: 'POST',
@@ -126,7 +123,6 @@ const PaymentScreen = () => {
       }
 
       setIsLoading(false);
-      const {error} = await presentPaymentSheet();
       setReady(false);
       Alert.alert('Succès', 'Le paiement et les prestations ont bien été enregistrés.');
       navigation.navigate('validation' as never);
