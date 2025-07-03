@@ -166,13 +166,14 @@ const AiScreen = () => {
           </View>
         ))}
 
-          {loading && (
-            <View style={[styles.messageBubble, styles.otherMessage]}>
-              <Animated.View
-                style={[styles.animatedLoading, { transform: [{ rotate: spin }] }]}
-              />
-            </View>
-          )}
+        {loading && (
+          <View style={[styles.messageBubble2, styles.otherMessage]}>
+            <Animated.View style={[styles.customLoader, { transform: [{ rotate: spin }] }]}>
+              <View style={styles.innerSquare} />
+            </Animated.View>
+          </View>
+        )}
+
         </ScrollView>
 
         {/* Input + bouton */}
@@ -230,6 +231,14 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 2,
     width : '100%',
+   
+  },
+
+  messageBubble2: {
+    borderRadius: 20,
+    padding: 10,
+    marginVertical: 2,
+    
    
   },
   myTextWrapper: {
@@ -291,6 +300,25 @@ const styles = StyleSheet.create({
   otherMessage: {
     alignSelf: 'flex-start',
     marginLeft: 10,
+  },
+
+  customLoader: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 4,
+    borderColor: 'rgba(0, 128, 0, 0.4)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
+    marginVertical: 5,
+  },
+  
+  innerSquare: {
+    width: 20,
+    height: 20,
+    backgroundColor: '#008000',
+    borderRadius: 4,
   },
 });
 
