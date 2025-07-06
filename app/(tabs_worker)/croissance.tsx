@@ -168,11 +168,17 @@ const CroissanceScreen = () => {
             {/* Autres informations */}
             <Text style={styles.sectionTitle}>MISSIONS</Text>
             {/* Missions */}
-            {selectedJob?.missions?.map((mission : any, index : any) => (
-              <Text key={index} style={styles.missionItem}>
-                • {mission}
-              </Text>
-            ))}
+            {selectedJob?.mission ? (
+              selectedJob.mission
+                .split('/')
+                .map((m: string) => m.trim())
+                .filter(Boolean)
+                .map((mission: string, index: number) => (
+                  <Text key={index} style={styles.missionItem}>• {mission}</Text>
+                ))
+            ) : (
+              <Text style={styles.missionItem}>Aucune mission renseignée.</Text>
+            )}
 
             {/* Bouton fermer */}
             <TouchableOpacity

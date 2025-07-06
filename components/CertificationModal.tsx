@@ -59,7 +59,7 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent style={styles.modal}>
       <View style={styles.overlay}>
         <ScrollView contentContainerStyle={styles.container}>
           <TouchableOpacity onPress={onClose} style={styles.closeIcon}>
@@ -151,18 +151,17 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // fond semi-transparent
     justifyContent: 'center',
     alignItems: 'center',
+    height : "100%"
   },
 
-  modalBox: {
+  modal: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    width: '90%',
-    maxHeight: '90%',
+    height : "100%"
+    
   },
   container: {
     backgroundColor: '#fff',
@@ -170,10 +169,17 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '90%',
     maxHeight: '90%',
+    alignSelf : "center",
+    marginTop : 60
+    
   },
   closeIcon: {
     alignSelf: 'flex-end',
     padding: 10,
+    position : "absolute",
+    top : 5,
+    right : 5
+
   },
   title: {
     fontSize: 20,

@@ -235,8 +235,9 @@ const PrestationScreen = () => {
               setEditModalVisible(false);
               setSelectedItem(null);
               Alert.alert('Succès', `${editType} supprimée.`);
-            } catch (error) {
-              Alert.alert('Erreur', `Impossible de supprimer la ${editType}.`);
+            } catch (error : any) {
+              Alert.alert('Erreur', `Impossible de supprimer la ${editType}. `);
+              console.log(error?.message)
             }
           },
         },
@@ -916,7 +917,7 @@ const PrestationScreen = () => {
         </View>
         {isEditing ? (
           <TouchableOpacity onPress={handleSaveDescription}>
-            <MaterialIcons name="check" size={24} color="green" />
+            <MaterialIcons name="check" size={30} color="green" />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={handleEditDescription}>
@@ -924,6 +925,8 @@ const PrestationScreen = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      
       
       <Text style={styles.characterCount}>{maxDescriptionLength - description.length} caractères</Text>
       <View style={{ marginVertical: 20 }}>
@@ -1113,10 +1116,11 @@ const PrestationScreen = () => {
               title="Modifier"
             />
             <Menu.Item
+              
               onPress={() => {
-                setExperienceModalVisible(true);
                 setEditType('experience');
-                handleDelete();
+                setSelectedItem(experience);
+                handleDelete(); // ← là ça passe car setSelectedItem est juste avant
                 closeMenu();
               }}
               title="Supprimer"
