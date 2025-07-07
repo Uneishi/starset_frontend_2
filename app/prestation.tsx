@@ -916,12 +916,32 @@ const PrestationScreen = () => {
           )}
         </View>
         {isEditing ? (
-          <TouchableOpacity onPress={handleSaveDescription}>
-            <MaterialIcons name="check" size={30} color="green" />
+          <TouchableOpacity
+            onPress={handleSaveDescription}
+            style={{
+              backgroundColor: '#e0e0e0', // fond gris clair
+              padding: 12,
+              borderRadius: 8,
+              alignItems: 'center',
+              width: '100%',
+              marginTop: 10
+            }}
+          >
+            <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Valider</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={handleEditDescription}>
-            <MaterialIcons name="edit" size={24} color="black" />
+          <TouchableOpacity
+            onPress={handleEditDescription}
+            style={{
+              backgroundColor: '#e0e0e0',
+              padding: 12,
+              borderRadius: 8,
+              alignItems: 'center',
+              width: '100%',
+              marginTop: 10
+            }}
+          >
+            <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>Modifier</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -1499,7 +1519,7 @@ const styles = StyleSheet.create({
   experienceImage: {
     width: 80,
     height: 80,
-    borderRadius: 10,
+    
     marginRight: 10,
   },
   experienceForm: {
@@ -1873,7 +1893,7 @@ const styles = StyleSheet.create({
   },
 
   descriptionRow: { 
-    flexDirection: 'row', 
+    flexDirection: 'column', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
     width: '100%', 
@@ -1886,7 +1906,8 @@ const styles = StyleSheet.create({
 
   infoLabel: { 
     fontWeight: 'bold', 
-    fontSize: 16 
+    fontSize: 16,
+    alignSelf : 'flex-start'
   },
 
   infoValue: { 

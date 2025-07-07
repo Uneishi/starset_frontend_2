@@ -83,63 +83,63 @@ const CroissanceScreen = () => {
       </View>
 
       <Text style={[styles.sectionHeader, { marginTop: 40 }]}>WORKERS OF THE DAY</Text>
-<FlatList
-  horizontal
-  data={[...workersMock, ...workersMock]}
-  keyExtractor={(_, index) => index.toString()}
-  renderItem={({ item }) => (
-    <View style={styles.workerWrapper}>
-      <Image source={{ uri: item }} style={styles.workerImage} />
-      <View style={styles.badge}>
-        <FontAwesome name="check" size={12} color="#fff" />
-      </View>
-    </View>
-  )}
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={{ paddingRight: 20 }}
-/>
+      <FlatList
+        horizontal
+        data={[...workersMock, ...workersMock]}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.workerWrapper}>
+            <Image source={{ uri: item }} style={styles.workerImage} />
+            <View style={styles.badge}>
+              <FontAwesome name="check" size={12} color="#fff" />
+            </View>
+          </View>
+        )}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 20 }}
+      />
 
-<Text style={[styles.sectionHeader, { marginTop: 30 }]}>JOBS OF THE DAY</Text>
-<FlatList
-  horizontal
-  data={jobsOfTheDay}
-  keyExtractor={(_, index) => index.toString()}
-  renderItem={({ item }) => (
-    <TouchableOpacity onPress={() => handleJobClick(item)}>
-      <View style={styles.jobItem}>
-        <Image
-          source={{
-            uri: item.picture_url || 'https://cdn-icons-png.flaticon.com/512/91/91501.png',
-          }}
-          style={styles.jobIcon}
-        />
-      </View>
-    </TouchableOpacity>
-  )}
-  
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={{ paddingRight: 20 }}
-/>
+      <Text style={[styles.sectionHeader, { marginTop: 30 }]}>JOBS OF THE DAY</Text>
+      <FlatList
+        horizontal
+        data={jobsOfTheDay}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleJobClick(item)}>
+            <View style={styles.jobItem}>
+              <Image
+                source={{
+                  uri: item.picture_url || 'https://cdn-icons-png.flaticon.com/512/91/91501.png',
+                }}
+                style={styles.jobIcon}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
+        
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 20 }}
+      />
 
-<Text style={[styles.sectionHeader, { marginTop: 30 }]}>CES JOBS QUI ONT BESOIN DE VOUS</Text>
-<FlatList
-  horizontal
-  data={[
-    { name: 'DEV WEB', icon: 'https://cdn-icons-png.flaticon.com/512/4703/4703487.png' },
-    { name: 'LECTURE', icon: 'https://cdn-icons-png.flaticon.com/512/864/864685.png' },
-    { name: 'CHAUFFEUR', icon: 'https://cdn-icons-png.flaticon.com/512/846/846338.png' },
-    { name: 'TRADUCTEUR', icon: 'https://cdn-icons-png.flaticon.com/512/2793/2793765.png' },
-  ]}
-  keyExtractor={(item, index) => index.toString()}
-  renderItem={({ item }) => (
-    <View style={styles.jobItem}>
-      <Image source={{ uri: item.icon }} style={styles.jobIcon} />
-      
-    </View>
-  )}
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={{ paddingRight: 20 }}
-/>
+      <Text style={[styles.sectionHeader, { marginTop: 30 }]}>CES JOBS QUI ONT BESOIN DE VOUS</Text>
+      <FlatList
+        horizontal
+        data={[
+          { name: 'DEV WEB', icon: 'https://cdn-icons-png.flaticon.com/512/4703/4703487.png' },
+          { name: 'LECTURE', icon: 'https://cdn-icons-png.flaticon.com/512/864/864685.png' },
+          { name: 'CHAUFFEUR', icon: 'https://cdn-icons-png.flaticon.com/512/846/846338.png' },
+          { name: 'TRADUCTEUR', icon: 'https://cdn-icons-png.flaticon.com/512/2793/2793765.png' },
+        ]}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.jobItem}>
+            <Image source={{ uri: item.icon }} style={styles.jobIcon} />
+            
+          </View>
+        )}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 20 }}
+      />
 
       <Text style={[styles.sectionHeader, {textAlign : 'left'}]}>STARSET NEWS</Text>
       <View style={styles.newsCard}>
@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
   },
   
   workerImage: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 10,
   },
   
@@ -269,8 +269,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 10,
     paddingHorizontal: 10,
-    width: 80,
-    height : 80
+    width: 100,
+    height : 100
   },
   jobIcon: {
     width: 50,

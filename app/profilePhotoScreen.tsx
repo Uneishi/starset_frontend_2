@@ -8,6 +8,7 @@ import config from '../config.json';
 const ProfilePhotoScreen = () => {
   const { user } = useUser();
   const [photo, setPhoto] = useState<any>(user?.profile_picture_url ? { uri: user.profile_picture_url } : null);
+  const [localPhotoUri, setLocalPhotoUri] = useState<string | null>(null); // pour stocker la nouvelle photo à valider
   const [uploading, setUploading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -20,7 +21,7 @@ const ProfilePhotoScreen = () => {
     }
   };
 
-  const uploadProfilePhoto = async () => {
+  const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
@@ -39,12 +40,18 @@ const ProfilePhotoScreen = () => {
     }
 
     const photoUri = result.assets[0].uri;
+    setLocalPhotoUri(photoUri);
     setPhoto({ uri: photoUri });
+  };
+
+  const uploadImage = async () => {
+    if (!localPhotoUri) return;
+
     setUploading(true);
     setLoading(true);
 
     try {
-      const response = await fetch(photoUri);
+      const response = await fetch(localPhotoUri);
       const blob = await response.blob();
       const reader = new FileReader();
       const account_id = await getAccountId();
@@ -66,12 +73,14 @@ const ProfilePhotoScreen = () => {
         if (uploadResponse.ok) {
           const responseData = await uploadResponse.json();
           await AsyncStorage.setItem('profile_picture', responseData.dbRecord.profile_picture_url);
-          setPhoto(responseData.dbRecord.profile_picture_url)
+          setPhoto({ uri: responseData.dbRecord.profile_picture_url });
+          setLocalPhotoUri(null);
           Alert.alert('Succès', 'Photo téléchargée avec succès');
         } else {
           Alert.alert('Erreur', 'Échec du téléchargement');
         }
       };
+
       reader.readAsDataURL(blob);
     } catch (error) {
       Alert.alert('Erreur', 'Une erreur est survenue lors du téléchargement');
@@ -85,7 +94,9 @@ const ProfilePhotoScreen = () => {
     <View style={styles.container}>
       <Text style={styles.headerText}>PHOTO DE PROFIL</Text>
       <Text style={styles.subHeaderText}>Un petit sourire pour la caméra ! Cheeeeeese 📸</Text>
+
       <View style={{ width: '100%', height: 50 }}></View>
+
       <View style={styles.photoContainer}>
         {photo ? (
           <Image source={photo} style={styles.profilePhoto} />
@@ -93,15 +104,24 @@ const ProfilePhotoScreen = () => {
           <Image source={{ uri: 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' }} style={styles.profilePhoto} />
         )}
       </View>
-      <View style={{ width: '100%', height: 10 }}></View>
-      <TouchableOpacity style={styles.button} onPress={uploadProfilePhoto} disabled={uploading}>
-        <Text style={styles.buttonText}>Choisir sa photo</Text>
+
+      <TouchableOpacity style={styles.button} onPress={pickImage} disabled={uploading}>
+        <Text style={styles.buttonText}>Choisir une photo</Text>
       </TouchableOpacity>
+
+      {localPhotoUri && (
+        <TouchableOpacity style={styles.button} onPress={uploadImage} disabled={uploading}>
+          <Text style={styles.buttonText}>Valider</Text>
+        </TouchableOpacity>
+      )}
+
       {loading && <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />}
+
       <Text style={styles.footerText}>Star Set</Text>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
