@@ -258,6 +258,8 @@ const PrestationViewScreen = () => {
 
   const getPrestation = async () => {
     try {
+
+      console.log(prestation_id)
       const response = await fetch(`${config.backendUrl}/api/mission/get-prestation`, {
         method: 'POST',
         headers: {

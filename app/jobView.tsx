@@ -96,12 +96,9 @@ const JobViewScreen = () => {
   }
 
   // Exemple de missions (tu peux adapter selon les données réelles)
-  const missions = [
-    'Cours particuliers pour enfants',
-    'Soutien scolaire à domicile',
-    'Préparation aux examens',
-    'Aide aux devoirs'
-  ];
+  const missions = metier.mission
+    ? metier.mission.split('/').map((m: string) => m.trim()).filter(Boolean)
+    : [];
 
   return (
     <ScrollView style={styles.container}>
@@ -118,7 +115,7 @@ const JobViewScreen = () => {
 
       {/* Missions */}
       <Text style={styles.sectionTitle}>MISSIONS</Text>
-      {missions.map((mission, index) => (
+      {missions.map((mission : any, index : any) => (
         <Text key={index} style={styles.missionItem}>
           • {mission}
         </Text>
@@ -209,6 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom : 40
   },
   addButtonText: {
     color: 'white',

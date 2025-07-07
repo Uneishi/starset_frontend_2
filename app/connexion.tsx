@@ -1,64 +1,31 @@
-import { useNavigation } from '@react-navigation/native';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-
 import { useUser } from '@/context/userContext';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 
 const ConnexionScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isChecked, setIsChecked] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👈
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
-  const { setUser } = useUser()
+  const { setUser } = useUser();
 
-  const handleEmailChange = (text: React.SetStateAction<string>) => {
-    setEmail(text);
-  };
+  const handleEmailChange = (text: string) => setEmail(text);
+  const handlePasswordChange = (text: string) => setPassword(text);
+  const togglePasswordVisibility = () => setShowPassword(prev => !prev); // 👈
 
-  const handlePasswordChange = (text: React.SetStateAction<string>) => {
-    setPassword(text);
-  };
-
-  const goToCreate = () => {
-    navigation.navigate('creation' as never)
-  };
-
+  const goToCreate = () => navigation.navigate('creation' as never);
   const goToForgotPassword = () => navigation.navigate('forgotPassword' as never);
-
-  const getProfile = async (accountId :any) => {
-    try {
-      
-      if (!accountId) return;
-
-      const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId }),
-      });
-
-      if (!response.ok) throw new Error('Erreur de réseau');
-
-      const data = await response.json();
-      if(data)
-      {
-        setUser(data.account); // Met à jour le contexte utilisateur
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
-    }
-  };
 
   const handleSubmit = async () => {
     try {
       const response = await fetch(`${config.backendUrl}/api/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
@@ -85,21 +52,29 @@ const ConnexionScreen = () => {
     }
   };
 
+  const getProfile = async (accountId: string) => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await response.json();
+      setUser(data.account);
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+    }
+  };
+
   const saveData = async (account: any) => {
     try {
-      console.log(account)
       await AsyncStorage.setItem('account_id', account['id']);
       await AsyncStorage.setItem('worker_id', account['worker']);
       await AsyncStorage.setItem('firstname', account['firstname']);
       await AsyncStorage.setItem('lastname', account['lastname']);
     } catch (e) {
-      // gérer les erreurs de stockage ici
       console.error('Erreur lors de la sauvegarde du type de compte', e);
     }
-  };
-
-  const toggleCheckbox = () => {
-    setIsChecked(!isChecked);
   };
 
   const isFormValid = email.length > 0 && password.length > 0;
@@ -125,9 +100,7 @@ const ConnexionScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}></View>
-
-      <Text style={styles.enter}>Connectez vous !</Text>
-      
+      <Text style={styles.enter}>Connectez-vous !</Text>
       <Text style={styles.description}>
         Laissez-nous identifier votre profil, Star Set n'attend plus que vous !
       </Text>
@@ -141,27 +114,30 @@ const ConnexionScreen = () => {
         onChangeText={handleEmailChange}
         placeholder="chapter@exemple.com"
         placeholderTextColor="#808080"
-        value = {email}
+        value={email}
       />
-      
-      <View style={styles.passwordContainer}>
+
+      {/* Password avec œil 👁️ */}
+      <View style={styles.passwordWrapper}>
         <TextInput
-          style={[styles.input, { width: '100%' }]}
+          style={styles.passwordInput}
           onChangeText={handlePasswordChange}
           placeholder="Mot de passe"
           placeholderTextColor="#808080"
-          secureTextEntry={true}
-          value = { password }
+          secureTextEntry={!showPassword}
+          value={password}
         />
-        <TouchableOpacity onPress={goToForgotPassword} style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
+        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
+          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#333" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.spacer}></View>
-      {errorMessage ? (
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      ) : null}
+      <TouchableOpacity onPress={goToForgotPassword} style={styles.forgotPassword}>
+        <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
+      </TouchableOpacity>
+
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
       <TouchableOpacity
         onPress={handleSubmit}
         style={[styles.connexionbutton]}
@@ -169,13 +145,13 @@ const ConnexionScreen = () => {
       >
         <Text style={styles.buttonText}>Connexion</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity onPress={goToCreate}>
-        <Text >
-          Vous n'avez pas encore de compte ? <Text style={styles.createAccount}>inscrivez-vous !</Text>
+        <Text>
+          Vous n'avez pas encore de compte ?{' '}
+          <Text style={styles.createAccount}>inscrivez-vous !</Text>
         </Text>
       </TouchableOpacity>
-      
     </View>
   );
 };
@@ -192,7 +168,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 100,
     height: 100,
-    backgroundColor: "#A0A0FF",
+    backgroundColor: '#A0A0FF',
     borderRadius: 50,
     marginBottom: 100,
     top: 80,
@@ -204,29 +180,44 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 20,
   },
-  spacer: {
-    width: '100%',
-    height: 30,
-  },
-
-  buttonText: {
-    fontSize: 20,
+  enter: {
     fontWeight: 'bold',
-    color : 'white',
-    fontFamily : 'Lexend'
+    textAlign: 'center',
+    fontSize: 40,
+    marginTop: 0,
+    marginHorizontal: 20,
+    color: 'black',
   },
-
+  passwordWrapper: {
+    width: '80%',
+    height: 46,
+    marginTop: 20,
+    borderWidth: 2,
+    borderRadius: 23,
+    borderColor: 'black',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    backgroundColor: 'white',
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'Outfit',
+    color: 'black',
+  },
+  eyeIcon: {
+    paddingHorizontal: 8,
+  },
   errorText: {
     color: 'red',
     fontSize: 16,
     marginBottom: 10,
     textAlign: 'center',
   },
-
-  enter: {
+  buttonText: {
     fontWeight: 'bold',
     textAlign: 'center',
-    
     fontSize: 40,
     marginTop: 0,
     marginHorizontal : 20,
