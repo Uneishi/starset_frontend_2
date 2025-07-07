@@ -65,11 +65,13 @@ const AccountWorkerScreen = () => {
       }
   
       const data = await response.json();
-      console.log('Account:', data.account);
-      console.log('ici')
-      console.log(data)
-      setAccount(data.account);
-  
+      if(data)
+      {
+        console.log('Account:', data.account);
+        console.log('ici');
+        console.log(data);
+        setAccount(data.account);
+      }
     } catch (error) {
       console.error('Error fetching profile picture:', error);
       return null; // Retourne null en cas d'erreur

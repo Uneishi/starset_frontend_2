@@ -80,8 +80,11 @@ const JobsScreen = () => {
       }
 
       const data = await response.json();
-      setPrestations(data.prestations);
-      setAllWorkerPrestation(data.prestations);
+      if(data)
+      {
+        setPrestations(data.prestations);
+        setAllWorkerPrestation(data.prestations);
+      }
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
     }
@@ -112,7 +115,7 @@ const JobsScreen = () => {
       }
 
       const data = await response.json();
-      setMetierNames(data.metierNames);
+      if(data) setMetierNames(data.metierNames);
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
     }
@@ -147,9 +150,11 @@ const JobsScreen = () => {
       }
   
       const data = await response.json();
-      console.log('Worker Planned Prestation:', data.plannedPrestations);
-      setWorkerPlannedPrestations(data.plannedPrestations);
-  
+      if(data)
+      {
+        console.log('Worker Planned Prestation:', data.plannedPrestations);
+        setWorkerPlannedPrestations(data.plannedPrestations);
+      }
     } catch (error) {
       console.error('Error fetching worker planned prestations:', error);
     }

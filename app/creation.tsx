@@ -38,10 +38,41 @@ const CreationScreen = () => {
       return;
     }
 
-    navigation.navigate({
-      name: 'mailVerificationCode',
-      params: { email, password },
-    } as never);
+    try 
+    {
+      const response = await fetch(`${config.backendUrl}/api/auth/send-email-verification-code-if-exists`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          
+          email : email,
+        }),
+      });
+      if (!response.ok) throw new Error('Erreur réseau.');
+      const data = await response.json();
+      if(data.success == true)
+      {
+        setErrorMessage('e-mail existe déjà');
+      }
+      else
+      {
+        navigation.navigate(
+                            {
+                            name: 'mailVerificationCode',
+                            params: { email: email, password: password },
+                            } as never
+                          );
+      }
+    } 
+    catch (error) 
+    {
+      setErrorMessage('Erreur lors de l’envoi de l’e-mail. Veuillez réessayer.');
+      console.error(error);
+    } 
+    finally
+    {
+    } 
+    
   };
 
   return (

@@ -31,10 +31,16 @@ const ConnexionScreen = () => {
 
       const data = await response.json();
       if (data.success) {
-        const account = data.account;
-        await saveData(account);
-        await getProfile(account.id);
-        navigation.navigate({ name: '(tabs)', params: { screen: 'home' } } as never);
+        // Rediriger ou faire autre chose en cas de succès
+        getProfile(data.account['id'])
+        saveData(data.account)
+       
+        
+        navigation.navigate({
+          name: '(tabs)',
+          params: { screen: 'home' },
+        } as never);
+        
       } else {
         setErrorMessage('Email ou mot de passe incorrect');
       }
@@ -74,13 +80,22 @@ const ConnexionScreen = () => {
   const isFormValid = email.length > 0 && password.length > 0;
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      setEmail('');
-      setPassword('');
-      setErrorMessage('');
-    });
-    return unsubscribe;
-  }, [navigation]);
+    console.log("email:", email, "password:", password);
+    console.log("form is valid:", isFormValid);
+  }, [email, password]);
+
+  useEffect(() => {
+  const unsubscribe = navigation.addListener('focus', () => {
+    setEmail('');
+    setPassword('');
+    setErrorMessage('');
+  });
+
+  return () => {
+    unsubscribe();
+  };
+}, [navigation]);
+
 
   return (
     <View style={styles.container}>
@@ -89,6 +104,9 @@ const ConnexionScreen = () => {
       <Text style={styles.description}>
         Laissez-nous identifier votre profil, Star Set n'attend plus que vous !
       </Text>
+      <Text style={styles.description2}>
+        Version 1.01 BETA
+      </Text> 
       <View style={styles.separator}></View>
 
       <TextInput
@@ -170,28 +188,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     color: 'black',
   },
-  description: {
-    fontSize: 13,
-    textAlign: 'center',
-    color: 'black',
-    marginHorizontal: 10,
-  },
-  input: {
-    fontFamily: 'Outfit',
-    width: '80%',
-    height: 46,
-    backgroundColor: 'white',
-    borderRadius: 23,
-    borderWidth: 2,
-    borderColor: 'black',
-    color: 'black',
-    textAlign: 'center',
-    fontSize: 15,
-    padding: 10,
-    marginTop: 20,
-    marginHorizontal: 10,
-    paddingHorizontal: 30,
-  },
   passwordWrapper: {
     width: '80%',
     height: 46,
@@ -213,41 +209,85 @@ const styles = StyleSheet.create({
   eyeIcon: {
     paddingHorizontal: 8,
   },
-  forgotPassword: {
-    marginTop: 5,
-    width: '80%',
-    alignItems: 'flex-end',
-  },
-  forgotPasswordText: {
-    color: 'blue',
-    fontSize: 12,
-  },
   errorText: {
     color: 'red',
     fontSize: 16,
     marginBottom: 10,
     textAlign: 'center',
   },
-  connexionbutton: {
-    width: '70%',
-    maxWidth: 400,
-    height: 50,
-    backgroundColor: '#00BF63',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 10,
-    borderRadius: 10,
-    marginHorizontal: 10,
-  },
   buttonText: {
-    fontSize: 20,
     fontWeight: 'bold',
-    color: 'white',
-    fontFamily: 'Lexend',
-  },
-  createAccount: {
-    color: '#7ED957',
-  },
+    textAlign: 'center',
+    fontSize: 40,
+    marginTop: 0,
+    marginHorizontal : 20,
+    
+    
+    color : 'black'
+},
+description: {
+  
+  fontSize: 13,
+  textAlign: "center",
+  color : 'black',
+  marginHorizontal : 10,
+},
+description2: {
+  fontWeight: 'bold',
+  fontSize: 13,
+  textAlign: "center",
+  color : 'black',
+  marginHorizontal : 10,
+},
+createAccount : {
+  color : '#7ED957'
+},
+input: {
+  fontFamily: "Outfit",
+  width: "80%", // Utilisation de pourcentage pour la largeur,
+  height : 46,
+  //maxWidth: 450, // Nombre pour maxWidth
+  backgroundColor: "white",
+  borderRadius: 23, // Nombre pour borderRadius
+  borderWidth: 2, // Utilisation de borderWidth
+  borderColor: "black", // Utilisation de borderColor
+  color: "black",
+  textAlign: "center",
+  fontSize: 15,
+  padding: 10, // Nombre pour padding
+  marginTop: 20, // Nombre pour marginTop
+  marginHorizontal: 10, // Nombre pour marginHorizontal
+  paddingHorizontal: 30, // Nombre pour paddingHorizontal
+  // transition: "all 0.5s", // Non pris en charge, utilisez Animated pour les animations
+},
+
+connexionbutton: {
+  width: "70%", // Utilisation de pourcentage pour la largeur
+  maxWidth: 400, // Nombre pour maxWidth
+  height: 50,
+  backgroundColor: "#00BF63",
+  justifyContent: "center",
+  alignItems: "center",
+  marginVertical: 10,
+  borderRadius: 10,
+  marginHorizontal: 10,
+},
+
+passwordContainer: {
+  width: '80%',
+  maxWidth: 450,
+  alignItems: 'center',
+},
+forgotPassword: {
+  marginTop: 5,
+  alignSelf : 'flex-end'
+},
+forgotPasswordText: {
+  color: 'blue',
+  fontSize: 12,
+  textAlign : 'right'
+},
+
 });
 
 export default ConnexionScreen;

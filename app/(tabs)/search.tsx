@@ -86,7 +86,7 @@ const SearchScreen = () => {
       });
       const data = await response.json() 
       
-      setPrestations(data.prestations);
+      if(data) setPrestations(data.prestations);
     } catch (error) {
       console.error('Erreur lors de la récupération des prestations :', error);
     }
@@ -100,7 +100,14 @@ const SearchScreen = () => {
       });
       if (!response.ok) throw new Error('Échec lors de la récupération des métiers');
       const data = await response.json();
-      setMetiers(data.metiers || []);
+      if(data)
+      {
+        setMetiers(data.metiers || []);
+      }
+      else
+      {
+        setMetiers([]);
+      }
     } catch (error) {
       console.error("Erreur lors de la récupération des métiers :", error);
     }
@@ -129,10 +136,12 @@ const SearchScreen = () => {
         body: JSON.stringify({}),
       });
       const data = await response.json() 
-      console.log(1)
-      console.log(data)
-      setWorkers(data.workers)
-      
+      if(data)
+      {
+        console.log(1);
+        console.log(data);
+        setWorkers(data.workers);
+      }      
     } catch (error) {
       console.error('Erreur lors de la récupération des prestations :', error);
     }
