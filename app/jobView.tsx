@@ -66,7 +66,11 @@ const JobViewScreen = () => {
       }
 
       const data = await response.json();
-      setMetier(data.metier); // Stocker le métier dans l'état
+      if(data)
+      {
+        setMetier(data.metier); // Stocker le métier dans l'état
+      }
+      
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération du métier:', error);
     }
@@ -162,6 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 20,
+    paddingBottom : 40
   },
   jobImage: {
     width: '100%',

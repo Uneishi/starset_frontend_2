@@ -84,7 +84,7 @@ const AddJobScreen = () => {
       }
 
       const data = await response.json();
-      setMetierNames(data.metierNames);
+      if(data) setMetierNames(data.metierNames);
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des métiers:', error);
     } finally {
@@ -116,7 +116,7 @@ const AddJobScreen = () => {
       });
   
       const data = await response.json();
-      setFields(data.fields);
+      if(data) setFields(data.fields);
     } catch (error) {
       console.error('Erreur récupération catégories :', error);
     }

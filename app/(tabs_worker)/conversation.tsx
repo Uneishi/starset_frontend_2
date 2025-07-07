@@ -161,7 +161,7 @@ const acceptConversation = async (conversation_id: string) => {
       }
 
       const data = await response.json();
-      setConversations(data.conversations);
+      if(data) setConversations(data.conversations);
     } catch (error) {
       console.error('Erreur récupération des conversations:', error);
     } finally {

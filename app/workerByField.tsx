@@ -28,11 +28,14 @@ const WorkersByFieldScreen = () => {
 
       });
       const data = await response.json();
-      console.log(field)
-      console.log(data)
-      console.log(123)
-      console.log(123)
-      setWorkers(data.workers);
+      if(data)
+      {
+        console.log(field);
+        console.log(data);
+        console.log(123);
+        console.log(123);
+        setWorkers(data.workers);
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération des travailleurs :', error);
     } finally {

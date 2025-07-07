@@ -54,7 +54,11 @@ const PrestationsScreen = () => {
         body: JSON.stringify({ prestation_id: prestation?.id }),
       });
       const data = await response.json();
-      setCustomPrestations(data.custom_prestations);
+      if(data)
+      {
+        setCustomPrestations(data.custom_prestations);
+      }
+
     } catch (error) {
       console.error('Erreur chargement prestations personnalisées:', error);
     }
@@ -114,13 +118,19 @@ const PrestationsScreen = () => {
       });
 
       const data = await response.json();
-      if (editingPrestation) {
-        setCustomPrestations((prev: any) =>
-          prev.map((item: any) => (item.id === data.custom_prestation.id ? data.custom_prestation : item))
-        );
-      } else {
-        setCustomPrestations((prev: any) => [...prev, data.custom_prestation]);
-      }
+      if(data)
+      {
+        if (editingPrestation) 
+        {
+          setCustomPrestations((prev: any) =>
+            prev.map((item: any) => (item.id === data.custom_prestation.id ? data.custom_prestation : item))
+          );
+        } 
+        else 
+        {
+          setCustomPrestations((prev: any) => [...prev, data.custom_prestation]);
+        }
+     }
 
       setNewPrestation({ title: '', price: '', description: '' });
       setPrestationImages([]);

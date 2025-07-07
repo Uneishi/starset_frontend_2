@@ -28,7 +28,7 @@ const CroissanceScreen = () => {
       if (!response.ok) throw new Error('Failed to fetch jobs');
 
       const data = await response.json();
-      setJobsOfTheDay([...data.metiers, ...data.metiers]); // doublage temporaire
+      if(data) setJobsOfTheDay([...data.metiers, ...data.metiers]); // doublage temporaire
     } catch (error) {
       console.error('Erreur lors de la récupération des jobs:', error);
     } finally {

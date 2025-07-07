@@ -35,7 +35,14 @@ const MetierListScreen = () => {
       });
 
       const data = await response.json();
-      setMetiers(data.metiers || []);
+      if(data)
+      {
+        setMetiers(data.metiers || []);
+      }
+      else
+      {
+        setMetiers([]);
+      }
     } catch (error) {
       console.error('Erreur récupération métiers:', error);
     } finally {

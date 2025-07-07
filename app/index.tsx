@@ -40,7 +40,11 @@ const StarsetScreen = () => {
       }
 
       const data = await response.json();
-      setAllWorkerPrestation(data.prestations);
+      if(data)
+      {
+        setAllWorkerPrestation(data.prestations);
+      }
+
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
     }
@@ -62,16 +66,24 @@ const StarsetScreen = () => {
       body: JSON.stringify({ accountId }),
     });
 
-    if (!response.ok) throw new Error('Erreur réseau');
+      if (!response.ok) throw new Error('Erreur réseau');
 
-    const data = await response.json();
-
-    if (!data.account || !data.account.id) {
-      // Cas où le compte n'existe plus côté backend
-      console.warn('Compte invalide ou supprimé');
-      await AsyncStorage.clear();
-      navigation.navigate('connexion' as never);
-      return;
+      const data = await response.json();
+      if(data)
+      {
+        if (!data.account || !data.account.id) {
+          // Cas où le compte n'existe plus côté backend
+          console.warn('Compte invalide ou supprimé');
+          await AsyncStorage.clear();
+          navigation.navigate('connexion' as never);
+          return;
+      }
+      else
+      {
+          await AsyncStorage.clear();
+          navigation.navigate('connexion' as never);
+          return;
+      }
     }
 
     console.log('Utilisateur chargé :', data.account);

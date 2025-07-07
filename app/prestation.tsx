@@ -287,7 +287,7 @@ const PrestationScreen = () => {
       const data = await response.json();
   
       setCertifications((prev: any[]) =>
-        prev.map(cert => cert.id === selectedItem.id ? data.certification : cert)
+        prev.map(cert => cert.id === selectedItem.id ? (data ? data.certification:cert): cert)
       );
   
       setCertificationFormVisible(false);
@@ -346,7 +346,7 @@ const PrestationScreen = () => {
 
     const data = await response.json();
     
-    setExperiences(prev => prev.map(e => e.id === selectedItem.id ? data.experience : e));
+    setExperiences(prev => prev.map(e => e.id === selectedItem.id ? (data ? data.experience:e) : e));
     setExperienceModalVisible(false);
     setSelectedItem(null);
     Alert.alert('Succès', 'Expérience mise à jour');
@@ -595,7 +595,7 @@ const PrestationScreen = () => {
       //console.log('certification :', data.certifications);
 
       // Stocker les prestations dans l'état
-      setCertifications(data.certifications);
+      if(data) setCertifications(data.certifications);
       
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des experiences:', error);
@@ -623,7 +623,7 @@ const PrestationScreen = () => {
       //console.log('experiences :', data.experiences);
 
       // Stocker les prestations dans l'état
-      setExperiences(data.experiences);
+      if(data) setExperiences(data.experiences);
       
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des experiences:', error);
@@ -653,7 +653,7 @@ const PrestationScreen = () => {
       }
 
       const data = await response.json();
-      console.log('prestation modifié:', data.prestation[0]);
+      if(data) console.log('prestation modifié:', data.prestation[0]);
 
       // Stocker les prestations dans l'état
       
@@ -701,7 +701,7 @@ const PrestationScreen = () => {
       if (!response.ok) throw new Error('Erreur réseau');
   
       const data = await response.json();
-      setExperiences(prev => [...prev, data.experience]);
+      if(data) setExperiences(prev => [...prev, data.experience]);
   
       // Reset
       setExperienceModalVisible(false)
@@ -771,7 +771,7 @@ const PrestationScreen = () => {
       if (!response.ok) throw new Error("Erreur lors de l'ajout de la certification");
   
       const data = await response.json();
-      setCertifications((prev: any[]) => [...prev, data.certification]);
+      if(data) setCertifications((prev: any[]) => [...prev, data.certification]);
   
       // Reset
       setCertificationFormVisible(false);

@@ -43,8 +43,10 @@ const ConnexionScreen = () => {
       if (!response.ok) throw new Error('Erreur de réseau');
 
       const data = await response.json();
-
-      setUser(data.account); // Met à jour le contexte utilisateur
+      if(data)
+      {
+        setUser(data.account); // Met à jour le contexte utilisateur
+      }
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
     }
@@ -129,6 +131,9 @@ const ConnexionScreen = () => {
       <Text style={styles.description}>
         Laissez-nous identifier votre profil, Star Set n'attend plus que vous !
       </Text>
+      <Text style={styles.description2}>
+        Version 1.01 BETA
+      </Text> 
       <View style={styles.separator}></View>
 
       <TextInput
@@ -235,9 +240,14 @@ description: {
   textAlign: "center",
   color : 'black',
   marginHorizontal : 10,
-  
 },
-
+description2: {
+  fontWeight: 'bold',
+  fontSize: 13,
+  textAlign: "center",
+  color : 'black',
+  marginHorizontal : 10,
+},
 createAccount : {
   color : '#7ED957'
 },

@@ -72,9 +72,12 @@ const getProfile = async (accountId :any) => {
       if (!response.ok) throw new Error('Erreur de réseau');
 
       const data = await response.json();
-      console.log('Utilisateur chargé:', data.account);
-      saveData(data.account);
-      setUser(data.account); // Met à jour le contexte utilisateur
+      if(data)
+      {
+        console.log('Utilisateur chargé:', data.account);
+        saveData(data.account);
+        setUser(data.account); // Met à jour le contexte utilisateur
+      }
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
     }
@@ -242,6 +245,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 16,
     backgroundColor: 'white',
+    color:'black',
     marginTop: 10,
   },
   charCount: {

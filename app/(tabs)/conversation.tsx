@@ -121,11 +121,14 @@ const ConversationScreen = () => {
       });
 
       const data = await response.json();
-      setConversations(data.conversations);
+      if(data)
+      {
+        setConversations(data.conversations);
 
-      // ✅ Rejoindre toutes les rooms socket correspondantes
-      const conversationIds = data.conversations.map((conv: any) => conv.id);
-      socket.emit('joinUserConversations', conversationIds);
+        // ✅ Rejoindre toutes les rooms socket correspondantes
+        const conversationIds = data.conversations.map((conv: any) => conv.id);
+        socket.emit('joinUserConversations', conversationIds);
+      }
 
     } catch (error) {
       console.error('Erreur lors de la récupération des conversations:', error);

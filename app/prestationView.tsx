@@ -271,15 +271,17 @@ const PrestationViewScreen = () => {
       }
 
       const data = await response.json();
-      // Stocker les prestations dans l'état
-      setPrestation(data.prestation);
-      setCurrentWorkerPrestation(data.prestation)
-      setProfilePictureUrl(data.account.profile_picture_url)
-      setMetiers(data.metiers)
-      setAccount(data.account)
-      setPrestationImages(data.images)
-      setComments(data.comments)
-      
+      if(data)
+      {
+        // Stocker les prestations dans l'état
+        setPrestation(data.prestation);
+        setCurrentWorkerPrestation(data.prestation);
+        setProfilePictureUrl(data.account.profile_picture_url);
+        setMetiers(data.metiers);
+        setAccount(data.account);
+        setPrestationImages(data.images);
+        setComments(data.comments);
+      }
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
     }
@@ -331,7 +333,7 @@ const PrestationViewScreen = () => {
 
       const data = await response.json();
       setConfirmModalVisible(false); // Fermer le modal
-      goToChat(data.conversation.id); // Aller au chat avec la nouvelle conversation
+      if(data) goToChat(data.conversation.id); // Aller au chat avec la nouvelle conversation
     } catch (error) {
       console.error('Erreur lors de la création de la conversation:', error);
     }
@@ -382,7 +384,7 @@ const PrestationViewScreen = () => {
       const data = await response.json();
 
       // Stocker les prestations dans l'état
-      setCertifications(data.certifications);
+      if(data) setCertifications(data.certifications);
       
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des certifications:', error);
@@ -406,7 +408,7 @@ const PrestationViewScreen = () => {
       const data = await response.json();
 
       // Stocker les prestations dans l'état
-      setExperiences(data.experiences);
+      if(data) setExperiences(data.experiences);
       
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des experiences:', error);

@@ -68,9 +68,16 @@ const DocumentsScreen = () => {
       });
   
       const data = await res.json();
-  
-      setMandatoryWorkerDocs(data.mandatory_documents || []);
-      setRecommendedWorkerDocs(data.recommended_documents || []);
+      if(data)
+      {
+        setMandatoryWorkerDocs(data.mandatory_documents || []);
+        setRecommendedWorkerDocs(data.recommended_documents || []);
+      }
+      else
+      {
+        setMandatoryWorkerDocs([]);
+        setRecommendedWorkerDocs([]);
+      }
     } catch (err) {
       console.error('Erreur lors du chargement des documents :', err);
     } finally {
@@ -85,12 +92,22 @@ const DocumentsScreen = () => {
       headers: { 'Content-Type': 'application/json' },
     });
     const allDocData = await allDocRes.json();
-
-    const combined = [
-      ...(allDocData.mandatory_documents || []),
-      ...(allDocData.recommended_documents || []),
-    ];
-    setAllDocTypes(combined);
+    if(allDocData)
+    {
+      const combined = [
+        ...(allDocData.mandatory_documents || []),
+        ...(allDocData.recommended_documents || []),
+      ];
+      setAllDocTypes(combined);
+   }
+   else
+   {
+      const combined = [
+        ...([]),
+        ...([]),
+      ];
+      setAllDocTypes(combined);
+   }
   };
 
   useEffect(() => {
