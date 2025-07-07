@@ -5,18 +5,27 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import config from '../config.json';
 
 const JobViewScreen = () => {
   const [metier, setMetier] = useState<any>(null);
   const { allWorkerPrestation,setAllWorkerPrestation } = useAllWorkerPrestation()
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigation = useNavigation()
   const route = useRoute() as any;
+  
   const {selectedJob} = route.params || ''; 
   // Fonction pour récupérer le métier "Professeur particulier à domicile"
+
+
   const handleValidation = async () => {
+    if (isSubmitting) return;
+  
     try {
-      const selectedJob = metier.name
+      setIsSubmitting(true); // 🔐 Empêche plusieurs clics
+  
+      const selectedJob = metier.name;
       const account_id = await getAccountId();
       const response = await fetch(`${config.backendUrl}/api/mission/create-prestation`, {
         method: 'POST',
@@ -25,14 +34,18 @@ const JobViewScreen = () => {
         },
         body: JSON.stringify({ account_id, selectedJob }),
       });
+  
       const data = await response.json();
       console.log(data);
+  
       navigation.navigate({
         name: '(tabs_worker)',
         params: { screen: 'Jobs' },
       } as never);
     } catch (error) {
       console.error('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false); // ✅ Réactive le bouton après
     }
   };
 
@@ -139,13 +152,17 @@ const JobViewScreen = () => {
       <TouchableOpacity
         style={[
           styles.addButton,
-          isJobAlreadyAdded && styles.disabledButton
+          (isJobAlreadyAdded || isSubmitting) && styles.disabledButton,
         ]}
-        onPress={!isJobAlreadyAdded ? handleValidation : undefined}
-        disabled={isJobAlreadyAdded}
+        onPress={!isJobAlreadyAdded && !isSubmitting ? handleValidation : undefined}
+        disabled={isJobAlreadyAdded || isSubmitting}
       >
         <Text style={styles.addButtonText}>
-          {isJobAlreadyAdded ? 'Déjà ajouté' : '+ Ajouter'}
+          {isJobAlreadyAdded
+            ? 'Déjà ajouté'
+            : isSubmitting
+            ? 'Ajout...'
+            : '+ Ajouter'}
         </Text>
       </TouchableOpacity>
 

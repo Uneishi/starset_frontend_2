@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import config from '../config.json';
 
 const CreationScreen = () => {
   const [email, setEmail] = useState('');

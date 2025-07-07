@@ -68,10 +68,10 @@ const ConnexionScreen = () => {
 
   const saveData = async (account: any) => {
     try {
-      await AsyncStorage.setItem('account_id', account['id']);
-      await AsyncStorage.setItem('worker_id', account['worker']);
-      await AsyncStorage.setItem('firstname', account['firstname']);
-      await AsyncStorage.setItem('lastname', account['lastname']);
+      await AsyncStorage.setItem('account_id', account.id);
+      await AsyncStorage.setItem('worker_id', account.worker);
+      await AsyncStorage.setItem('firstname', account.firstname);
+      await AsyncStorage.setItem('lastname', account.lastname);
     } catch (e) {
       console.error('Erreur lors de la sauvegarde du type de compte', e);
     }
@@ -218,12 +218,10 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: 'bold',
     textAlign: 'center',
-    fontSize: 40,
+    fontSize: 20,
     marginTop: 0,
     marginHorizontal : 20,
-    
-    
-    color : 'black'
+    color : 'white'
 },
 description: {
   
