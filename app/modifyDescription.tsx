@@ -1,18 +1,26 @@
-
 import { useUser } from '@/context/userContext';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import config from '../config.json';
 
 const ModifyDescriptionScreen = () => {
   const navigation = useNavigation();
-  const { user, setUser } = useUser(); // Utilisation du contexte pour récupérer et mettre à jour les infos utilisateur
-
+  const { user, setUser } = useUser();
   const [description, setDescription] = useState(user?.description || '');
   const [charCount, setCharCount] = useState(description.length);
 
-  const handleDescriptionChange = (text : any) => {
+  const handleDescriptionChange = (text: string) => {
     if (text.length <= 100) {
       setDescription(text);
       setCharCount(text.length);
@@ -21,18 +29,16 @@ const ModifyDescriptionScreen = () => {
 
   const updateDescription = async () => {
     try {
-      // Mettre à jour l'utilisateur localement
       const updatedUser = { ...user, description };
       setUser(updatedUser);
-      
-      // Envoyer la mise à jour au serveur
+
       const response = await fetch(`${config.backendUrl}/api/auth/update-account`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account: updatedUser }),
       });
+
       if (!response.ok) throw new Error('Erreur de réseau');
-      
       const data = await response.json();
       console.log('Mise à jour réussie:', data);
     } catch (error) {
@@ -46,23 +52,33 @@ const ModifyDescriptionScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Modifier votre description</Text>
-      <Text style={styles.infoText}>Soyez concis, cette description s'affichera sur votre profil.</Text>
-      
-      <Text style={styles.label}>Description ({charCount}/100)</Text>
-      <TextInput
-        style={styles.input}
-        value={description}
-        onChangeText={handleDescriptionChange}
-        multiline
-        maxLength={100}
-      />
-      
-      <TouchableOpacity style={styles.confirmButton} onPress={confirmUpdate}>
-        <Text style={styles.buttonText}>Confirmer</Text>
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Modifier votre description</Text>
+          <Text style={styles.infoText}>
+            Soyez concis, cette description s'affichera sur votre profil.
+          </Text>
+
+          <Text style={styles.label}>Description ({charCount}/100)</Text>
+          <TextInput
+            style={styles.input}
+            value={description}
+            onChangeText={handleDescriptionChange}
+            multiline
+            maxLength={100}
+          />
+
+          <TouchableOpacity style={styles.confirmButton} onPress={confirmUpdate}>
+            <Text style={styles.buttonText}>Confirmer</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

@@ -66,6 +66,8 @@ const JobViewScreen = () => {
       }
 
       const data = await response.json();
+      console.log("data.metier")
+      console.log(data.metier)
       setMetier(data.metier); // Stocker le métier dans l'état
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération du métier:', error);
@@ -92,12 +94,9 @@ const JobViewScreen = () => {
   }
 
   // Exemple de missions (tu peux adapter selon les données réelles)
-  const missions = [
-    'Cours particuliers pour enfants',
-    'Soutien scolaire à domicile',
-    'Préparation aux examens',
-    'Aide aux devoirs'
-  ];
+  const missions = metier.mission
+    ? metier.mission.split('/').map((m: string) => m.trim()).filter(Boolean)
+    : [];
 
   return (
     <ScrollView style={styles.container}>
@@ -114,7 +113,7 @@ const JobViewScreen = () => {
 
       {/* Missions */}
       <Text style={styles.sectionTitle}>MISSIONS</Text>
-      {missions.map((mission, index) => (
+      {missions.map((mission : any, index : any) => (
         <Text key={index} style={styles.missionItem}>
           • {mission}
         </Text>
@@ -162,7 +161,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 20,
-    paddingBottom : 40
+    
+    
   },
   jobImage: {
     width: '100%',
@@ -205,6 +205,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom : 40
   },
   addButtonText: {
     color: 'white',

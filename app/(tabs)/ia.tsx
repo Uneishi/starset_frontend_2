@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -14,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfileCard from '../../components/ProfileCard';
 import config from '../../config.json';
 
@@ -23,6 +25,7 @@ const AiScreen = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const route = useRoute() as any;
+  const tabBarHeight = useBottomTabBarHeight(); // 👈 important
 
   const spinValue = new Animated.Value(0);
 
@@ -54,13 +57,11 @@ const AiScreen = () => {
     try {
       await fetch(`${config.backendUrl}/api/ai/init-ai-context-table`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
     } catch (error) {
-      console.error('Erreur lors de l\'initialisation du contexte IA:', error);
+      console.error("Erreur lors de l'initialisation du contexte IA:", error);
     }
   };
 
@@ -82,29 +83,25 @@ const AiScreen = () => {
     try {
       const response = await fetch(`${config.backendUrl}/api/ai/send-ai-message`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id, message_text: newMessage }),
       });
 
-      const response_json = await response.json();
-      const { response: responseText, workers } = response_json;
+      const response_json: any = await response.json();
+      const data = response_json.data;
+      const messageText = data.response;
+      const workers = data.workers;
 
-      // Ajoute d'abord le message textuel
       setMessages(prevMessages => [
         ...prevMessages,
         {
-          message_text: responseText,
+          message_text: messageText,
           sended_by_user: false,
-          workers : workers
+          workers: workers,
         },
       ]);
-
-      // Ensuite ajoute une "carte" spéciale contenant les workers
-      
     } catch (error) {
-      console.error('Erreur lors de l’envoi du message IA:', error);
+      console.error("Erreur lors de l’envoi du message IA:", error);
     }
 
     setLoading(false);
@@ -115,79 +112,81 @@ const AiScreen = () => {
   }, []);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <View style={{ flex: 1, width: '100%' }}>
-        {/* En-tête "IA" */}
-        <View style={styles.header}>
-          <View style={styles.aiAvatar} />
-          <Text style={styles.headerName}>Assistant IA</Text>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#D4F1E3' }} edges={['bottom', 'left', 'right']}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? tabBarHeight + 60 : 0} // 👈 ajusté
+      >
+        <View style={{ flex: 1 }}>
+          {/* En-tête "IA" */}
+          <View style={styles.header}>
+            <View style={styles.aiAvatar}/>
+            <Text style={styles.headerName}>Assistant IA</Text>
+          </View>
 
-        {/* Messages */}
-        <ScrollView
-          style={{ flex: 1, width: '100%' }}
-          contentContainerStyle={[styles.messageContainer, { paddingBottom: 20 }]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {messages.map((message, index) => (
-          <View
-            key={index}
-            style={[
-              styles.messageBubble,
-              message.sended_by_user ? styles.myMessage : styles.otherMessage,
-            ]}
+          {/* Messages */}
+          <ScrollView
+            style={styles.messageContainer}
+            contentContainerStyle={{ paddingBottom: tabBarHeight + 100 }} // 👈 ajusté
+            keyboardShouldPersistTaps="handled"
           >
-            <View
-              style={
-                message.sended_by_user
-                  ? styles.myTextWrapper
-                  : styles.otherTextWrapper
-              }
-            >
-              <Text style={styles.messageText}>{message.message_text}</Text>
-            </View>
+            {messages.map((message, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.messageBubble,
+                  message.sended_by_user ? styles.myMessage : styles.otherMessage,
+                ]}
+              >
+                <View
+                  style={
+                    message.sended_by_user
+                      ? styles.myTextWrapper
+                      : styles.otherTextWrapper
+                  }
+                >
+                  <Text style={styles.messageText}>{message.message_text}</Text>
+                </View>
 
-            {/* Affichage conditionnel des workers */}
-            {message.workers?.length > 0 && (
-              <View style={{ marginTop: 10, gap: 10 }}>
-                {message.workers.map((worker: any, i: number) => (
-                  <ProfileCard key={i} item={worker} />
-                ))}
+                {message.workers?.length > 0 && (
+                  <View style={{ marginTop: 10, gap: 10 }}>
+                    {message.workers.map((worker: any, i: number) => (
+                      <ProfileCard key={i} item={worker} />
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+
+            {loading && (
+              <View style={[styles.messageBubble2, styles.otherMessage]}>
+                <Animated.View
+                  style={[styles.customLoader, { transform: [{ rotate: spin }] }]}
+                >
+                  <View style={styles.innerSquare} />
+                </Animated.View>
               </View>
             )}
+          </ScrollView>
+
+          {/* Input + bouton */}
+          <View style={[styles.inputContainer, Platform.OS === 'ios' && { marginBottom: tabBarHeight }]}>
+            <TextInput
+              style={styles.input}
+              value={newMessage}
+              onChangeText={setNewMessage}
+              placeholder="Posez votre question..."
+              placeholderTextColor="#808080"
+            />
+            <TouchableOpacity style={styles.sendButton} onPress={handleSendAiMessage}>
+              <Ionicons name="send" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
-        ))}
-
-          {loading && (
-            <View style={[styles.messageBubble, styles.otherMessage]}>
-              <Animated.View
-                style={[styles.animatedLoading, { transform: [{ rotate: spin }] }]}
-              />
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Input + bouton */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Posez votre question..."
-            placeholderTextColor="#808080"
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={handleSendAiMessage}>
-            <Ionicons name="send" size={24} color="#fff" />
-          </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-
 };
 
 const styles = StyleSheet.create({
@@ -209,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: '#008000',
     marginBottom: 8,
-    marginTop : 50
+    marginTop: 50,
   },
   headerName: {
     fontSize: 18,
@@ -218,12 +217,15 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     flex: 1,
-    alignItems: 'flex-start',
-    width: '100%',
     paddingHorizontal: 20,
-    marginTop: 30,
   },
   messageBubble: {
+    borderRadius: 20,
+    padding: 10,
+    marginVertical: 2,
+    width: '100%',
+  },
+  messageBubble2: {
     borderRadius: 20,
     padding: 10,
     marginVertical: 2,
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
     maxWidth: '70%',
   },
   otherTextWrapper: {
-    backgroundColor: 'blue',
+    backgroundColor: 'white',
     padding: 10,
     borderRadius: 20,
     maxWidth: '70%',
@@ -270,15 +272,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  animatedLoading: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: 'rgba(0, 128, 0, 0.5)',
-    borderTopColor: 'transparent',
-  },
-
   myMessage: {
     alignSelf: 'flex-end',
     flexDirection: 'row-reverse',
@@ -287,6 +280,23 @@ const styles = StyleSheet.create({
   otherMessage: {
     alignSelf: 'flex-start',
     marginLeft: 10,
+  },
+  customLoader: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 4,
+    borderColor: 'rgba(0, 128, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginVertical: 5,
+  },
+  innerSquare: {
+    width: 20,
+    height: 20,
+    backgroundColor: '#008000',
+    borderRadius: 4,
   },
 });
 

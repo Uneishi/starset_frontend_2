@@ -11,6 +11,8 @@ const ProfileCard = ({ item }: ProfileCardProps) => {
   const navigation = useNavigation();
 
   const goToPrestationViewWithId = (id: any) => {
+    console.log(item)
+    console.log("item")
     console.log('Navigating to prestationView with id:', id);
     navigation.navigate({
       name: 'prestationView',
@@ -23,7 +25,7 @@ const ProfileCard = ({ item }: ProfileCardProps) => {
   const showStars = item.average_rating !== null && item.average_rating !== undefined && item.average_rating > 0;
 
   return (
-    <TouchableOpacity style={styles.profileContainerList} onPress={() => goToPrestationViewWithId(item.worker_id)}>
+    <TouchableOpacity style={styles.profileContainerList} onPress={() => goToPrestationViewWithId(item.metiers[0]?.id)}>
       <Image
         source={{
           uri:
@@ -66,8 +68,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: '#e0e0e0',
-    marginHorizontal: 10,
-    flex: 1,
+    paddingHorizontal: 10,
+    
+    backgroundColor : 'white',
+    borderRadius : 10
   },
   profileImage: {
     width: 100,
