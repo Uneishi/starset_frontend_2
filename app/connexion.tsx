@@ -54,6 +54,20 @@ const ConnexionScreen = () => {
     }
   };
 
+const getProfile = async (accountId: string) => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await response.json();
+      setUser(data.account);
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+    }
+  };
+
   const saveData = async (account: any) => {
     try {
       await AsyncStorage.setItem('account_id', account.id);
