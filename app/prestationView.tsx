@@ -74,25 +74,6 @@ const PrestationViewScreen = () => {
       JosefinSans_100Thin,
     });
 
-    
-
-    const reviews = [
-      {
-        id: '1',
-        name: 'Chloé.C',
-        text: "Cela fait maintenant 2 mois que Alicia garde mes enfants, et je suis entièrement satisfaite de son professionnalisme et de sa gentillesse. Merci ma chère Alicia ❤️",
-      },
-      {
-        id: '2',
-        name: 'Stéphane.C',
-        text: "Alicia garde mes animaux pour les vacances, vraiment top et fiable !",
-      },
-      {
-        id: '3',
-        name: 'Jérôme.B',
-        text: "Meilleure nounou ! Toujours à l'heure, joue beaucoup avec mes enfants, je recommande.",
-      },
-    ];
 
 
   const handleHourChange = (text : any, setHour : any) => {

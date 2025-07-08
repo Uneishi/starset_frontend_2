@@ -9,6 +9,40 @@ import Icon from 'react-native-vector-icons/MaterialIcons'; // Assurez-vous d'av
 import config from '../../config.json';
 import { saveMode } from '../chooseAccount';
 
+const dayImages: { [key: number]: any } = {
+  1: require('../../assets/images/day_icon/1.png'),
+  2: require('../../assets/images/day_icon/2.png'),
+  3: require('../../assets/images/day_icon/3.png'),
+  4: require('../../assets/images/day_icon/4.png'),
+  5: require('../../assets/images/day_icon/5.png'),
+  6: require('../../assets/images/day_icon/6.png'),
+  7: require('../../assets/images/day_icon/7.png'),
+  8: require('../../assets/images/day_icon/8.png'),
+  9: require('../../assets/images/day_icon/9.png'),
+  10: require('../../assets/images/day_icon/10.png'),
+  11: require('../../assets/images/day_icon/11.png'),
+  12: require('../../assets/images/day_icon/12.png'),
+  13: require('../../assets/images/day_icon/13.png'),
+  14: require('../../assets/images/day_icon/14.png'),
+  15: require('../../assets/images/day_icon/15.png'),
+  16: require('../../assets/images/day_icon/16.png'),
+  17: require('../../assets/images/day_icon/17.png'),
+  18: require('../../assets/images/day_icon/18.png'),
+  19: require('../../assets/images/day_icon/19.png'),
+  20: require('../../assets/images/day_icon/20.png'),
+  21: require('../../assets/images/day_icon/21.png'),
+  22: require('../../assets/images/day_icon/22.png'),
+  23: require('../../assets/images/day_icon/23.png'),
+  24: require('../../assets/images/day_icon/24.png'),
+  25: require('../../assets/images/day_icon/25.png'),
+  26: require('../../assets/images/day_icon/26.png'),
+  27: require('../../assets/images/day_icon/27.png'),
+  28: require('../../assets/images/day_icon/28.png'),
+  29: require('../../assets/images/day_icon/29.png'),
+  30: require('../../assets/images/day_icon/30.png'),
+  31: require('../../assets/images/day_icon/31.png'),
+};
+
 const AccountScreen = () => {
   const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false); // Gérer l'affichage du rectangle pour le menu
@@ -453,9 +487,10 @@ navigation.dispatch(
                   plannedPrestations.map((prestation, index) => (
                     <TouchableOpacity key={index} style={styles.missionItem}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={styles.dayContainer}>
-                          <Text style={styles.dayText}>{new Date(prestation.start_date).getUTCDate()}</Text>
-                        </View>
+                        <Image
+                          source={dayImages[new Date(prestation.start_date).getUTCDate()]}
+                          style={styles.dayImage}
+                        />
                         
                         <View style={{ marginLeft: 10 }}>
                           <Text style={styles.missionInProgressText}>{prestation.metier}</Text> {/* Nom par défaut */}
@@ -558,9 +593,10 @@ navigation.dispatch(
         {prestations.map((prestation, i) => (
           <TouchableOpacity key={i} style={styles.missionItem}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.dayContainer}>
-                <Text style={styles.dayText}>{new Date(prestation.start_date).getUTCDate()}</Text>
-              </View>
+              <Image
+                source={dayImages[new Date(prestation.start_date).getUTCDate()]}
+                style={styles.dayImage}
+              />
               <View style={{ marginLeft: 10 }}>
                 <Text style={styles.missionInProgressText}>{prestation.metier}</Text>
                 <Text style={styles.missionTime}>
@@ -1048,6 +1084,12 @@ doneButtonText: {
   color: 'white',
   fontWeight: 'bold',
   fontSize: 12,
+},
+
+dayImage: {
+  width: 40,
+  height: 40,
+  borderRadius: 5,
 },
 
   
