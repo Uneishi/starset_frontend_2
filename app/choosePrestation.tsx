@@ -56,7 +56,10 @@ const ChoosePrestationScreen = () => {
       if (!response.ok) throw new Error('Network response was not ok');
 
       const data = await response.json();
-      setCustomPrestations(data.custom_prestations);
+      if(data)
+      {
+        setCustomPrestations(data.custom_prestations);
+      }
     } catch (error) {
       console.error('Erreur chargement prestations personnalisées:', error);
     }

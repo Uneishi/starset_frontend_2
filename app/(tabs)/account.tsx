@@ -103,10 +103,13 @@ const AccountScreen = () => {
       }
   
       const data = await response.json();
-      console.log('Account:', data.account);
-      console.log('ici')
-      console.log(data)
-      setAccount(data.account);
+      if(data)
+      {
+        console.log('Account:', data.account);
+        console.log('ici')
+        console.log(data)
+        setAccount(data.account);
+      }
   
     } catch (error) {
       console.error('Error fetching profile picture:', error);
@@ -132,11 +135,12 @@ const AccountScreen = () => {
       }
   
       const data = await response.json();
-      console.log(2);
-
-      console.log('Planned Prestation:', data.plannedPrestations);
-      setPlannedPrestations(data.plannedPrestations);
-  
+      if(data)
+      {
+        console.log(2);
+        console.log('Planned Prestation:', data.plannedPrestations);
+        setPlannedPrestations(data.plannedPrestations);
+      }
     } catch (error) {
       console.error('Error fetching profile picture:', error);
       return null; // Retourne null en cas d'erreur

@@ -2,7 +2,7 @@ import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -84,7 +84,7 @@ const AddJobScreen = () => {
       }
 
       const data = await response.json();
-      setMetierNames(data.metierNames);
+      if(data) setMetierNames(data.metierNames);
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des métiers:', error);
     } finally {
@@ -116,7 +116,7 @@ const AddJobScreen = () => {
       });
   
       const data = await response.json();
-      setFields(data.fields);
+      if(data) setFields(data.fields);
     } catch (error) {
       console.error('Erreur récupération catégories :', error);
     }
@@ -143,21 +143,23 @@ const AddJobScreen = () => {
           {loading ? (
             Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
           ) : (
-            fields.map((field: any, index) => (
+            <FlatList
+            data={fields}
+            renderItem={({ item } : any) => (
               <TouchableOpacity
-                key={index}
                 style={styles.categoryCard}
-                onPress={() => {
-                  
-                  goToMetierList(field); // ⚠️ Appel au nouvel endpoint
-                }}
+                onPress={() => goToMetierList(item)}
               >
-                <Image source={{ uri: field.picture_url }} style={styles.categoryImage} />
+                <Image source={{ uri: item.picture_url }} style={styles.categoryImage} />
                 <View style={styles.overlay}>
-                  <Text style={styles.categoryText}>{field.name.toUpperCase()}</Text>
+                  <Text style={styles.categoryText}>{item.name.toUpperCase()}</Text>
                 </View>
               </TouchableOpacity>
-            ))
+            )}
+            keyExtractor={(item : any) => item.name}
+            numColumns={2} // ✅ ici tu définis 2 colonnes
+            columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 15 }}
+          />
           )}
         </>
       ) : loading ? (
@@ -264,7 +266,7 @@ const styles = StyleSheet.create({
   
   overlay: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
@@ -272,7 +274,7 @@ const styles = StyleSheet.create({
   categoryText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 16,
   },
 
   categoryImageSkeleton: {
@@ -287,6 +289,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 15,
     backgroundColor: '#f0f0f0',
+    width: (SCREEN_WIDTH - 60) / 2, // 👈 Ajuste largeur pour 2 colonnes (avec padding/margin)
   },
 });
 

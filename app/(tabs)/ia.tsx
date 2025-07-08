@@ -116,7 +116,7 @@ const AiScreen = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? tabBarHeight + 60 : 0} // 👈 ajusté
+        keyboardVerticalOffset={Platform.OS === 'ios' ? tabBarHeight : 0} // 👈 ajusté
       >
         <View style={{ flex: 1 }}>
           {/* En-tête "IA" */}
@@ -171,7 +171,7 @@ const AiScreen = () => {
           </ScrollView>
 
           {/* Input + bouton */}
-          <View style={[styles.inputContainer, Platform.OS === 'ios' && { marginBottom: tabBarHeight }]}>
+          <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
               value={newMessage}

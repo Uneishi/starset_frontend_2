@@ -116,11 +116,13 @@ const HomeScreen = () => {
         },
         body: JSON.stringify({searchString : search}),
       });
-      const data = await response.json() 
-      console.log(1)
-      console.log(data)
-      setWorkers(data.workers)
-      
+      const data = await response.json(); 
+      if(data)
+      {
+        console.log(1);
+        console.log(data);
+        setWorkers(data.workers);
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération des prestations :', error);
     }
@@ -137,8 +139,11 @@ const HomeScreen = () => {
         body: JSON.stringify({ field }),
       });
       const data = await response.json();
-      setWorkers(data.workers);
-      setShowProfiles(true);
+      if(data)
+      {
+        setWorkers(data.workers);
+        setShowProfiles(true);
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération des travailleurs :', error);
     } finally {
@@ -295,8 +300,11 @@ const HomeScreen = () => {
         
       });
       const data = await response.json();
-      console.log(data)
-      setFetchedCategories(data.fields); // Mise à jour des catégories avec les données récupérées
+      if(data)
+      {
+        console.log(data);
+        setFetchedCategories(data.fields); // Mise à jour des catégories avec les données récupérées
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération des catégories :', error);
     } finally {
@@ -378,8 +386,9 @@ const HomeScreen = () => {
             data={Array.from({ length: 8 })}
             renderItem={({ index }) => <CategorySkeleton key={index} />}
             keyExtractor={(_, index) => index.toString()}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
+            numColumns={1}
+            showsVerticalScrollIndicator={false} //
+            
           />
         </>
       ) : (
@@ -389,8 +398,7 @@ const HomeScreen = () => {
             data={fetchedCategories} 
             renderItem={renderCategoryItem}
             keyExtractor={(item : any) => item.name}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
+            numColumns={1}
             showsVerticalScrollIndicator={false} //
           />
         </>
@@ -440,10 +448,14 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flex: 1,
     marginHorizontal: 5,
+    marginVertical : 10,
+    
     height: 150,
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
+    
+    
   },
   categoryImage: {
     width: '100%',
@@ -452,14 +464,14 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     paddingHorizontal : 10
 
   },
   categoryText: {
-    fontSize: 16,
+    fontSize: 20,
     color: '#ffffff',
     fontWeight: 'bold',
     marginBottom: 10,

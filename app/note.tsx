@@ -41,8 +41,11 @@ const NoteScreen = () => {
       if (!response.ok) throw new Error('Network response was not ok');
 
       const data = await response.json();
-      setPrestation(data.prestation);
-      setAccount(data.account);
+      if(data)
+      {
+        setPrestation(data.prestation);
+        setAccount(data.account);
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération de la prestation :', error);
     }

@@ -31,16 +31,30 @@ const ModifyAccountScreen = () => {
       });
       if (!response.ok) throw new Error('Erreur de réseau');
       const data = await response.json();
-      const account = data.account;
+      if(data)
+      {
+        const account = data.account;
 
-      setFirstname(account.firstname || '');
-      setLastname(account.lastname || '');
-      setAddress(account.address || '');
-      setPhone(account.number || '');
-      setEmail(account.email || '');
-      setDescription(account.description || '');
-      setProfilePictureUrl(account.profile_picture_url || '');
-      setPseudo(account.pseudo || '');
+        setFirstname(account.firstname || '');
+        setLastname(account.lastname || '');
+        setAddress(account.address || '');
+        setPhone(account.number || '');
+        setEmail(account.email || '');
+        setDescription(account.description || '');
+        setProfilePictureUrl(account.profile_picture_url || '');
+        setPseudo(account.pseudo || '');
+      }
+      else
+      {
+        setFirstname('');
+        setLastname('');
+        setAddress('');
+        setPhone('');
+        setEmail('');
+        setDescription('');
+        setProfilePictureUrl('');
+        setPseudo('');
+      }
     } catch (error) {
       console.error('Erreur de récupération du compte:', error);
     }

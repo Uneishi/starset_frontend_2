@@ -40,7 +40,11 @@ const StarsetScreen = () => {
       }
 
       const data = await response.json();
-      setAllWorkerPrestation(data.prestations);
+      if(data)
+      {
+        setAllWorkerPrestation(data.prestations);
+      }
+
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des prestations:', error);
     }
@@ -49,9 +53,11 @@ const StarsetScreen = () => {
   const getProfile = async () => {
   try {
     const accountId = await getAccountId();
+    console.log('[getProfile] Account ID récupéré :', accountId);
 
     if (!accountId) {
-      await AsyncStorage.clear(); // 🔐 Nettoie les données corrompues
+      console.warn('[getProfile] Aucun accountId trouvé. Suppression et redirection.');
+      await AsyncStorage.clear();
       navigation.navigate('connexion' as never);
       return;
     }
@@ -62,31 +68,33 @@ const StarsetScreen = () => {
       body: JSON.stringify({ accountId }),
     });
 
+    console.log('[getProfile] Réponse reçue (status):', response.status);
+
     if (!response.ok) throw new Error('Erreur réseau');
 
     const data = await response.json();
+    console.log('[getProfile] Données reçues :', data);
 
-    if (!data.account || !data.account.id) {
-      // Cas où le compte n'existe plus côté backend
-      console.warn('Compte invalide ou supprimé');
+    if (!data || !data.account || !data.account.id) {
+      console.warn('[getProfile] Compte invalide ou supprimé. Suppression et redirection.');
       await AsyncStorage.clear();
       navigation.navigate('connexion' as never);
       return;
     }
 
-    console.log('Utilisateur chargé :', data.account);
-    setUser(data.account); // ✅ Met à jour le contexte
+    setUser(data.account);
+    console.log('[getProfile] Utilisateur mis à jour dans le contexte.');
 
     if (!data.account.verified) {
-      // Redirection vers la vérification email
+      console.log('[getProfile] Compte non vérifié. Redirection vers connexion.');
       navigation.navigate('connexion' as never);
     } else {
-      // Redirection normale vers la home
+      console.log('[getProfile] Compte vérifié. Redirection vers (tabs).');
       navigation.navigate('(tabs)' as never);
     }
   } catch (error) {
-    console.error('Erreur lors du chargement du profil :', error);
-    await AsyncStorage.clear(); // Sécurité en cas d'erreur fatale
+    console.error('[getProfile] Erreur attrapée :', error);
+    await AsyncStorage.clear();
     navigation.navigate('connexion' as never);
   }
 };
