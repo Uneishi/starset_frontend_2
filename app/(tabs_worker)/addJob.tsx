@@ -145,7 +145,17 @@ const AddJobScreen = () => {
       ) : (
         <>
           {loading ? (
-            Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
+            Array.from({ length: 8 }).map((_, index) => {
+  if (index % 2 === 0) {
+    return (
+      <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+        <CategorySkeleton />
+        {index + 1 < 6 ? <CategorySkeleton /> : <View style={{ width: (SCREEN_WIDTH - 60) / 2 }} />} {/* Pour équilibrer si nombre impair */}
+      </View>
+    );
+  }
+  return null;
+})
           ) : (
             <FlatList
               data={fields}

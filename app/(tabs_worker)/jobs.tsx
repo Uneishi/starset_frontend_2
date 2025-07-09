@@ -291,33 +291,43 @@ const JobsScreen = () => {
 
       {filteredPrestations.map((prestation: any, index: number) => (
         <TouchableOpacity 
-          key={index} 
-          style={styles.jobCard}
-          onPress={() => goToPrestation(prestation)}
-        >
-        <View style={styles.jobHeader}>
-          <View style={styles.jobTitleContainer}>
-            <Text style={styles.jobTitle}>{prestation.metier}</Text>
-          </View>
+  key={index} 
+  style={styles.jobCard}
+  onPress={() => goToPrestation(prestation)}
+>
+  <View style={styles.jobCardContent}>
+    {/* Image à gauche */}
+    <Image
+      source={{ uri: prestation.picture_url || 'https://via.placeholder.com/100' }}
+      style={styles.prestationImage}
+    />
 
-          <TouchableOpacity
-            style={styles.deleteButtonTouchable}
-            onPress={() => {
-              setSelectedPrestationToDelete(prestation);
-              setShowDeleteConfirmation(true);
-            }}
-          >
-            <FontAwesome name="ellipsis-v" size={20} color="#666" />
-          </TouchableOpacity>
+    {/* Texte et infos à droite */}
+    <View style={{ flex: 1 }}>
+      <View style={styles.jobHeader}>
+        <View style={styles.jobTitleContainer}>
+          <Text style={styles.jobTitle}>{prestation.metier}</Text>
         </View>
-
-          <Text style={styles.jobStats}>({prestation.completedprestation}) Missions effectuées</Text>
-          <Text style={styles.jobStats}>(0) Multimédia</Text>
-          <Text style={styles.jobRequests}>(0) Demandes missions</Text>
-          <View style={[styles.statusBadge, { backgroundColor: prestation.published ? '#00cc66' : '#cc0000' }]}>
-            <Text style={styles.statusText}>{prestation.published ? 'Publié' : 'Not Published'}</Text>
-          </View>
+        <TouchableOpacity
+          style={styles.deleteButtonTouchable}
+          onPress={() => {
+            setSelectedPrestationToDelete(prestation);
+            setShowDeleteConfirmation(true);
+          }}
+        >
+          <FontAwesome name="ellipsis-v" size={20} color="#666" />
         </TouchableOpacity>
+      </View>
+
+      <Text style={styles.jobStats}>({prestation.completedprestation}) Missions effectuées</Text>
+      <Text style={styles.jobStats}>(0) Multimédia</Text>
+      <Text style={styles.jobRequests}>(0) Demandes missions</Text>
+      <View style={[styles.statusBadge, { backgroundColor: prestation.published ? '#00cc66' : '#cc0000' }]}>
+        <Text style={styles.statusText}>{prestation.published ? 'Publié' : 'Not Published'}</Text>
+      </View>
+    </View>
+  </View>
+</TouchableOpacity>
       ))}
 
       {/* New Modal for "Demande de missions" */}
@@ -867,6 +877,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 10, // pour ne pas chevaucher l'icône
   },
+
+  jobCardContent: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+prestationImage: {
+  width: 100,
+  height: 100,
+  borderRadius: 10,
+  marginRight: 10,
+  
+},
   
   
   
