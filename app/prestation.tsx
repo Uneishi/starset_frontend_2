@@ -14,6 +14,7 @@ import { IconButton, Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import config from '../config.json';
 
+
 import {
   getAllExperience,
   getPrestation
@@ -919,7 +920,7 @@ const PrestationScreen = () => {
       <Text style={styles.title}>{prestation?.metier}</Text>
       <View style={styles.widthMax}>
       <View style={styles.descriptionRow}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, width : '100%' }}>
           <Text style={styles.infoLabel}>description</Text>
           {isEditing ? (
             <TextInput
@@ -996,12 +997,12 @@ const PrestationScreen = () => {
       {!prestation?.type_of_remuneration?.toLowerCase().includes('heure') &&
  !prestation?.type_of_remuneration?.toLowerCase().includes('hourly') ? (
        <View style={styles.tarifSection}>
-        <Text style={styles.tarifTitle}>Ajouter des prestations</Text>
+        <Text style={styles.tarifTitle}>Ajouter mes tarids</Text>
         <TouchableOpacity
           style={prestation?.remuneration ? styles.tarifDisplay : styles.tarifButton}
           onPress={goToMultiplePrestation}
         >
-            <Text style={styles.tarifText}>ajouter des prestations</Text> 
+          <FontAwesome name="euro" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
     ) : (
@@ -1435,13 +1436,18 @@ const styles = StyleSheet.create({
   },
 
   descriptionInput: {
-    maxHeight : 100,
+    height : 100,
+    width : '100%',
     borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 5,
     paddingHorizontal: 15,
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 10,
+    justifyContent : 'flex-start',
+    alignItems : 'flex-start',
+    textAlignVertical: 'top', // 👈 Ceci colle le texte en haut
+    
   },
 
   modifyButton: {
@@ -1920,7 +1926,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, 
     borderTopWidth: 1, 
     borderBottomColor: '#E0E0E0',
-    borderTopColor: '#E0E0E0'  
+    borderTopColor: '#E0E0E0'  ,
+
   },
 
   infoLabel: { 

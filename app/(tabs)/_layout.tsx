@@ -87,7 +87,11 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 name="headset" size={24} color={color} />
+            <Image
+              source={require('../../assets/images/Appel.png')}
+              style={{ width: 30, height: 30 }}
+              resizeMode="contain"
+            />
           )
         }}
       />

@@ -753,6 +753,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', // Équilibre entre les éléments
     marginVertical: 10,
     padding: 10,
+    paddingRight : 50,
     borderBottomWidth: 1,
     borderColor: '#e0e0e0', // Couleur claire pour la bordure
     position: 'relative',
@@ -768,7 +769,7 @@ const styles = StyleSheet.create({
 
   missionInProgressText: {
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: 13,
     color: '#333',
   },
   inProgressCloseButton: {
@@ -789,7 +790,7 @@ const styles = StyleSheet.create({
     color: '#666', // Gris clair
   },
   missionPrice: {
-    fontSize: 16,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#00cc66', // Vert
     position: 'absolute',

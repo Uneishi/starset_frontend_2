@@ -1,3 +1,4 @@
+import { BebasNeue_400Regular, useFonts } from '@expo-google-fonts/bebas-neue';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -28,6 +29,13 @@ const AiScreen = () => {
   const navigation = useNavigation();
   const route = useRoute() as any;
   const tabBarHeight = useBottomTabBarHeight(); // 👈 important
+
+  let [fontsLoaded] = useFonts({
+      BebasNeue: BebasNeue_400Regular,
+      
+    });
+
+    
 
   const spinValue = new Animated.Value(0);
 
@@ -232,9 +240,10 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   headerName: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 26,
+    
     color: '#333',
+    fontFamily: 'BebasNeue',
   },
   messageContainer: {
     flex: 1,
