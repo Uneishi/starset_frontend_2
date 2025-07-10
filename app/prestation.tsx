@@ -921,7 +921,7 @@ const PrestationScreen = () => {
       <View style={styles.widthMax}>
       <View style={styles.descriptionRow}>
         <View style={{ flex: 1, width : '100%' }}>
-          <Text style={styles.infoLabel}>description</Text>
+          <Text style={styles.infoLabel}>Description</Text>
           {isEditing ? (
             <TextInput
               style={styles.descriptionInput}
@@ -1433,6 +1433,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily:"../assets/fonts/BebasNeue_Regular.ttf",
   },
 
   descriptionInput: {
@@ -1930,7 +1931,8 @@ const styles = StyleSheet.create({
 
   },
 
-  infoLabel: { 
+  infoLabel: {
+    fontFamily: "../assets/fonts/JosefinSans-Regular.ttf",
     fontWeight: 'bold', 
     fontSize: 16,
     alignSelf : 'flex-start'

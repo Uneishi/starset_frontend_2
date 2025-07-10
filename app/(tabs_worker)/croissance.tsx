@@ -46,16 +46,17 @@ const CroissanceScreen = () => {
   }, []);
 
   const workersMock = [
-    'https://img.20mn.fr/wb0GX0XqSd2N4Y3ItfLEGik/1444x920_squeezie-youtubeur-chanteur-et-desormais-auteur-de-bd',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwwXfPD8d-KenzH6diGi3tKJu9liPKonRhgw&s',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrZEnI6ULp75xTWZpfj0mTHaebwUDaiE0OBA&s',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSicKbK7hKK2PMZLyJBtbec1a1vMTGwV0GTOg&s',
+    'https://randomuser.me/api/portraits/men/36.jpg',
+    'https://randomuser.me/api/portraits/women/47.jpg',
+    'https://randomuser.me/api/portraits/men/64.jpg',
+    'https://randomuser.me/api/portraits/women/73.jpg',
   ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}
     showsVerticalScrollIndicator={false}>
       <View style={styles.croissanceContainer}>
+        <Image style ={styles.tinyLogo}source={require('../../assets/images/starset-icon.png')}/>
         <Image
           source={{ uri: 'http://109.176.199.54/images/icon/croissance_header.png' }}
           style={styles.croissance}
@@ -201,10 +202,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     marginTop: 20,
   },
+   tinyLogo: {
+    marginTop:20,
+    width: 250,
+    height: 100
+  },
   croissance: {
     resizeMode: 'contain',
-    height: 80,
-    marginBottom: 30,
+    height: 10,
     width: '80%',
   },
   croissanceContainer: {

@@ -157,6 +157,7 @@ const SearchScreen = () => {
         style={styles.profileContainerList}
         onPress={() => goToPrestationViewWithId(item.metiers[0]?.id)}
       >
+        <View>
         {item.profile_picture_url ? (
           <Image source={{ uri: item.profile_picture_url }} style={styles.profileImage} />
         ) : (
@@ -167,7 +168,8 @@ const SearchScreen = () => {
             style={styles.profileImage}
           />
         )}
-  
+        <Image source={require('../../assets/images/valide_or.png')} style={styles.statusIndicator} />
+        </View>
         <View style={styles.profileInfo}>
           <View style={styles.nameAndRating}>
             <View>
@@ -260,7 +262,7 @@ const SearchScreen = () => {
       contentContainerStyle={{ paddingBottom: 10 }} // <-- AJOUTE CECI
       ListHeaderComponent={
         <View style={styles.container}>
-          <Text style={styles.headerText}>Star Set</Text>
+          <Image style ={styles.tinyLogo}source={require('../../assets/images/starset-icon.png')}/>
           <TouchableOpacity style={styles.bellIconContainer} onPress={() => console.log('Notifications')}>
             <Ionicons name="notifications-outline" size={28} color="#000" />
           </TouchableOpacity>
@@ -328,13 +330,10 @@ const styles = StyleSheet.create({
     width : '100%'
   },
 
-  headerText: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 20,
-    marginTop: 30, 
-    paddingHorizontal : 20,
+  tinyLogo: {
+    marginTop:20,
+    width: 250,
+    height: 100
   },
   stepContainer: {
     flexDirection: 'row',
@@ -351,10 +350,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   sectionHeader: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
     alignSelf: 'flex-start',
+    marginTop: 10,
     marginBottom: 10,
     marginHorizontal : 20,
     fontFamily: 'BebasNeue-Regular', // Utilisation de la police
