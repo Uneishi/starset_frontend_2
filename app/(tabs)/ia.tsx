@@ -1,78 +1,74 @@
 import { BebasNeue_400Regular, useFonts } from '@expo-google-fonts/bebas-neue';
+import { LexendDeca_400Regular } from '@expo-google-fonts/lexend-deca';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
   Animated,
-  Easing,
+  Dimensions,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfileCard from '../../components/ProfileCard';
 import config from '../../config.json';
-
 
 const AiScreen = () => {
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation();
-  const route = useRoute() as any;
-  const tabBarHeight = useBottomTabBarHeight(); // 👈 important
+  const tabBarHeight = useBottomTabBarHeight();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  let [fontsLoaded] = useFonts({
-      BebasNeue: BebasNeue_400Regular,
-      
-    });
-
-    
-
-  const spinValue = new Animated.Value(0);
+  const [fontsLoaded] = useFonts({
+    BebasNeue: BebasNeue_400Regular,
+    LexendDeca : LexendDeca_400Regular,
+  });
+  const screenHeight = Dimensions.get('window').height;
+const [visibleHeight, setVisibleHeight] = useState(screenHeight);
 
   const typingOpacity = new Animated.Value(0);
 
-useEffect(() => {
-  if (loading) {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(typingOpacity, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(typingOpacity, {
-          toValue: 0.3,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }
-}, [loading]);
+  useEffect(() => {
+    if (loading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(typingOpacity, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(typingOpacity, {
+            toValue: 0.3,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [loading]);
 
-  Animated.loop(
-    Animated.timing(spinValue, {
-      toValue: 1,
-      duration: 3000,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    })
-  ).start();
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+  useEffect(() => {
+  const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
+    setKeyboardHeight(event.endCoordinates.height-50);
   });
+  const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+    setKeyboardHeight(0);
+  });
+
+  return () => {
+    showSubscription.remove();
+    hideSubscription.remove();
+  };
+}, []);
 
   const getAccountId = async () => {
     try {
@@ -118,17 +114,15 @@ useEffect(() => {
         body: JSON.stringify({ user_id, message_text: newMessage }),
       });
 
-      const response_json: any = await response.json();
-      const data = response_json.data;
-      const messageText = data.response;
-      const workers = data.workers;
+      const response_json = await response.json();
+      const { response: messageText, workers } = response_json.data;
 
-      setMessages(prevMessages => [
-        ...prevMessages,
+      setMessages(prev => [
+        ...prev,
         {
           message_text: messageText,
           sended_by_user: false,
-          workers: workers,
+          workers,
         },
       ]);
     } catch (error) {
@@ -142,90 +136,83 @@ useEffect(() => {
     initAiContext();
   }, []);
 
+  if (!fontsLoaded) return null;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#D4F1E3' }} edges={['bottom', 'left', 'right']}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+  <View style={{ flex: 1, backgroundColor: '#D4F1E3', paddingBottom: keyboardHeight }}>
+  <SafeAreaView style={{ flex: 1 }}>
+    
+      {/* Header */}
+      <View style={styles.header}>
+        <Image source={require('../../assets/images/Appel.png')} style={styles.aiAvatar} />
+        <Text style={styles.headerName}>MIRA</Text>
+      </View>
+
+      {/* Messages */}
+      <ScrollView
+        style={styles.messageContainer}
+        contentContainerStyle={{ paddingBottom: 140 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={{ flex: 1 }}>
-          {/* En-tête "IA" */}
-          <View style={styles.header}>
-            <Image source={require('../../assets/images/Appel.png')} style={styles.aiAvatar} />
-            <Text style={styles.headerName}>MIRA</Text>
-          </View>
+        {messages.map((message, index) => (
+          <View
+            key={index}
+            style={[
+              styles.messageBubble,
+              message.sended_by_user ? styles.myMessage : styles.otherMessage,
+            ]}
+          >
+            <View
+              style={message.sended_by_user ? styles.myTextWrapper : styles.otherTextWrapper}
+            >
+              <Text style={styles.messageText}>{message.message_text}</Text>
+            </View>
 
-          {/* Messages */}
-          <ScrollView
-  style={styles.messageContainer}
-  contentContainerStyle={{ paddingBottom: 120 }} // 👈 Réserve la place de l’input
-  keyboardShouldPersistTaps="handled"
->
-            {messages.map((message, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.messageBubble,
-                  message.sended_by_user ? styles.myMessage : styles.otherMessage,
-                ]}
-              >
-                <View
-                  style={
-                    message.sended_by_user
-                      ? styles.myTextWrapper
-                      : styles.otherTextWrapper
-                  }
-                >
-                  <Text style={styles.messageText}>{message.message_text}</Text>
-                </View>
-
-                {message.workers?.length > 0 && (
-                  <View style={{ marginTop: 10, gap: 10 }}>
-                    {message.workers.map((worker: any, i: number) => (
-                      <ProfileCard key={i} item={worker} />
-                    ))}
-                  </View>
-                )}
+            {message.workers?.length > 0 && (
+              <View style={{ marginTop: 10, gap: 10 }}>
+                {message.workers.map((worker: any, i: number) => (
+                  <ProfileCard key={i} item={worker} />
+                ))}
               </View>
-            ))}
-
-{loading && (
-  <View style={[styles.messageBubble, styles.otherMessage]}>
-    <Animated.Text style={[styles.typingText, { opacity: typingOpacity }]}>
-      taping...
-    </Animated.Text>
-  </View>
-)}
-          </ScrollView>
-
-          {/* Input + bouton */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Posez votre question..."
-              placeholderTextColor="#808080"
-            /> 
-            <TouchableOpacity style ={ styles.sendButton} onPress={handleSendAiMessage}>
-              <Ionicons name="send" size={24} color="#fff" />
-            </TouchableOpacity>
+            )}
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        ))}
+
+        {loading && (
+          <View style={[styles.messageBubble, styles.otherMessage]}>
+            <Animated.Text style={[styles.typingText, { opacity: typingOpacity }]}>
+              taping...
+            </Animated.Text>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Input */}
+      <View style={styles.inputContainer}>
+        <TouchableOpacity onPress={() => {}}>
+          <Ionicons name="camera-outline" size={24} color="#008000" />
+        </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Je recherche une babysitter..."
+          placeholderTextColor="#808080"
+          multiline
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSendAiMessage}>
+          <Ionicons name="send" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    
     </SafeAreaView>
-  );
+</View>
+
+);
+
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#D4F1E3',
-    width: '100%',
-  },
   header: {
     alignItems: 'center',
     marginTop: 20,
@@ -234,14 +221,11 @@ const styles = StyleSheet.create({
   aiAvatar: {
     width: 110,
     height: 110,
-    
-    
     marginBottom: 8,
     marginTop: 50,
   },
   headerName: {
     fontSize: 26,
-    
     color: '#333',
     fontFamily: 'BebasNeue',
   },
@@ -254,11 +238,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 2,
     width: '100%',
-  },
-  messageBubble2: {
-    borderRadius: 20,
-    padding: 10,
-    marginVertical: 2,
   },
   myTextWrapper: {
     backgroundColor: '#FFEB3B',
@@ -280,23 +259,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingVertical: 10,
     backgroundColor: '#008000',
-    zIndex: 10,              // 👈 Ajouté
-    elevation: 10,           // 👈 Pour Android
-    position: 'absolute',    // 👈 Important pour le fixer
-    bottom: 0,               // 👈 Ancré en bas de l'écran
+     paddingBottom: Platform.OS === 'ios' ? 65 : 10,
   },
   input: {
-    width: '87%',
-    paddingRight: 30,
-    height: 40,
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 100,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     paddingHorizontal: 15,
-    fontSize: 16,
+    fontSize: 14,
     color: '#000000',
+    fontFamily : 'LexendDeca'
   },
   sendButton: {
     marginLeft: 10,
@@ -315,24 +292,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: 10,
   },
-  customLoader: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 4,
-    borderColor: 'rgba(0, 128, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginVertical: 5,
-  },
-  innerSquare: {
-    width: 20,
-    height: 20,
-    backgroundColor: '#008000',
-    borderRadius: 4,
-  },
-
   typingText: {
     fontSize: 16,
     fontStyle: 'italic',

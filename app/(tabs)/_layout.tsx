@@ -89,7 +89,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Image
               source={require('../../assets/images/Appel.png')}
-              style={{ width: 30, height: 30 }}
+              style={{ width: 34, height: 34 }}
               resizeMode="contain"
             />
           )
