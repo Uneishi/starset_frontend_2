@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Animated,
   Easing,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfileCard from '../../components/ProfileCard';
 import config from '../../config.json';
+
 
 const AiScreen = () => {
   const [newMessage, setNewMessage] = useState('');
@@ -142,8 +144,8 @@ useEffect(() => {
         <View style={{ flex: 1 }}>
           {/* En-tête "IA" */}
           <View style={styles.header}>
-            <View style={styles.aiAvatar}/>
-            <Text style={styles.headerName}>Assistant IA</Text>
+            <Image source={require('../../assets/images/Appel.png')} style={styles.aiAvatar} />
+            <Text style={styles.headerName}>MIRA</Text>
           </View>
 
           {/* Messages */}
@@ -222,15 +224,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   aiAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#008000',
+    width: 110,
+    height: 110,
+    
+    
     marginBottom: 8,
     marginTop: 50,
   },
   headerName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
   },
