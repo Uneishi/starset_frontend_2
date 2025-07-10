@@ -32,8 +32,6 @@ const ConnexionScreen = () => {
       const data = await response.json();
       if (data.success) {
         // Rediriger ou faire autre chose en cas de succès
-        console.log(data.account);
-        console.log(data.account['id'])
         getProfile(data.account['id'])
         saveData(data.account)
        
@@ -82,11 +80,6 @@ const getProfile = async (accountId: string) => {
   const isFormValid = email.length > 0 && password.length > 0;
 
   useEffect(() => {
-    console.log("email:", email, "password:", password);
-    console.log("form is valid:", isFormValid);
-  }, [email, password]);
-
-  useEffect(() => {
   const unsubscribe = navigation.addListener('focus', () => {
     setEmail('');
     setPassword('');
@@ -108,9 +101,6 @@ const getProfile = async (accountId: string) => {
       <Text style={styles.description}>
         Laissez-nous identifier votre profil, Star Set n'attend plus que vous !
       </Text>
-      <Text style={styles.description2}>
-        Version 1.01 BETA
-      </Text> 
       <View style={styles.separator}></View>
 
       <TextInput

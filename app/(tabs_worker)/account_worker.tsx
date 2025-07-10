@@ -90,7 +90,10 @@ const AccountWorkerScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.profileHeader} onPress={goToProfilePicture}>
+        <Text style={styles.typeOAccount}>Worker</Text>
+    
+        <View style={styles.rightHeader}>
+              <TouchableOpacity style={styles.profileHeader} onPress={goToProfilePicture}>
                   <View>
                   <Image
                     source={{ 
@@ -107,8 +110,6 @@ const AccountWorkerScreen = () => {
                     <Text style={styles.profileHandle}>@{account?.pseudo}</Text>
                   </View>
                 </TouchableOpacity>
-        <View style={styles.rightHeader}>
-          <Text style={styles.typeOAccount}>Worker</Text>
           
         </View>
       </View>
@@ -131,7 +132,7 @@ const AccountWorkerScreen = () => {
 
 <TouchableOpacity style={styles.menuItem}>
   <MaterialIcons name="star-border" size={24} color="#000" style={styles.menuIcon} />
-  <Text style={[styles.menuItemText, styles.premiereColor]}>Star Set Premiere</Text>
+  <Text style={[styles.menuItemText, styles.premiereColor]}>Star Set Business</Text>
 </TouchableOpacity>
 
 <TouchableOpacity style={styles.menuItem}>
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   premiereColor:{
-    color: '#ffc905'
+    color: '#7ED957'
   },
   footer: {
     flexDirection: 'row',
@@ -254,15 +255,15 @@ const styles = StyleSheet.create({
   },
 
   rightHeader : {
-    marginRight : 30,
-    marginTop : 10,
+    marginBottom: 20,
   },
 
   header: {
     flexDirection: 'row',
     justifyContent : 'space-between',
-    marginBottom: 20,
-    
+
+    marginRight : 30,
+    marginTop : 10,
   },
 
   tirelire: {

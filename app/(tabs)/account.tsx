@@ -66,7 +66,7 @@ const AccountScreen = () => {
     saveMode('worker');
     navigation.navigate({
       name: '(tabs_worker)',
-      params: { screen: 'Account_Worker' },
+      params: { screen: 'account_worker' },
     } as never);
   };
 
