@@ -1,5 +1,6 @@
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
 import React, { useState } from 'react';
 
 import {
@@ -121,8 +122,9 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={(event, selectedDate) => {
                 if (selectedDate) {
+                  moment(selectedDate).format('DD/MM/YYYY')
                   const dateString = selectedDate.toISOString().split('T')[0].replace(/-/g, '/');
-                  onDateSelect(dateString); // Ou moment(selectedDate).format('DD/MM/YYYY') selon ton format
+                  onDateSelect(moment(selectedDate).format('DD/MM/YYYY'));
                 }
                 onToggleCalendar();
               }}

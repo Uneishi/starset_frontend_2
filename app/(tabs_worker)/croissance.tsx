@@ -56,6 +56,7 @@ const CroissanceScreen = () => {
     <ScrollView contentContainerStyle={styles.container}
     showsVerticalScrollIndicator={false}>
       <View style={styles.croissanceContainer}>
+        <Image style ={styles.tinyLogo}source={require('../../assets/images/starset-icon.png')}/>
         <Image
           source={{ uri: 'http://109.176.199.54/images/icon/croissance_header.png' }}
           style={styles.croissance}
@@ -201,10 +202,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     marginTop: 20,
   },
+   tinyLogo: {
+    marginTop:20,
+    width: 250,
+    height: 100
+  },
   croissance: {
     resizeMode: 'contain',
-    height: 80,
-    marginBottom: 30,
+    height: 10,
     width: '80%',
   },
   croissanceContainer: {
