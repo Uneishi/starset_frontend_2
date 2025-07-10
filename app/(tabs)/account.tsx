@@ -317,12 +317,12 @@ navigation.dispatch(
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.profileHeader} onPress={goToProfilePicture}>
-          <View >
+          <View>
           <Image
             source={{ 
               uri: account?.profile_picture_url 
                 ? account?.profile_picture_url
-                : 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' 
+                : 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'
             }} 
             style={styles.profilePicture}
           />

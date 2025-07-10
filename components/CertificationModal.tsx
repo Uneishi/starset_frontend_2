@@ -1,6 +1,7 @@
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React from 'react';
+import React, { useState } from 'react';
+
 import {
   Alert,
   Image,
@@ -28,6 +29,7 @@ interface CertificationFormModalProps {
 }
 
 const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
+  
   visible,
   onClose,
   isEditMode,
@@ -39,6 +41,21 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
   onToggleCalendar,
   onDateSelect,
 }) => {
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLocalSubmit = async () => {
+    if (isSubmitting) return; // éviter les clics multiples
+  
+    setIsSubmitting(true);
+    try {
+      await onSubmit(); // onSubmit est ton handleSubmit externe
+    } catch (err) {
+      console.error(err); // pour déboguer si besoin
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const handleDeleteImage = (index: number) => {
     Alert.alert(
       "Supprimer l'image",
@@ -138,7 +155,7 @@ const CertificationFormModal: React.FC<CertificationFormModalProps> = ({
             )}
           </View>
 
-          <TouchableOpacity style={styles.submitButton} onPress={onSubmit}>
+          <TouchableOpacity style={styles.submitButton} onPress={handleLocalSubmit}>
             <Text style={styles.submitButtonText}>
               {isEditMode ? 'Mettre à jour' : 'Valider'}
             </Text>

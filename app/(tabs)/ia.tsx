@@ -29,6 +29,27 @@ const AiScreen = () => {
 
   const spinValue = new Animated.Value(0);
 
+  const typingOpacity = new Animated.Value(0);
+
+useEffect(() => {
+  if (loading) {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(typingOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(typingOpacity, {
+          toValue: 0.3,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }
+}, [loading]);
+
   Animated.loop(
     Animated.timing(spinValue, {
       toValue: 1,
@@ -116,7 +137,7 @@ const AiScreen = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? tabBarHeight : 0} // 👈 ajusté
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <View style={{ flex: 1 }}>
           {/* En-tête "IA" */}
@@ -127,10 +148,10 @@ const AiScreen = () => {
 
           {/* Messages */}
           <ScrollView
-            style={styles.messageContainer}
-            contentContainerStyle={{ paddingBottom: tabBarHeight + 100 }} // 👈 ajusté
-            keyboardShouldPersistTaps="handled"
-          >
+  style={styles.messageContainer}
+  contentContainerStyle={{ paddingBottom: 120 }} // 👈 Réserve la place de l’input
+  keyboardShouldPersistTaps="handled"
+>
             {messages.map((message, index) => (
               <View
                 key={index}
@@ -159,15 +180,13 @@ const AiScreen = () => {
               </View>
             ))}
 
-            {loading && (
-              <View style={[styles.messageBubble2, styles.otherMessage]}>
-                <Animated.View
-                  style={[styles.customLoader, { transform: [{ rotate: spin }] }]}
-                >
-                  <View style={styles.innerSquare} />
-                </Animated.View>
-              </View>
-            )}
+{loading && (
+  <View style={[styles.messageBubble, styles.otherMessage]}>
+    <Animated.Text style={[styles.typingText, { opacity: typingOpacity }]}>
+      taping...
+    </Animated.Text>
+  </View>
+)}
           </ScrollView>
 
           {/* Input + bouton */}
@@ -253,6 +272,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: '#008000',
+    zIndex: 10,              // 👈 Ajouté
+    elevation: 10,           // 👈 Pour Android
+    position: 'absolute',    // 👈 Important pour le fixer
+    bottom: 0,               // 👈 Ancré en bas de l'écran
   },
   input: {
     width: '87%',
@@ -297,6 +320,18 @@ const styles = StyleSheet.create({
     height: 20,
     backgroundColor: '#008000',
     borderRadius: 4,
+  },
+
+  typingText: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    color: '#555',
+    backgroundColor: '#eee',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
   },
 });
 
