@@ -157,6 +157,7 @@ const AddJobScreen = () => {
   return null;
 })
           ) : (
+            
             <FlatList
               data={fields}
               renderItem={({ item }: any) => (

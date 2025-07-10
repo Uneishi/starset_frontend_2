@@ -74,10 +74,11 @@ const PaymentScreen = () => {
     }
 
     setIsLoading(true);
-   const {error} = await presentPaymentSheet();
+    //disable Payment sheet because it's not working for now :(
+   /*const {error} = await presentPaymentSheet();
    if (error){
     Alert.alert(`Error code: ${error.code}`, error.message);
-   }
+   }*/
     try {
       const user_id = await getAccountId();
 

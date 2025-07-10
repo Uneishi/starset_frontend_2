@@ -39,9 +39,9 @@ const SummaryScreen = () => {
   const currentItem = cart[currentIndex];
 
   // Formatage dates/heures avec fallback
-  const formatDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString() : 'N/A');
+  const formatDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString("fr-FR") : 'N/A');
   const formatTime = (d?: string | null) =>
-    d ? new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+    d ? new Date(d).toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
   const {
     prestation,

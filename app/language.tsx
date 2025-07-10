@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const LANGUAGES = [
   { code: 'fr', name: 'Français' },
-  { code: 'en', name: 'Anglais'},
+ /* { code: 'en', name: 'Anglais'},
   { code: 'zh', name: 'China' },
   { code: 'ar', name: 'Arabe' },
   { code: 'es', name: 'Espagnol'},
@@ -11,7 +11,7 @@ const LANGUAGES = [
   { code: 'km', name: 'Khmer'},
   { code: 'he', name: 'Hébreu'},
   { code: 'de', name: 'Allemand'},
-  { code: 'ru', name: 'Russe'},
+  { code: 'ru', name: 'Russe'},*/
 ];
 
 const LanguageScreen = () => {

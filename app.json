@@ -12,6 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.starset.frontend",
+      "ios.buildNumber" : "0.2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Cette application utilise la caméra pour permettre à l'utilisateur de scanner des codes ou prendre des photos."

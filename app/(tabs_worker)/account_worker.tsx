@@ -25,11 +25,11 @@ const AccountWorkerScreen = () => {
     }],
   })
   );
-    
-    
   }
 
-  
+  const goToLanguage = async () => {
+    navigation.navigate('language' as never);
+  }
 
   const goToProfilePicture = async () => {
     navigation.navigate('modifyAccount' as never);
@@ -131,7 +131,7 @@ const AccountWorkerScreen = () => {
 
 <TouchableOpacity style={styles.menuItem}>
   <MaterialIcons name="star-border" size={24} color="#000" style={styles.menuIcon} />
-  <Text style={styles.menuItemText}>Star Set Premiere</Text>
+  <Text style={[styles.menuItemText, styles.premiereColor]}>Star Set Premiere</Text>
 </TouchableOpacity>
 
 <TouchableOpacity style={styles.menuItem}>
@@ -139,7 +139,7 @@ const AccountWorkerScreen = () => {
   <Text style={styles.menuItemText}>Paramètres</Text>
 </TouchableOpacity>
 
-<TouchableOpacity style={styles.menuItem}>
+<TouchableOpacity style={styles.menuItem} onPress={goToLanguage}>
   <MaterialIcons name="language" size={24} color="#000" style={styles.menuIcon} />
   <Text style={styles.menuItemText}>Langues</Text>
 </TouchableOpacity>
@@ -224,6 +224,9 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16,
     color: '#000',
+  },
+  premiereColor:{
+    color: '#ffc905'
   },
   footer: {
     flexDirection: 'row',
