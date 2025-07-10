@@ -178,8 +178,8 @@ const AiScreen = () => {
               onChangeText={setNewMessage}
               placeholder="Posez votre question..."
               placeholderTextColor="#808080"
-            />
-            <TouchableOpacity style={styles.sendButton} onPress={handleSendAiMessage}>
+            /> 
+            <TouchableOpacity style ={ styles.sendButton} onPress={handleSendAiMessage}>
               <Ionicons name="send" size={24} color="#fff" />
             </TouchableOpacity>
           </View>

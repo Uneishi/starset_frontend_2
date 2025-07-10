@@ -2,7 +2,7 @@ import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import config from '../../config.json';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -43,31 +43,15 @@ const AddJobScreen = () => {
   const [metierNames, setMetierNames] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [fields, setFields] = useState([]); // catégories
-  const [selectedField, setSelectedField] = useState(null);
+  const [fields, setFields] = useState([]);
   let [fontsLoaded] = useFonts({
-      BebasNeue: BebasNeue_400Regular,
+    BebasNeue: BebasNeue_400Regular,
   });
 
-  const getMetiersByField = async (fieldName: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${config.backendUrl}/api/mission/filter-job-with-field`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: fieldName }),
-      });
-
-      if (!response.ok) throw new Error('Erreur réseau');
-
-      const data = await response.json();
-      setMetierNames(data.metiers);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des métiers filtrés :', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    getAllMetierNames();
+    fetchFields();
+  }, []);
 
   const getAllMetierNames = async () => {
     try {
@@ -84,7 +68,7 @@ const AddJobScreen = () => {
       }
 
       const data = await response.json();
-      if(data) setMetierNames(data.metierNames);
+      if (data) setMetierNames(data.metierNames || []);
     } catch (error) {
       console.error('Une erreur est survenue lors de la récupération des métiers:', error);
     } finally {
@@ -92,7 +76,23 @@ const AddJobScreen = () => {
     }
   };
 
-  const gotoJobView = (selectedJob: string) => {
+  const fetchFields = async () => {
+    try {
+      const response = await fetch(`${config.backendUrl}/api/mission/get-all-field`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (data) setFields(data.fields || []);
+    } catch (error) {
+      console.error('Erreur récupération catégories :', error);
+    }
+  };
+
+  const gotoJobView = (selectedJob: any) => {
     navigation.navigate({
       name: 'jobView',
       params: { selectedJob },
@@ -106,27 +106,6 @@ const AddJobScreen = () => {
     } as never);
   };
 
-  const fetchFields = async () => {
-    try {
-      const response = await fetch(`${config.backendUrl}/api/mission/get-all-field`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      const data = await response.json();
-      if(data) setFields(data.fields);
-    } catch (error) {
-      console.error('Erreur récupération catégories :', error);
-    }
-  };
-
-  useEffect(() => {
-    getAllMetierNames();
-    fetchFields();
-  }, []);
-
   const filteredMetiers = metierNames.filter((metier: any) =>
     metier.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -135,58 +114,73 @@ const AddJobScreen = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>ADD A JOB</Text>
 
-      
+      {/* Search Input */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Rechercher un métier..."
+        placeholderTextColor="#999"
+        value={searchTerm}
+        onChangeText={setSearchTerm}
+      />
 
-      {selectedField === null ? (
+      {/* Display either metiers or categories */}
+      {searchTerm.trim() !== '' ? (
         <>
-          
           {loading ? (
-            Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
+            <ActivityIndicator size="large" color="#333" />
           ) : (
-            <FlatList
-            data={fields}
-            renderItem={({ item } : any) => (
-              <TouchableOpacity
-                style={styles.categoryCard}
-                onPress={() => goToMetierList(item)}
-              >
-                <Image source={{ uri: item.picture_url }} style={styles.categoryImage} />
-                <View style={styles.overlay}>
-                  <Text style={styles.categoryText}>{item.name.toUpperCase()}</Text>
-                </View>
+            filteredMetiers.map((metier: any, index: number) => (
+              <TouchableOpacity key={index} style={styles.jobCardFiltered} onPress={() => gotoJobView(metier)}>
+                <Image
+                  source={{
+                    uri: metier.picture_url || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png',
+                  }}
+                  style={styles.jobImageFiltered}
+                />
+                <Text style={styles.jobTitleFiltered}>{metier.name.toUpperCase()}</Text>
               </TouchableOpacity>
-            )}
-            keyExtractor={(item : any) => item.name}
-            numColumns={2} // ✅ ici tu définis 2 colonnes
-            columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 15 }}
-          />
+            ))
           )}
         </>
-      ) : loading ? (
-        Array.from({ length: 6 }).map((_, index) => <CategorySkeleton key={index} />)
       ) : (
-        filteredMetiers.map((metier: any, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.jobCard}
-            onPress={() => gotoJobView(metier)}
-          >
-            <Image
-              source={{
-                uri: metier.picture_url || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png',
-              }}
-              style={styles.jobImage}
-            />
-            <Text style={styles.jobTitle}>{metier.name.toUpperCase()}</Text>
-          </TouchableOpacity>
-        ))
-      )}
-      <View style={{height: 50}}></View>
-    </ScrollView>
-
+        <>
+          {loading ? (
+            Array.from({ length: 8 }).map((_, index) => {
+  if (index % 2 === 0) {
+    return (
+      <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 }}>
+        <CategorySkeleton />
+        {index + 1 < 6 ? <CategorySkeleton /> : <View style={{ width: (SCREEN_WIDTH - 60) / 2 }} />} {/* Pour équilibrer si nombre impair */}
+      </View>
     );
+  }
+  return null;
+})
+          ) : (
+            <FlatList
+              data={fields}
+              renderItem={({ item }: any) => (
+                <TouchableOpacity
+                  style={styles.categoryCard}
+                  onPress={() => goToMetierList(item)}
+                >
+                  <Image source={{ uri: item.picture_url }} style={styles.categoryImage} />
+                  <View style={styles.overlay}>
+                    <Text style={styles.categoryText}>{item.name.toUpperCase()}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              keyExtractor={(item: any) => item.name}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 15 }}
+            />
+          )}
+        </>
+      )}
+      <View style={{ height: 50 }} />
+    </ScrollView>
+  );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -201,15 +195,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  searchInput: {
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    marginBottom: 20,
-  },
+  
 
   jobCard: {
     flexDirection: 'row',
@@ -290,6 +276,37 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f0f0f0',
     width: (SCREEN_WIDTH - 60) / 2, // 👈 Ajuste largeur pour 2 colonnes (avec padding/margin)
+  },
+
+  searchInput: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  // Pour les métiers filtrés
+  jobCardFiltered: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    paddingRight: 80,
+  },
+  jobImageFiltered: {
+    width: 60,
+    height: 60,
+    marginRight: 15,
+  },
+  jobTitleFiltered: {
+    fontSize: 20,
+    fontWeight: '600',
+    fontFamily: 'BebasNeue',
+    flexWrap: 'wrap',
   },
 });
 

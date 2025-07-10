@@ -861,22 +861,40 @@ const PrestationScreen = () => {
   }, []);
 
   useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={{ flexDirection: 'row', marginRight: 10 }}>
-          {/* Icône enveloppe */}
-          
-
-          {/* Icône trois points verticaux pour paramètres */}
-          <TouchableOpacity
-            onPress={() => setIsPopupVisible(true)} // Affiche le popup
+  navigation.setOptions({
+    headerRight: () => (
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }}>
+        <Text style={{ marginRight: 8, fontWeight: 'bold', fontSize: 12 }}>
+          {prestation?.published ? 'Publié' : 'Non publié'}
+        </Text>
+        <TouchableOpacity onPress={confirmTogglePrestationPublished}>
+          <View
+            style={{
+              width: 40,
+              height: 24,
+              borderRadius: 12,
+              backgroundColor: prestation?.published ? '#4cd137' : '#e84118',
+              justifyContent: 'center',
+              padding: 2,
+            }}
           >
-            <Icon name="more-vert" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      ),
-    });
-  }, [navigation]);
+            <View
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: '#fff',
+                alignSelf: prestation?.published ? 'flex-end' : 'flex-start',
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    ),
+  });
+}, [navigation, prestation?.published]);
+
+
 
   useEffect(() => {
     if (prestation?.description) {
@@ -1341,7 +1359,7 @@ const PrestationScreen = () => {
       </View>
       )}
       <View style={styles.publishContainer}>
-        <TouchableOpacity
+        {/*<TouchableOpacity
             style={[
             styles.publishButton,
             prestation?.published ? styles.unpublishButton : styles.publishButton,
@@ -1351,7 +1369,7 @@ const PrestationScreen = () => {
             <Text style={styles.publishButtonText}>
             {prestation?.published ? "Retirer" : "Publier"}
             </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
         </View>
       
       <Modal
@@ -1843,7 +1861,8 @@ const styles = StyleSheet.create({
     width : '100%',
     alignItems : 'center', 
     marginVertical : 20,
-    marginBottom : 40
+    marginBottom : 40,
+    height : 50 
   },
   publishButton: {
     backgroundColor: '#00cc66',
