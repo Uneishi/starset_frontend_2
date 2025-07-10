@@ -1,17 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React from 'react';
+import { StripeProvider, usePaymentSheet } from '@stripe/stripe-react-native';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import config from '../config.json';
 
 const PaymentScreen = () => {
   const route = useRoute() as any;
+  const [ready, setReady] = useState(false);
   const navigation = useNavigation();
-
+  const {initPaymentSheet, presentPaymentSheet} = usePaymentSheet();
   // On récupère cart, instruction, totalRemuneration depuis params
   const { cart = [], instruction = '', totalRemuneration = 0 } = route.params || {};
 
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    initialisePaymentSheet();
+  }, []);
 
   const getAccountId = async () => {
     try {
@@ -22,6 +28,45 @@ const PaymentScreen = () => {
     }
   };
 
+  const initialisePaymentSheet = async() =>{
+    const {paymentIntent, ephemeralKey, customer} =
+      await fetchPaymentSheetParams();
+  
+      const {error} = await initPaymentSheet({
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        merchantDisplayName: 'Starset',
+        allowsDelayedPaymentMethods: true,
+        returnURL: 'starset://stripe-redirect'
+
+      });
+      if(error){
+        console.log(`Error code: ${error.code}`, error.message);
+      } else {
+        setReady(true);
+      }
+    };
+
+    const fetchPaymentSheetParams = async () =>{
+      const response = await fetch(`${config.backendUrl}/api/stripe/create-payment-sheet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: getAccountId(),
+          items: [{amount: totalRemuneration*100}]})
+      });
+
+      const {paymentIntent, ephemeralKey, customer} = await response.json();
+      return {
+        paymentIntent,
+        ephemeralKey,
+        customer,
+      }
+    };
+
   const handlePayment = async () => {
     if (cart.length === 0) {
       Alert.alert('Panier vide', 'Votre panier est vide.');
@@ -29,7 +74,11 @@ const PaymentScreen = () => {
     }
 
     setIsLoading(true);
-
+    //disable Payment sheet because it's not working for now :(
+   /*const {error} = await presentPaymentSheet();
+   if (error){
+    Alert.alert(`Error code: ${error.code}`, error.message);
+   }*/
     try {
       const user_id = await getAccountId();
 
@@ -47,9 +96,6 @@ const PaymentScreen = () => {
           instruction,
           profilePictureUrl
         } = item;
-
-        console.log("prestation")
-        console.log(prestation)
 
         const response = await fetch(`${config.backendUrl}/api/planned-prestation/create-planned-prestation`, {
           method: 'POST',
@@ -78,10 +124,12 @@ const PaymentScreen = () => {
       }
 
       setIsLoading(false);
+      setReady(false);
       Alert.alert('Succès', 'Le paiement et les prestations ont bien été enregistrés.');
       navigation.navigate('validation' as never);
     } catch (error) {
       setIsLoading(false);
+      setReady(false);
       console.error('Erreur paiement :', error);
       Alert.alert('Erreur', 'Impossible de valider le paiement. Vérifiez votre connexion.');
     }
@@ -91,7 +139,9 @@ const PaymentScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.headerText}>Paiement</Text>
-
+      <StripeProvider
+        publishableKey={config.publishableKeyTest}
+      >
       {cart.map((item: any, index: number) => {
         const {
           prestation,
@@ -101,6 +151,7 @@ const PaymentScreen = () => {
 
         return (
           <View key={index} style={styles.prestationContainer}>
+            
             <Image
               source={{ uri: profilePictureUrl || prestation.picture_url }}
               style={styles.profilePicture}
@@ -115,14 +166,15 @@ const PaymentScreen = () => {
       <View style={styles.separator} />
 
       <Text style={styles.totalText}>Total global : {parseFloat(totalRemuneration).toFixed(2)} €</Text>
-
+      
       <TouchableOpacity
         style={[styles.button, isLoading && { backgroundColor: '#666' }]}
         onPress={handlePayment}
-        disabled={isLoading}
+        disabled={isLoading || !ready}
       >
         <Text style={styles.buttonText}>{isLoading ? 'Traitement...' : 'Valider le paiement'}</Text>
       </TouchableOpacity>
+      </StripeProvider>
     </ScrollView>
   );
 };

@@ -12,7 +12,7 @@ const ConnexionScreen = () => {
   const [showPassword, setShowPassword] = useState(false); // 👈
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
-  const { setUser } = useUser();
+  const { setUser } = useUser()
 
   const handleEmailChange = (text: string) => setEmail(text);
   const handlePasswordChange = (text: string) => setPassword(text);
@@ -52,7 +52,7 @@ const ConnexionScreen = () => {
     }
   };
 
-  const getProfile = async (accountId: string) => {
+const getProfile = async (accountId: string) => {
     try {
       const response = await fetch(`${config.backendUrl}/api/auth/get-account-by-id`, {
         method: 'POST',
@@ -80,18 +80,15 @@ const ConnexionScreen = () => {
   const isFormValid = email.length > 0 && password.length > 0;
 
   useEffect(() => {
-    console.log("email:", email, "password:", password);
-    console.log("form is valid:", isFormValid);
-  }, [email, password]);
-
-  useEffect(() => {
   const unsubscribe = navigation.addListener('focus', () => {
     setEmail('');
     setPassword('');
     setErrorMessage('');
+    console.log('Navigation focus: reset state');
   });
 
   return () => {
+    console.log('Cleaning up navigation listener');
     unsubscribe();
   };
 }, [navigation]);
@@ -104,9 +101,6 @@ const ConnexionScreen = () => {
       <Text style={styles.description}>
         Laissez-nous identifier votre profil, Star Set n'attend plus que vous !
       </Text>
-      <Text style={styles.description2}>
-        Version 1.01 BETA
-      </Text> 
       <View style={styles.separator}></View>
 
       <TextInput
