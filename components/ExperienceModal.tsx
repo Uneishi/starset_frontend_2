@@ -1,6 +1,7 @@
 // components/ExperienceModal.tsx
 import { FontAwesome } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
 import React from 'react';
 import { Alert, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -100,7 +101,7 @@ const ExperienceModal = ({
               onChange={(event, selectedDate) => {
                 if (selectedDate) {
                   const dateString = selectedDate.toISOString().split('T')[0].replace(/-/g, '/');
-                  handleChange('date', dateString);
+                  handleChange('date', moment(selectedDate).format('DD/MM/YYYY'));
                 }
                 onToggleCalendar(); // Fermer après sélection
               }}
