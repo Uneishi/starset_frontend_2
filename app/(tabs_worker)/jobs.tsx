@@ -103,9 +103,8 @@ const onRefresh = React.useCallback(() => {
   setTimeout(() => {
     setRefreshing(false);
   }, 2000);
-   getAllPrestation();
-    getAllMetierNames();
-    getWorkerPlannedPrestation()
+  getAllPrestation();
+  getWorkerPlannedPrestation()
 }, []);
 
   const getAllPrestation = async () => {
