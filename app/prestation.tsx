@@ -727,7 +727,7 @@ const deleteCertification = (id: string) => {
         <Text style={{ marginRight: 8, fontWeight: 'bold', fontSize: 12, color : 'black' }}>
           {prestation?.published ? 'Publié' : 'Non publié'}
         </Text>
-        <TouchableOpacity onPress={!haveCompany ? () => setMissingDocModalVisible(true) : confirmTogglePrestationPublished} >
+        <TouchableOpacity onPress={/*!haveCompany ? () => setMissingDocModalVisible(true) : */confirmTogglePrestationPublished} >
           <View
             style={{
               width: 40,
